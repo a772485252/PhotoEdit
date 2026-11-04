@@ -26,5 +26,16 @@ Build a genuine native Android application for photo processing and short-form v
 9. Do not force-push, delete files, or rewrite history without explicit approval.
 10. Prefer GitHub Actions for builds; test generated APKs on a real Android device.
 
+## UI and business separation (mandatory)
+- Use a lightweight single-app-module MVVM structure: ui/screens, ui/components, ui/theme, viewmodel, domain, and processing.
+- Compose UI renders immutable UI state and emits user intents through callbacks.
+- ViewModels own screen state and coordinate use cases; they must not depend on Compose UI widgets.
+- Domain rules and processing algorithms must not depend on Android Activity or Compose.
+- Keep Bitmap/Canvas and future video encoding inside processing adapters, not Composables.
+- Do not do heavy image or video work on the main thread.
+- Changes to colors, layout, and typography should generally stay in ui/.
+- Keep the architecture lightweight; no unnecessary DI framework or multiple Gradle modules initially.
+- Design processing parameters so they can be reimplemented for a future native iOS app.
+
 ## Next task
 Create a minimal Kotlin + Compose Android application with a GitHub Actions debug APK build workflow.
