@@ -37,6 +37,10 @@ M1 — Native Android skeleton committed; first CI build pending verification.
 - Replaced setup-android with runner SDK installation of platform android-35 and build-tools 35.0.0.
 - Awaiting a new build result; APK is not verified yet.
 
+- Run 41766023129 failed at Configure Android SDK because sdkmanager was not on PATH (exit 127).
+- Updated workflow to discover sdkmanager within the runner's Android SDK cmdline-tools directory.
+- Awaiting build verification after commit 99f1adf.
+
 ## Not yet done
 - Verified successful APK build.
 - Device installation and testing.
