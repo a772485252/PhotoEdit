@@ -11,6 +11,9 @@ Last updated: 2026-11-04
 - GitHub connection has push permission.
 - The user confirmed ordinary equal-grid splitting, so OpenCV is not needed.
 
+## Newly confirmed decision
+- Android first, with a future native iOS version planned. Keep core processing specifications independent of platform UI; no cross-platform framework required now.
+
 ## Current milestone
 M0 — Initialize project documentation and development rules.
 
