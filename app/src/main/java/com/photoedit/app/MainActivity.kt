@@ -73,7 +73,9 @@ class MainActivity : ComponentActivity() {
                                     canUsePrompt = !ai.busy, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
                                         tab = 1
-                                    })
+                                    }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
+                                    onModelDraft = chatViewModel::modelDraft, onRefreshModels = chatViewModel::refreshModels,
+                                    onAllowPaid = chatViewModel::allowPaid)
                         }
                     }
                 }

@@ -66,3 +66,16 @@ A free native Android application for preparing images and short-form video mate
 - Free Groq account subject to independent RPM/TPM/RPD/TPD limits. No automatic retry, account upgrade or paid fallback. Already-paid accounts are billed according to their platform settings.
 - History stays only in ViewModel memory; no disk or Bundle persistence. Failed sends retain input and successful prior history.
 - Official references: https://console.groq.com/docs/rate-limits and https://console.groq.com/docs/api-reference .
+
+## V0.5 selectable chat platforms and models (current)
+- Retain Groq and add OpenRouter; enum-based fixed endpoints and shared HTTP transport. No added SDK or Gradle dependency.
+- Default first-run platform is OpenRouter; save last platform and per-platform model IDs locally.
+- Groq retains groq_chat_private preferences/Keystore identity; OpenRouter uses openrouter_chat_private. Never migrate or reuse tokens across platforms. Cloudflare remains unchanged.
+- Models: per-platform presets, custom model ID, explicit OpenRouter catalog refresh/search. Catalog input/output modalities must include text; exclude non-chat endpoints when supplied.
+- OpenRouter defaults to :free variants; paid/custom non-free access requires explicit session-only opt-in. When off, request provider.max_price prompt/completion/request = 0 and allow only :free or openrouter/free. No paid tools/plugins enabled.
+- Presets are convenience entries, not proof of live availability. Refresh reads platform catalog prices and preserves selection; failures keep the previous catalog.
+- No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
+- Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
+- New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
+- Current version: 0.5.0 / versionCode 5.
+- Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .

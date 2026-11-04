@@ -1,0 +1,36 @@
+package com.photoedit.app.domain
+
+enum class ChatProvider(val label: String, val namespace: String, val defaultModel: String) {
+    OPENROUTER("OpenRouter", "openrouter_chat_private", "nvidia/nemotron-3.5-super-vl:free"),
+    GROQ("Groq", "groq_chat_private", "openai/gpt-oss-20b")
+}
+
+data class ChatModel(val id: String, val name: String, val free: Boolean? = null)
+
+object ChatModels {
+    fun presets(provider: ChatProvider): List<ChatModel> = when (provider) {
+        ChatProvider.OPENROUTER -> listOf(
+            ChatModel(provider.defaultModel, "NVIDIA Nemotron 3.5 Super VL", true),
+            ChatModel("nvidia/nemotron-3.5-lightning:free", "NVIDIA Nemotron 3.5 Lightning", true)
+        )
+        ChatProvider.GROQ -> listOf(
+            ChatModel(provider.defaultModel, "GPT-OSS 20B"),
+            ChatModel("openai/gpt-oss-120b", "GPT-OSS 120B")
+        )
+    }
+
+    fun validate(provider: ChatProvider, model: String, allowPaid: Boolean) {
+        require(model.length in 1..200 && model.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:/-]*"))) {
+            "请填写有效的模型 ID（不是网址），不能包含空格"
+        }
+        if (provider == ChatProvider.OPENROUTER && !allowPaid) {
+            require(model.endsWith(":free") || model == "openrouter/free") {
+                "当前仅允许免费模型；请选择 :free 模型，或明确开启付费模型"
+            }
+        }
+    }
+
+    // Missing/invalid prices must never be presented as free.
+    fun zeroPrice(value: String?): Boolean =
+        value?.toBigDecimalOrNull()?.compareTo(java.math.BigDecimal.ZERO) == 0
+}

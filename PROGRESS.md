@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.4 independent Groq prompt assistant implemented, CI verified and APK published. Live API/device verification pending.
+V0.5 selectable Groq/OpenRouter platforms and models implemented; CI and APK publication pending. Live API/device verification pending.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -100,3 +100,14 @@ V0.4 independent Groq prompt assistant implemented, CI verified and APK publishe
 - Latest APK: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
 - Live Groq requests remain unverified; user must enter their own separate Groq key on-device.
 - The prompt assistant has no reference or credentials for the Cloudflare image client. Text transfer invokes only AiViewModel.prompt, not generate.
+
+## V0.5 implementation (2026-11-04)
+- User clarified that Groq must remain selectable; no provider replacement/removal.
+- Added OpenRouter, platform selection, platform-specific encrypted Keys and saved model selection, custom ID, and explicit OpenRouter model catalog refresh/search.
+- Preserved Groq storage namespace/alias and all Cloudflare image settings. Clearing one chat Key does not clear the others.
+- Default OpenRouter model: nvidia/nemotron-3.5-super-vl:free. Presets are not live availability checks.
+- Default free-only mode rejects non-free custom IDs and submits zero prompt/completion/request price limits. Explicit paid opt-in is session-only and resets on platform switch.
+- Shared HTTPS client, fixed hosts, redirects disabled, bounded responses, sanitized errors. No extra libraries; version 0.5.0 / code 5.
+- New pure tests cover free gating, model syntax, malformed/unknown prices and Groq storage identity.
+- Execution environment unavailable in this session; local build unavailable. GitHub Actions must verify testDebugUnitTest, lintDebug and assembleDebug; no success claimed yet.
+- Device checks pending: separate Key save/clear/restart, platform/model restoration, paid toggle reset, catalog refresh/error, model switching/history, prompt copy/transfer, Groq regression and Cloudflare independence.
