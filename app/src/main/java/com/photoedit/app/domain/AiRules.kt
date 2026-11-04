@@ -33,11 +33,11 @@ object AiRules {
             .take(240)
         return buildString {
             append(errorMessage(http, code))
-            append("\\nHTTP: ").append(http)
+            append("\nHTTP: ").append(http)
             if (code != null) append(" | Cloudflare: ").append(code)
-            append("\\n模型: ").append(MODEL)
-            if (sanitized.isNotBlank()) append("\\n平台说明: ").append(sanitized)
-            append("\\n请勿分享 API Token。")
+            append("\n模型: ").append(MODEL)
+            if (sanitized.isNotBlank()) append("\n平台说明: ").append(sanitized)
+            append("\n请勿分享 API Token。")
         }
     }
 
