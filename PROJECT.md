@@ -16,7 +16,7 @@ A free native Android application for preparing images and short-form video mate
 - Video: plan for OpenGL ES + MediaCodec; implementation details to be validated on devices.
 - Storage: Android Photo Picker / Storage Access Framework / MediaStore as appropriate.
 - Build: Gradle + GitHub Actions, with downloadable APK artifact.
-- Network: no paid APIs; offline core features.
+- Network: offline core features; optional Cloudflare AI requires internet and a user-provided token.
 - Distribution: share APK directly; configure durable release signing before public releases.
 
 ## Platform strategy
@@ -41,9 +41,16 @@ A free native Android application for preparing images and short-form video mate
 - Remote: https://github.com/a772485252/PhotoEdit
 - No Android Studio or Java installed locally at project kickoff.
 
-## Planned Cloudflare AI integration — personal defaults
+## Cloudflare AI integration — personal defaults
 - User explicitly authorized committing their non-secret Cloudflare Account ID as the default: `4d17f32858b5ec94a9d493d703b54fb9`.
 - Pre-fill this Account ID in the future AI settings screen; retain an editable override.
 - API Token must remain empty by default, entered on-device and stored using Android Keystore-backed encryption; never commit it or embed it in the APK.
 - Personal use; cloud text-to-image/reference-image editing planned. Keep existing offline tools available without credentials.
-- This records a configuration decision only. AI settings, API client and generation flow are not implemented in V0.2.
+- V0.3 adds an AI tab: editable account ID, masked token, save/clear local settings, text-to-image and one-reference-image generation, result preview and PNG gallery save.
+- Direct HTTPS multipart requests to api.cloudflare.com; fixed FLUX.2 Klein 4B model, 1024x1024 output. Reference image is EXIF-normalized and reduced to max 511px per axis before PNG upload.
+- No requests until the user taps Generate. No automatic retries or paid/provider fallbacks. Code 3036 explicitly reports daily quota exhaustion, 3040 capacity and 5035 paid-plan requirements.
+- Platform Free-plan enforcement provides the spending limit. App cannot guarantee zero charges for an account already on a paid plan, nor accurately query remaining quota.
+- Android Keystore AES-GCM encrypts the saved token in app-private preferences. Token is not saved to a Bundle, logs, source or CI; application backup stays disabled.
+- Existing offline grid splitter is retained. Only the AI tab sends network requests.
+- AI integration is build-testable without credentials, but real endpoint behavior and identity consistency require device/account validation.
+- Additional free providers are not configured: same-provider models share the account daily quota, so swapping them does not replenish it.

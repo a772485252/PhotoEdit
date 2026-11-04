@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.2 complete and CI verified; APK published. Real-device verification remains pending.
+V0.3 Cloudflare AI implementation complete; new CI verification pending. V0.2 baseline remains verified.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -53,3 +53,20 @@ V0.2 complete and CI verified; APK published. Real-device verification remains p
 - Account ID was transcribed from the provided setup screenshot; no API Token was provided or stored.
 - Next AI implementation must initialize the Account ID field with the value in PROJECT.md, allow overrides, and leave API Token blank.
 - No AI settings/client or new APK was produced by this documentation-only update. Existing V0.2 APK remains current.
+
+## V0.3 Cloudflare AI implementation (2026-11-04)
+- User confirmed Token was generated. No Token was sent to the assistant or included in the repository.
+- Added AI tab with pre-filled authorized Account ID, local encrypted Token settings, text-to-image, optional single reference image, result preview and gallery save.
+- Kept offline grid features and MVVM separation. Added ai/ network and credential adapters, pure domain/AiRules, AiViewModel, AiScreen and processing/GalleryWriter.
+- Added INTERNET permission, no cleartext endpoints. Uses fixed Cloudflare API hostname and model, no arbitrary provider URLs.
+- Generation uploads prompt and selected reference only on explicit Generate. Reference longest edge 511px; output 1024x1024.
+- No automatic retries, upgrades or provider switching. Daily free quota errors stop; free plan must remain selected in the Cloudflare account to enforce no paid usage.
+- Same-provider models share daily account quota; they are not fallback free pools. Other providers await verified recurring free terms and user credentials.
+- Added rule tests for account/header validation, empty prompts, quota/capacity/paid-plan distinction.
+- Version 0.3.0 / code 3. No actual API or real-device test yet; only CI will be verified here.
+- Next device steps: install APK, open AI tab, enter Token, Save Settings, test text-only then reference generation and PNG save; check errors/usage without posting Token.
+- Device validation also needed: encrypted settings survive restart, clear Token, rotation during generation, no-network/timeout, Android 8/9 gallery permission, and offline grid regression.
+- Session editor images/prompts are not persisted across process death. Last successful output remains shown if a later request fails, labelled accordingly.
+- Current CI debug signing remains non-durable across clean runners.
+- Official API contract: https://developers.cloudflare.com/changelog/post/2026-01-15-flux-2-klein-4b-workers-ai/
+- Official errors: https://developers.cloudflare.com/workers-ai/platform/errors/
