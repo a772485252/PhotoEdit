@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.3 Cloudflare AI implementation complete; new CI verification pending. V0.2 baseline remains verified.
+V0.3 Cloudflare AI implemented and CI verified; APK published. Real API/device verification remains pending.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -70,3 +70,13 @@ V0.3 Cloudflare AI implementation complete; new CI verification pending. V0.2 ba
 - Current CI debug signing remains non-durable across clean runners.
 - Official API contract: https://developers.cloudflare.com/changelog/post/2026-01-15-flux-2-klein-4b-workers-ai/
 - Official errors: https://developers.cloudflare.com/workers-ai/platform/errors/
+
+## V0.3 verified CI and APK publication
+- Feature commit: daf8e2136c44471e54dcb4f054b559914ba13bed.
+- Successful run: https://github.com/a772485252/PhotoEdit/actions/runs/41788823975
+- Job 126437135268 completed successfully; testDebugUnitTest, lintDebug and assembleDebug executed, BUILD SUCCESSFUL in 41s.
+- Artifact PhotoEdit-debug-apk ID 13301858738, ZIP size 9,163,056 bytes.
+- APK publication commit d1d418b8d3f1e6f08a153e46b1813168083dd8e1; APK blob c3ff647065d6cb67d47df9543e5fb64806c2f35b.
+- Latest download: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
+- No build errors in this milestone. No live generation was performed, because the user keeps their Token on-device.
+- Next action: user installs V0.3, enters Token in AI tab, saves settings and performs a text-only then reference-image request; record actual response/error codes with credentials redacted.
