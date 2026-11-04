@@ -19,6 +19,12 @@ A free native Android application for preparing images and short-form video mate
 - Network: no paid APIs; offline core features.
 - Distribution: share APK directly; configure durable release signing before public releases.
 
+## Platform strategy
+- Android first; support vivo S18 and other compatible Android devices.
+- Future iOS version planned, but not in the initial milestone.
+- Keep processing parameters, data models, and algorithms conceptually separate from Android UI and platform APIs so an iOS implementation can reuse specifications.
+- Do not introduce Kotlin Multiplatform yet; reassess when iOS development begins.
+
 ## Pending decisions
 - Minimum Android SDK version (Android 8 / API 26 is proposed, not yet confirmed).
 - Final application ID/package name.
