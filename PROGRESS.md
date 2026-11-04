@@ -31,6 +31,12 @@ M1 — Native Android skeleton committed; first CI build pending verification.
 - Updated AGENTS.md to require UI/business/processing separation.
 - CI build must still be checked; no verified APK yet.
 
+## CI investigation
+- Workflow run 41765933343 failed in android-actions/setup-android@v3 before compilation.
+- Log: sdkmanager attempted obsolete package "tools" and exited with code 1.
+- Replaced setup-android with runner SDK installation of platform android-35 and build-tools 35.0.0.
+- Awaiting a new build result; APK is not verified yet.
+
 ## Not yet done
 - Verified successful APK build.
 - Device installation and testing.
