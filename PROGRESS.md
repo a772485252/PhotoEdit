@@ -15,11 +15,15 @@ Last updated: 2026-11-04
 - Android first, with a future native iOS version planned. Keep core processing specifications independent of platform UI; no cross-platform framework required now.
 
 ## Current milestone
-M0 — Initialize project documentation and development rules.
+M1 — Native Android skeleton committed; first CI build pending verification.
+
+## Implemented (not yet build-verified)
+- Kotlin / Jetpack Compose Android application skeleton with image picker.
+- Gradle configuration for Android API 26+ and Java 17.
+- GitHub Actions workflow to assemble and upload a debug APK.
+- Source files committed directly to main on 2026-11-04.
 
 ## Not yet done
-- Android Gradle project and Kotlin source files.
-- GitHub Actions workflow.
 - Verified successful APK build.
 - Device installation and testing.
 - Grid splitting and other app features.
