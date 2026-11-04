@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.2 implementation complete; CI verification pending for this commit.
+V0.2 complete and CI verified; APK published. Real-device verification remains pending.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -35,3 +35,14 @@ V0.2 implementation complete; CI verification pending for this commit.
 2. Check the V0.2 workflow result and latest-apk publication; record actual run/commit evidence below.
 3. Install APK on vivo S18 and record results; do not claim device verification based on CI.
 4. Preserve current architecture. Future milestones: configurable rows/columns, batch processing, 9:16 composition, still-image motion video.
+
+## V0.2 verified build and publication
+- Feature commit: 9d2d1e9c3be083286575f828dd1cc497c5520a9b.
+- Successful GitHub Actions run: https://github.com/a772485252/PhotoEdit/actions/runs/41784249143
+- Job 126422610796 completed successfully. Logs show testDebugUnitTest, lintDebug and assembleDebug executed; BUILD SUCCESSFUL in 1m 10s.
+- Artifact PhotoEdit-debug-apk: ID 13300257422, ZIP size 9,127,134 bytes.
+- CI published the APK in commit c3b6e5ff409a1547c4f4deeeb7c120cb01300514.
+- Confirmed changed APK blob: 50719869ba81a47eac344441a30f0676ab5473fb.
+- Current APK: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
+- No build errors occurred in this milestone. Runner action deprecation warnings are non-blocking; review action versions in a later CI maintenance task.
+- This evidence verifies compilation, unit checks, lint and publication only; no emulator or physical device tests were run.
