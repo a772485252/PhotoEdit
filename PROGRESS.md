@@ -23,13 +23,21 @@ M1 — Native Android skeleton committed; first CI build pending verification.
 - GitHub Actions workflow to assemble and upload a debug APK.
 - Source files committed directly to main on 2026-11-04.
 
+## UI architecture refactor (2026-11-04; build unverified)
+- Moved home screen Compose UI into ui/screens/HomeScreen.kt.
+- Added HomeViewModel and immutable HomeUiState in viewmodel/.
+- MainActivity now coordinates Android photo picker and screen.
+- Added AndroidX Lifecycle dependencies.
+- Updated AGENTS.md to require UI/business/processing separation.
+- CI build must still be checked; no verified APK yet.
+
 ## Not yet done
 - Verified successful APK build.
 - Device installation and testing.
 - Grid splitting and other app features.
 
 ## Next actions
-1. Create minimal native Kotlin/Compose project and GitHub Actions APK workflow.
+1. Verify the existing Android APK workflow and fix any build failures.
 2. Check workflow run results and fix build failures.
 3. Download and test debug APK.
 4. Implement equal-grid splitting and export.
