@@ -12,9 +12,9 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /** Local credentials only; callers perform disk/Keystore work on Dispatchers.IO. */
-class AiSettingsStore(context: Context) {
-    private val prefs = context.getSharedPreferences("cloudflare_private", Context.MODE_PRIVATE)
-    private val alias = "PhotoEditCloudflareToken"
+class AiSettingsStore(context: Context, namespace: String = "cloudflare_private") {
+    private val prefs = context.getSharedPreferences(namespace, Context.MODE_PRIVATE)
+    private val alias = if (namespace == "cloudflare_private") "PhotoEditCloudflareToken" else "PhotoEdit_$namespace"
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }

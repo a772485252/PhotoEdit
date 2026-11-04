@@ -51,6 +51,18 @@ A free native Android application for preparing images and short-form video mate
 - No requests until the user taps Generate. No automatic retries or paid/provider fallbacks. Code 3036 explicitly reports daily quota exhaustion, 3040 capacity and 5035 paid-plan requirements.
 - Platform Free-plan enforcement provides the spending limit. App cannot guarantee zero charges for an account already on a paid plan, nor accurately query remaining quota.
 - Android Keystore AES-GCM encrypts the saved token in app-private preferences. Token is not saved to a Bundle, logs, source or CI; application backup stays disabled.
-- Existing offline grid splitter is retained. Only the AI tab sends network requests.
+- Existing offline grid splitter is retained. AI image generation sends requests only on Generate; V0.4 chat sends text only on Send.
 - AI integration is build-testable without credentials, but real endpoint behavior and identity consistency require device/account validation.
 - Additional free providers are not configured: same-provider models share the account daily quota, so swapping them does not replenish it.
+
+## V0.4 independent prompt assistant
+- Explicit user requirement: chat must not consume Cloudflare image-generation quota.
+- Separate provider: Groq REST Chat Completions, fixed https://api.groq.com/openai/v1/chat/completions and openai/gpt-oss-20b.
+- Requires a separate user-created Groq API Key. Never reuse or send Cloudflare credentials to Groq, or Groq credentials to Cloudflare.
+- Reuses AES-GCM storage implementation with a distinct preferences namespace and Keystore alias; original Cloudflare alias is preserved for compatibility.
+- Chinese prompt-writing mode and general chat mode; mode change starts a new chat. Text only, no reference-image upload, no browsing or external tools.
+- Successful replies can be copied; prompt-mode replies up to 4000 characters can populate the image prompt without starting generation. Existing reference image remains selected.
+- Bound request context to 3 previous complete turns / 6000 characters plus system instruction, current input max 2000 characters, reply budget 2048 completion tokens including reasoning.
+- Free Groq account subject to independent RPM/TPM/RPD/TPD limits. No automatic retry, account upgrade or paid fallback. Already-paid accounts are billed according to their platform settings.
+- History stays only in ViewModel memory; no disk or Bundle persistence. Failed sends retain input and successful prior history.
+- Official references: https://console.groq.com/docs/rate-limits and https://console.groq.com/docs/api-reference .

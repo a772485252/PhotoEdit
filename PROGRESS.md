@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.3 Cloudflare AI implemented and CI verified; APK published. Real API/device verification remains pending.
+V0.4 independent Groq prompt assistant implemented; new CI verification pending. Previous V0.3 baseline verified.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -80,3 +80,14 @@ V0.3 Cloudflare AI implemented and CI verified; APK published. Real API/device v
 - Latest download: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
 - No build errors in this milestone. No live generation was performed, because the user keeps their Token on-device.
 - Next action: user installs V0.3, enters Token in AI tab, saves settings and performs a text-only then reference-image request; record actual response/error codes with credentials redacted.
+
+## V0.4 implementation (2026-11-04)
+- User explicitly rejected sharing Cloudflare image quota with chat; no Cloudflare chat endpoint was committed.
+- Added Groq GPT-OSS 20B text-only assistant with independent API Key, encrypted settings, prompt/general-chat modes, copy, and explicit transfer to AI image prompt.
+- Cloudflare image credentials/storage alias unchanged. Groq uses separate preferences and alias; clearing one key does not clear the other.
+- Added ChatRules pure context budget rules, GroqChatClient, ChatViewModel and ChatScreen. Version 0.4.0 / code 4.
+- Tests cover bounded complete-turn context, newest request retention, mode instructions and blank input.
+- Request errors preserve draft/history; no automatic retries or image generation from chat. 429 is displayed as Groq quota/rate restriction.
+- No actual Groq API or device test yet (no key available to assistant). New CI result must be recorded below.
+- Next: user registers Groq Free, creates Key and enters it in Prompt Assistant; verify chat, prompt refinements, copy, transfer without a Cloudflare request, save/clear/restart of both credentials independently.
+- Confirm no regressions in offline grids and Cloudflare image generation; validate network/403/429/timeouts with sanitized errors.

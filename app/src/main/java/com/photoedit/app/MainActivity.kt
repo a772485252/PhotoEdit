@@ -21,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.photoedit.app.ui.screens.ChatScreen
+import com.photoedit.app.viewmodel.ChatViewModel
 import com.photoedit.app.ui.screens.AiScreen
 import com.photoedit.app.ui.screens.HomeScreen
 import com.photoedit.app.ui.theme.PhotoEditTheme
@@ -28,6 +30,7 @@ import com.photoedit.app.viewmodel.AiViewModel
 import com.photoedit.app.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
+    private val chatViewModel: ChatViewModel by viewModels()
     private val homeViewModel: HomeViewModel by viewModels()
     private val aiViewModel: AiViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +40,7 @@ class MainActivity : ComponentActivity() {
                 var tab by rememberSaveable { mutableIntStateOf(0) }
                 val state by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val ai by aiViewModel.uiState.collectAsStateWithLifecycle()
+                val chat by chatViewModel.uiState.collectAsStateWithLifecycle()
                 val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { homeViewModel.onPhotoSelected(it) }
                 val referencePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { aiViewModel.selectReference(it) }
                 val gridPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -50,6 +54,7 @@ class MainActivity : ComponentActivity() {
                         TabRow(selectedTabIndex = tab) {
                             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("离线宫格") })
                             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("AI 图片") })
+                            Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("提示词助手") })
                         }
                         androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
                             if (tab == 0) HomeScreen(state, onChoosePhoto = {
@@ -57,13 +62,18 @@ class MainActivity : ComponentActivity() {
                             }, onGrid = homeViewModel::selectGrid, onSplit = homeViewModel::split, onSave = {
                                 if (needsStoragePermission()) gridPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                 else homeViewModel.save()
-                            }) else AiScreen(ai, aiViewModel::account, aiViewModel::token, aiViewModel::prompt,
+                            }) else if (tab == 1) AiScreen(ai, aiViewModel::account, aiViewModel::token, aiViewModel::prompt,
                                 aiViewModel::saveSettings, aiViewModel::clearSettings, onChoose = {
                                     referencePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                                 }, onRemove = aiViewModel::removeReference, onGenerate = aiViewModel::generate, onSaveImage = {
                                     if (needsStoragePermission()) aiPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     else aiViewModel.saveImage()
-                                })
+                                }) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                    chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
+                                    canUsePrompt = !ai.busy, onUsePrompt = { prompt ->
+                                        aiViewModel.prompt(prompt)
+                                        tab = 1
+                                    })
                         }
                     }
                 }
