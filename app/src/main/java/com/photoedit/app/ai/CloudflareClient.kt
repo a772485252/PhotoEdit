@@ -55,13 +55,13 @@ class CloudflareClient {
             connection.outputStream.use { it.write(body) }
             val http = connection.responseCode
             val data = (if (http in 200..299) connection.inputStream else connection.errorStream)
-                ?.use { readLimited(it) } ?: throw IOException(AiRules.errorMessage(http, null))
+                ?.use { readLimited(it) } ?: throw IOException(AiRules.diagnosticMessage(http, null, null, token, account))
             val imageBytes = if (http in 200..299 && connection.contentType.orEmpty().startsWith("image/")) data else {
                 val json = runCatching { JSONObject(data.toString(Charsets.UTF_8)) }.getOrNull()
                 val error = json?.optJSONArray("errors")?.optJSONObject(0)
                 val code = error?.optInt("code", -1)?.takeIf { it >= 0 }
                 if (http !in 200..299 || json?.optBoolean("success", true) == false) {
-                    throw IOException(AiRules.errorMessage(http, code))
+                    throw IOException(AiRules.diagnosticMessage(http, code, error?.optString("message"), token, account))
                 }
                 val result = json?.opt("result")
                 val encoded = when (result) {
