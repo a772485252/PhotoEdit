@@ -23,4 +23,22 @@ object AiRules {
             else -> "生成失败（HTTP $http${code?.let { ", 错误码 $it" } ?: ""}），请稍后检查控制台"
         }
     }
+    fun diagnosticMessage(http: Int, code: Int?, remoteMessage: String?, token: String, account: String): String {
+        // Cloudflare messages are untrusted: never expose credentials or arbitrary long responses.
+        val sanitized = remoteMessage.orEmpty()
+            .replace(token, "[REDACTED]", ignoreCase = false)
+            .replace(account, "[ACCOUNT]", ignoreCase = true)
+            .replace(Regex("(?i)bearer\\s+[^\\s,;]+"), "Bearer [REDACTED]")
+            .replace(Regex("[\\r\\n\\t]+"), " ")
+            .take(240)
+        return buildString {
+            append(errorMessage(http, code))
+            append("\\nHTTP: ").append(http)
+            if (code != null) append(" | Cloudflare: ").append(code)
+            append("\\n模型: ").append(MODEL)
+            if (sanitized.isNotBlank()) append("\\n平台说明: ").append(sanitized)
+            append("\\n请勿分享 API Token。")
+        }
+    }
+
 }
