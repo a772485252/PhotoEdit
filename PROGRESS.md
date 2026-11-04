@@ -2,69 +2,36 @@
 
 Last updated: 2026-11-04
 
-## Verified
-- Windows local directory D:\Projects\PhotoEdit exists.
-- Git is installed (reported 2.40.1.windows.1).
-- Local directory is a Git repository and origin points to https://github.com/a772485252/PhotoEdit.git.
-- Connected GitHub account: a772485252.
-- Remote repository exists, is public, has default branch main, and was empty before initialization.
-- GitHub connection has push permission.
-- The user confirmed ordinary equal-grid splitting, so OpenCV is not needed.
-
-## Newly confirmed decision
-- Android first, with a future native iOS version planned. Keep core processing specifications independent of platform UI; no cross-platform framework required now.
-
 ## Current milestone
-M1 — Native Android skeleton and debug APK CI build verified successful.
+V0.2 implementation complete; CI verification pending for this commit.
 
-## Implemented (not yet build-verified)
-- Kotlin / Jetpack Compose Android application skeleton with image picker.
-- Gradle configuration for Android API 26+ and Java 17.
-- GitHub Actions workflow to assemble and upload a debug APK.
-- Source files committed directly to main on 2026-11-04.
+## Existing verified baseline
+- Native Kotlin + Jetpack Compose skeleton; default branch main.
+- Android SDK setup and debug APK build previously verified (run 41766155065).
+- latest-apk/PhotoEdit-debug.apk already published automatically by CI.
+- Repository: https://github.com/a772485252/PhotoEdit; Windows checkout: D:\Projects\PhotoEdit.
 
-## UI architecture refactor (2026-11-04; build unverified)
-- Moved home screen Compose UI into ui/screens/HomeScreen.kt.
-- Added HomeViewModel and immutable HomeUiState in viewmodel/.
-- MainActivity now coordinates Android photo picker and screen.
-- Added AndroidX Lifecycle dependencies.
-- Updated AGENTS.md to require UI/business/processing separation.
-- CI build must still be checked; no verified APK yet.
+## V0.2 implemented
+- Chinese UI, system photo picker with fallback, decoded image preview.
+- 2x2 / 3x3 / 4x4 grid selection and numbered result previews.
+- Background decode, EXIF orientation correction, centered equal-size grid geometry.
+- PNG export from processing-resolution image to MediaStore; pending writes and rollback on failure.
+- Android 8/9 legacy storage permission, Android 10+ permission-free gallery writes.
+- Busy state prevents overlapping operations; selection cancellation preserves current work; errors shown in Chinese.
+- Kept single-module MVVM and separated UI/theme/components, ViewModel, pure domain geometry and Android processing.
+- Version 0.2.0 / versionCode 2.
+- CI now runs testDebugUnitTest, lintDebug and assembleDebug before APK upload/publication.
 
-## CI investigation
-- Workflow run 41765933343 failed in android-actions/setup-android@v3 before compilation.
-- Log: sdkmanager attempted obsolete package "tools" and exited with code 1.
-- Replaced setup-android with runner SDK installation of platform android-35 and build-tools 35.0.0.
-- Awaiting a new build result; APK is not verified yet.
+## Limits and device checks still required
+- Large images are sampled to ~8 MP / max 4096 dimension; actual processing resolution is displayed. Export is lossless PNG at this resolution, not guaranteed original resolution.
+- Equal tile sizing trims at most n-1 pixels per axis, centered. No square crop.
+- Process death resets the editor; rotation keeps ViewModel state. Session/project continuation is documented here, not editor persistence.
+- Real-device testing has NOT been performed. Test vivo S18: airplane-mode local photo selection, all grid sizes, EXIF portrait/mirror, repeated selection/export, PNG order and gallery visibility.
+- Test Android 8/9 allow/deny permission; Android 10+ permission-free save; low storage/error cleanup; large-image memory behavior.
+- CI debug signing is not yet durable; install-over compatibility between fresh CI builds is not guaranteed.
 
-- Run 41766023129 failed at Configure Android SDK because sdkmanager was not on PATH (exit 127).
-- Updated workflow to discover sdkmanager within the runner's Android SDK cmdline-tools directory.
-- Awaiting build verification after commit 99f1adf.
-
-## Verified APK build (2026-11-04)
-- GitHub Actions run #12 (41766155065) completed successfully.
-- Artifact PhotoEdit-debug-apk (artifact ID 13293181315) exists, size 9,051,145 bytes (ZIP).
-- Android SDK setup and Gradle build now succeed in CI.
-- APK installation and behavior on vivo S18 remain untested.
-
-## Latest APK via git pull
-- User requested a single current APK at latest-apk/PhotoEdit-debug.apk in the repository.
-- GitHub Actions now copies the compiled debug APK into that path and commits it back to main after successful builds.
-- The publish commit includes [skip ci] and latest-apk/** is ignored as a push trigger to avoid recursive builds.
-- Publication requires the repository's Actions GITHUB_TOKEN to have write access and permission to push to main.
-- This workflow change is committed; first automatic APK publication still needs verification.
-- Git history retains old APK blobs even though the working tree keeps only one current APK.
-
-## Not yet done
-- Device installation and testing.
-- Grid splitting and other app features.
-
-## Next actions
-1. Download and install the debug APK on an Android device; record real-device findings.
-2. Check workflow run results and fix build failures.
-3. Download and test debug APK.
-4. Implement equal-grid splitting and export.
-5. Update this file with actual build/run evidence.
-
-## Session handoff
-Read AGENTS.md and PROJECT.md before coding. Verify repository state, then continue from the next unchecked milestone. Never mark a task complete solely because code was written.
+## Handoff
+1. Read AGENTS.md, PROJECT.md, PROGRESS.md and inspect main/status before edits.
+2. Check the V0.2 workflow result and latest-apk publication; record actual run/commit evidence below.
+3. Install APK on vivo S18 and record results; do not claim device verification based on CI.
+4. Preserve current architecture. Future milestones: configurable rows/columns, batch processing, 9:16 composition, still-image motion video.

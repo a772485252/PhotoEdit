@@ -25,10 +25,16 @@ A free native Android application for preparing images and short-form video mate
 - Keep processing parameters, data models, and algorithms conceptually separate from Android UI and platform APIs so an iOS implementation can reuse specifications.
 - Do not introduce Kotlin Multiplatform yet; reassess when iOS development begins.
 
-## Pending decisions
-- Minimum Android SDK version (Android 8 / API 26 is proposed, not yet confirmed).
-- Final application ID/package name.
-- Exact first-release UI and supported output formats.
+## V0.2 implementation decisions
+- Minimum Android SDK: 26; target/compile SDK: 35. Application ID: com.photoedit.app.
+- Chinese Compose UI, image picker, source preview, 2x2 / 3x3 / 4x4 equal-grid preview and PNG gallery export.
+- Preserve aspect ratio; centered crop of width % columns and height % rows pixels produces identical tile sizes. No square crop.
+- Number tiles left-to-right, top-to-bottom. Export uses decoded source, not preview thumbnails.
+- Decode to at most approximately 8 megapixels and 4096 pixels per dimension using power-of-two sampling; show actual processing resolution. EXIF rotation and mirroring are applied.
+- Android 10+: MediaStore pending writes to Pictures/PhotoEdit, no storage permission. Android 8/9: request WRITE_EXTERNAL_STORAGE and insert through MediaStore.
+- No INTERNET permission or remote processing. Cloud-only picker items may require downloading by the system picker; use on-device photos for offline operation.
+- Lightweight single-module MVVM: ui/screens, ui/components, ui/theme; viewmodel coordinates processing; domain/GridSpec is platform-independent; processing/ImageProcessor owns Android APIs.
+- Public distribution still needs durable signing; CI debug keystore may differ between clean builds. Do not uninstall an existing app unless its data is backed up.
 
 ## Working environment
 - Local: D:\Projects\PhotoEdit (exists and is a Git repository; remote origin configured).
