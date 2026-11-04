@@ -1,5 +1,8 @@
 package com.photoedit.app.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,6 +20,7 @@ import com.photoedit.app.viewmodel.AiUiState
 fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) -> Unit,
              onPrompt: (String) -> Unit, onSaveSettings: () -> Unit, onClearSettings: () -> Unit,
              onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit) {
+    val context = LocalContext.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("AI 图片 · Cloudflare", style = MaterialTheme.typography.headlineSmall)
@@ -32,6 +36,11 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
             TextButton(onClick = onClearSettings, enabled = !state.busy) { Text("清除 Token") }
         }
         Text("请保持 Cloudflare Free 套餐。用完停止，不自动重试、不自动切换付费服务；若账户已开通付费，超额计费由平台控制。", style = MaterialTheme.typography.bodySmall)
+        Text("免费额度：每日 10,000 Neurons（北京时间 08:00 重置）", style = MaterialTheme.typography.bodyMedium)
+        Text("实时剩余额度：暂不可读取。Cloudflare 统计可能延迟；请以官方控制台为准。", style = MaterialTheme.typography.bodySmall)
+        TextButton(onClick = {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://dash.cloudflare.com/")))
+        }) { Text("查看 Cloudflare 官方用量") }
         OutlinedButton(onClick = onChoose, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
             Text(if (state.reference == null) "添加参考图（可选）" else "更换参考图")
         }
