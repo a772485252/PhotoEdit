@@ -46,3 +46,10 @@ V0.2 complete and CI verified; APK published. Real-device verification remains p
 - Current APK: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
 - No build errors occurred in this milestone. Runner action deprecation warnings are non-blocking; review action versions in a later CI maintenance task.
 - This evidence verifies compilation, unit checks, lint and publication only; no emulator or physical device tests were run.
+
+## Cloudflare setup handoff (2026-11-04)
+- User registered Cloudflare and reached the Workers AI REST API setup page.
+- User authorized saving Account ID `4d17f32858b5ec94a9d493d703b54fb9` publicly as the pre-filled personal default for the upcoming integration.
+- Account ID was transcribed from the provided setup screenshot; no API Token was provided or stored.
+- Next AI implementation must initialize the Account ID field with the value in PROJECT.md, allow overrides, and leave API Token blank.
+- No AI settings/client or new APK was produced by this documentation-only update. Existing V0.2 APK remains current.
