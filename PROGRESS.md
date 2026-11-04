@@ -47,6 +47,14 @@ M1 — Native Android skeleton and debug APK CI build verified successful.
 - Android SDK setup and Gradle build now succeed in CI.
 - APK installation and behavior on vivo S18 remain untested.
 
+## Latest APK via git pull
+- User requested a single current APK at latest-apk/PhotoEdit-debug.apk in the repository.
+- GitHub Actions now copies the compiled debug APK into that path and commits it back to main after successful builds.
+- The publish commit includes [skip ci] and latest-apk/** is ignored as a push trigger to avoid recursive builds.
+- Publication requires the repository's Actions GITHUB_TOKEN to have write access and permission to push to main.
+- This workflow change is committed; first automatic APK publication still needs verification.
+- Git history retains old APK blobs even though the working tree keeps only one current APK.
+
 ## Not yet done
 - Device installation and testing.
 - Grid splitting and other app features.
