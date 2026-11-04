@@ -15,7 +15,7 @@ Last updated: 2026-11-04
 - Android first, with a future native iOS version planned. Keep core processing specifications independent of platform UI; no cross-platform framework required now.
 
 ## Current milestone
-M1 — Native Android skeleton committed; first CI build pending verification.
+M1 — Native Android skeleton and debug APK CI build verified successful.
 
 ## Implemented (not yet build-verified)
 - Kotlin / Jetpack Compose Android application skeleton with image picker.
@@ -41,13 +41,18 @@ M1 — Native Android skeleton committed; first CI build pending verification.
 - Updated workflow to discover sdkmanager within the runner's Android SDK cmdline-tools directory.
 - Awaiting build verification after commit 99f1adf.
 
+## Verified APK build (2026-11-04)
+- GitHub Actions run #12 (41766155065) completed successfully.
+- Artifact PhotoEdit-debug-apk (artifact ID 13293181315) exists, size 9,051,145 bytes (ZIP).
+- Android SDK setup and Gradle build now succeed in CI.
+- APK installation and behavior on vivo S18 remain untested.
+
 ## Not yet done
-- Verified successful APK build.
 - Device installation and testing.
 - Grid splitting and other app features.
 
 ## Next actions
-1. Verify the existing Android APK workflow and fix any build failures.
+1. Download and install the debug APK on an Android device; record real-device findings.
 2. Check workflow run results and fix build failures.
 3. Download and test debug APK.
 4. Implement equal-grid splitting and export.
