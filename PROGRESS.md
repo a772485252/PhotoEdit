@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.4 independent Groq prompt assistant implemented; new CI verification pending. Previous V0.3 baseline verified.
+V0.4 independent Groq prompt assistant implemented, CI verified and APK published. Live API/device verification pending.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -91,3 +91,12 @@ V0.4 independent Groq prompt assistant implemented; new CI verification pending.
 - No actual Groq API or device test yet (no key available to assistant). New CI result must be recorded below.
 - Next: user registers Groq Free, creates Key and enters it in Prompt Assistant; verify chat, prompt refinements, copy, transfer without a Cloudflare request, save/clear/restart of both credentials independently.
 - Confirm no regressions in offline grids and Cloudflare image generation; validate network/403/429/timeouts with sanitized errors.
+
+## V0.4 verified CI and publication
+- Feature commit: 0f35f686811faccb11f3bb93ed905c995510d27f.
+- Successful workflow: https://github.com/a772485252/PhotoEdit/actions/runs/41789846298
+- Job 126440409729 passed testDebugUnitTest, lintDebug and assembleDebug; BUILD SUCCESSFUL in 46s. APK upload and publication also passed.
+- APK publication commit: 170b775e9ecb8c3e6d7b761d5ea946f945f3e0a9; APK blob cc1f1c4f836500a9f34a405623fa78138c20475a.
+- Latest APK: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
+- Live Groq requests remain unverified; user must enter their own separate Groq key on-device.
+- The prompt assistant has no reference or credentials for the Cloudflare image client. Text transfer invokes only AiViewModel.prompt, not generate.
