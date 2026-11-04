@@ -3,7 +3,7 @@
 Last updated: 2026-11-04
 
 ## Current milestone
-V0.5 selectable Groq/OpenRouter platforms and models implemented; CI and APK publication pending. Live API/device verification pending.
+V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified and APK published. Live API/device verification pending.
 
 ## Existing verified baseline
 - Native Kotlin + Jetpack Compose skeleton; default branch main.
@@ -111,3 +111,14 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented; CI and APK pub
 - New pure tests cover free gating, model syntax, malformed/unknown prices and Groq storage identity.
 - Execution environment unavailable in this session; local build unavailable. GitHub Actions must verify testDebugUnitTest, lintDebug and assembleDebug; no success claimed yet.
 - Device checks pending: separate Key save/clear/restart, platform/model restoration, paid toggle reset, catalog refresh/error, model switching/history, prompt copy/transfer, Groq regression and Cloudflare independence.
+
+## V0.5 verified CI and APK publication
+- Feature commit: 9645a865181fd2ea34a8f8237514afa285714288.
+- Successful workflow: https://github.com/a772485252/PhotoEdit/actions/runs/41802528739
+- Job 126481518512 passed testDebugUnitTest, lintDebug and assembleDebug; BUILD SUCCESSFUL in 49s. Upload and APK publication also passed.
+- Artifact PhotoEdit-debug-apk ID 13308396537, ZIP size 9,221,285 bytes.
+- APK publication commit: eada32618be82e01d073524f85307a4d245916a4; APK blob 6b6f9534b6e33c9e625487f030475d2b9366885e.
+- APK size: 9,626,053 bytes versus V0.4 9,609,669 bytes (increase 16,384 bytes; no added SDK).
+- Download: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
+- No build failures. Existing GitHub Actions deprecation warnings remain non-blocking.
+- No live API, emulator or real-device testing performed. User retains Keys on-device; do not infer API/model availability from the successful build.
