@@ -185,7 +185,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.padding(12.dp)) {
                                     Text(outfit.title, style = MaterialTheme.typography.titleSmall)
-                                    Text("保留该风格上衣设计；下装在两种白色款式中随机替换。", style = MaterialTheme.typography.bodySmall)
+                                    Text("保留整套风格，搭配薄纱叠层、短裙或开衩裙设计。", style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
