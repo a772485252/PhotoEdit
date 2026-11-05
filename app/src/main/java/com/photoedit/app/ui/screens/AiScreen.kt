@@ -8,7 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -19,13 +19,20 @@ import com.photoedit.app.viewmodel.AiUiState
 @Composable
 fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) -> Unit,
              onPrompt: (String) -> Unit, onSaveSettings: () -> Unit, onClearSettings: () -> Unit,
-             onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit) {
+             onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit,
+ onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit) {
     val context = LocalContext.current
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+    var showSettings by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize().imePadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("AI 图片 · Cloudflare", style = MaterialTheme.typography.headlineSmall)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("AI 图片", style = MaterialTheme.typography.headlineSmall)
+            TextButton(onClick = { showSettings = !showSettings }) { Text("设置") }
+            TextButton(onClick = onNewSession, enabled = !state.busy) { Text("新会话") }
+        }
         Text("FLUX.2 Klein 4B · 输出 1024 × 1024")
         Text("云端功能需要联网。点击生成会向 Cloudflare 发送提示词和所选参考图。", style = MaterialTheme.typography.bodySmall)
+        if (showSettings) {
         OutlinedTextField(state.account, onAccount, label = { Text("Account ID") }, singleLine = true,
             enabled = !state.busy, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(state.token, onToken, label = { Text("API Token（仅保存在本机）") }, singleLine = true,
@@ -41,6 +48,20 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
         TextButton(onClick = {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://dash.cloudflare.com/")))
         }) { Text("查看 Cloudflare 官方用量") }
+        }
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (state.turns.isEmpty()) Text("上传参考图或输入提示词开始创作")
+            state.turns.forEachIndexed { index, turn ->
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text("你：${turn.prompt}")
+                        PhotoPreview(turn.image, "生成结果")
+                        TextButton(onClick = { onUseTurn(index) }, enabled = !state.busy) { Text("以此图继续编辑") }
+                    }
+                }
+            }
+            state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+        }
         OutlinedButton(onClick = onChoose, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
             Text(if (state.reference == null) "添加参考图（可选）" else "更换参考图")
         }
@@ -49,15 +70,19 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
             Text("上传前自动缩小至最长边 511 像素；人物长相不保证完全一致。", style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = onRemove, enabled = !state.busy) { Text("移除参考图，改用文生图") }
         }
-        OutlinedTextField(state.prompt, onPrompt, label = { Text("提示词") }, minLines = 3,
+        if (state.result != null) {
+            Row {
+                Checkbox(checked = state.continueEditing, onCheckedChange = onContinue, enabled = !state.busy)
+                Text("继续编辑上一张生成图", modifier = Modifier.padding(top = 12.dp))
+            }
+        }
+        OutlinedTextField(state.prompt, onPrompt, label = { Text("描述要生成或修改的图片") }, minLines = 2,
             enabled = !state.busy, modifier = Modifier.fillMaxWidth())
         Button(onClick = onGenerate, enabled = !state.busy && state.token.isNotBlank() && state.prompt.isNotBlank(),
             modifier = Modifier.fillMaxWidth()) { Text(if (state.reference == null) "文生图" else "参考图生成") }
         if (state.busy) { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("正在处理，请稍候…") }
-        state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
         state.result?.let {
             Text("最近一次成功结果", style = MaterialTheme.typography.titleLarge)
-            PhotoPreview(it, "AI 生成结果")
             Button(onClick = onSaveImage, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("保存到手机相册") }
         }
     }
