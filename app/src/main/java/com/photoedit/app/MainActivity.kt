@@ -79,9 +79,12 @@ class MainActivity : ComponentActivity() {
                                 onApiPodKey = aiViewModel::apiPodKey, onSaveApiPodKey = aiViewModel::saveApiPodKey,
                                 onClearApiPodKey = aiViewModel::clearApiPodKey, onApiPodPro = aiViewModel::apiPodPro,
                                 onStopApiPodWaiting = aiViewModel::stopApiPodWaiting,
-                                onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking,
+                                onVeniceKey = aiViewModel::veniceKey, onSaveVeniceKey = aiViewModel::saveVeniceKey,
+                                onClearVeniceKey = aiViewModel::clearVeniceKey,
+                                onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
-                                    canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending, onUsePrompt = { prompt ->
+                                    canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
                                         tab = 1
                                     }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,

@@ -77,7 +77,7 @@ A free native Android application for preparing images and short-form video mate
 - No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
 - Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
 - New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
-- Current version: 0.8.0 / versionCode 11.
+- Current version: 0.9.0 / versionCode 12.
 - Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .
 
 ## Personal persistent debug signing
@@ -111,3 +111,9 @@ A free native Android application for preparing images and short-form video mate
 - Async POST with per-logical-operation Idempotency-Key and retained exact body/key; authenticated status polling with bounded backoff/jitter. In-memory pending state survives local stop/poll failures; continue-query reuses task ID or same idempotent create. No automatic POST retries.
 - Data-URI PNG reference max1024, body bounded; results download without forwarding Key, HTTPS/no redirects/private-address filtering, bounded bytes and decode size.
 - Stop-wait pauses locally only. Explicit confirmed end-tracking does not cancel platform task or refund. All history/operation handles are session memory only; do not force-close while task unresolved.
+
+## V0.9 Venice image provider
+- Optional paid provider, distinct encrypted venice_private Key; no SDK/dependencies and existing defaults/signing preserved.
+- Text: Z-Image Turbo 1024x1024, indicative $0.01. One reference or previous result: FireRed image edit, indicative $0.04. Explicit routing/prices displayed before submission. PNG reference max1024 with256 minimum short edge; no paid prompt enhancement.
+- Synchronous binary responses, bounded decode and fixed HTTPS destination. Keep default platform content processing; report blurred output. Content acceptance/anatomy not guaranteed.
+- No automatic retries or claimed server cancellation/status queries. Ambiguous outcomes lock new submission until user checks usage and acknowledges; input/result retained. All operation state session-only. See docs/VENICE.md.

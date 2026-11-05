@@ -8,6 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.photoedit.app.ai.ApiPodClient
 import com.photoedit.app.ai.ApiPodOperation
 import com.photoedit.app.ai.ApiPodException
+import com.photoedit.app.ai.VeniceClient
+import com.photoedit.app.ai.VeniceException
+import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.ai.AiSettingsStore
 import com.photoedit.app.ai.CloudflareClient
 import com.photoedit.app.ai.HordeClient
@@ -40,6 +43,8 @@ data class AiUiState(
     val apiPodKey: String = "",
     val apiPodPro: Boolean = false,
     val apiPodPending: Boolean = false,
+    val veniceKey: String = "",
+    val veniceOutcomeUnknown: Boolean = false,
     val hordeKey: String = "",
     val hordeModel: String = HordeRules.DEFAULT_MODEL,
     val hordeDenoise: Double = 0.55,
@@ -63,7 +68,9 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     private val apiPodClient = ApiPodClient()
     private val apiPodSettings = AiSettingsStore(application, "apipod_private")
     private var pendingApiPod: ApiPodOperation? = null
-    private fun hasPending() = pendingHorde != null || pendingApiPod != null
+    private val veniceClient = VeniceClient()
+    private val veniceSettings = AiSettingsStore(application, "venice_private")
+    private fun hasPending() = pendingHorde != null || pendingApiPod != null || _state.value.veniceOutcomeUnknown
     private val hordeSettings = AiSettingsStore(application, "horde_private")
     private val imagePreferences = application.getSharedPreferences("image_preferences", android.content.Context.MODE_PRIVATE)
     private data class PendingHorde(val id: String, val prompt: String, val referenceUsed: Boolean)
@@ -81,13 +88,14 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             val (_, runwareKey) = withContext(Dispatchers.IO) { runwareSettings.load() }
             val (_, hordeKey) = withContext(Dispatchers.IO) { hordeSettings.load() }
             val (_, apiPodKey) = withContext(Dispatchers.IO) { apiPodSettings.load() }
+            val (_, veniceKey) = withContext(Dispatchers.IO) { veniceSettings.load() }
             val provider = imagePreferences.getString("provider", "horde").orEmpty()
-                .takeIf { it in listOf("cloudflare", "runware", "horde", "apipod") } ?: "horde"
+                .takeIf { it in listOf("cloudflare", "runware", "horde", "apipod", "venice") } ?: "horde"
             val hordeModel = HordeRules.migrateModel(imagePreferences.getString("horde_model", null),
                 imagePreferences.getBoolean("portrait_profile_migrated", false))
             imagePreferences.edit().putString("horde_model", hordeModel).putBoolean("portrait_profile_migrated", true).apply()
             _state.value = _state.value.copy(account = account, token = token, runwareKey = runwareKey,
-                hordeKey = hordeKey, provider = provider, apiPodKey = apiPodKey,
+                hordeKey = hordeKey, provider = provider, apiPodKey = apiPodKey, veniceKey = veniceKey,
                 apiPodPro = imagePreferences.getBoolean("apipod_pro", false),
                 hordeModel = hordeModel,
                 hordeDenoise = imagePreferences.getFloat("horde_denoise", 0.55f).toDouble().coerceIn(0.2, 0.7),
@@ -97,11 +105,33 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     fun account(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(account = value.trim()) }
     fun token(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim()) }
     fun provider(value: String) {
-        if (_state.value.busy || value !in listOf("cloudflare", "runware", "horde", "apipod") || value == _state.value.provider) return
+        if (_state.value.busy || value !in listOf("cloudflare", "runware", "horde", "apipod", "venice") || value == _state.value.provider) return
         if (hasPending()) { _state.value = _state.value.copy(message = "请先处理当前平台的原任务"); return }
         // Keep draft/reference when changing transport; only the provider's result history resets.
         _state.value = _state.value.copy(provider = value, result = null, turns = emptyList(), continueEditing = false)
         imagePreferences.edit().putString("provider", value).apply()
+    }
+    fun veniceKey(value: String) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(veniceKey = value.trim()) }
+    fun saveVeniceKey() {
+        if (_state.value.busy || hasPending()) return
+        val key = _state.value.veniceKey
+        perform {
+            VeniceRules.validateKey(key)
+            withContext(Dispatchers.IO) { veniceSettings.save(AiRules.DEFAULT_ACCOUNT, key) }
+            _state.value = _state.value.copy(message = "Venice Key 已加密保存；尚未验证权限和余额")
+        }
+    }
+    fun clearVeniceKey() {
+        if (_state.value.busy || hasPending()) return
+        perform {
+            withContext(Dispatchers.IO) { veniceSettings.clear() }
+            _state.value = _state.value.copy(veniceKey = "", message = "已清除 Venice Key")
+        }
+    }
+    fun acknowledgeVeniceOutcome() {
+        if (_state.value.busy) return
+        _state.value = _state.value.copy(veniceOutcomeUnknown = false,
+            message = "已解除本机提交锁定；下次生成会新建付费请求，不是查询或恢复上一笔")
     }
     fun apiPodKey(value: String) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(apiPodKey = value.trim()) }
     fun apiPodPro(value: Boolean) {
@@ -239,14 +269,26 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     fun useTurn(index: Int) { if (!_state.value.busy && !hasPending()) _state.value.turns.getOrNull(index)?.let { _state.value = _state.value.copy(reference = it.image, continueEditing = false, message = "已选中历史图片作为参考") } }
     fun newSession() { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(turns = emptyList(), result = null, reference = null, prompt = "", message = null, continueEditing = true) }
     fun generate() {
-        if (_state.value.busy) return
+        if (_state.value.busy || _state.value.veniceOutcomeUnknown) return
         val state = _state.value
         perform {
             val selected = if (state.continueEditing && state.result != null) state.result else state.reference
             var prompt = state.prompt.trim()
             var referenceUsed = selected != null
             var costUsd: Double? = null
+            var resultMessage = "生成完成；可继续输入修改要求"
             val image = when (state.provider) {
+                "venice" -> {
+                    _state.value = _state.value.copy(message = "Venice 正在生成；同步请求可能需要数分钟，请勿重复提交…")
+                    try {
+                        val result = veniceClient.generate(state.veniceKey, prompt, selected)
+                        if (result.blurred) resultMessage = "Venice 已返回图片；平台标记结果经过模糊处理。实际费用请在平台核对"
+                        result.image
+                    } catch (error: VeniceException) {
+                        _state.value = _state.value.copy(veniceOutcomeUnknown = error.outcomeUnknown)
+                        throw error
+                    }
+                }
                 "horde" -> {
                     var task = pendingHorde
                     if (task == null) {
@@ -301,7 +343,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             pendingHorde = null
             pendingApiPod = null
             _state.value = _state.value.copy(result = image, turns = state.turns + ImageTurn(prompt, image, referenceUsed, costUsd),
-                prompt = "", continueEditing = true, hordeTaskPending = false, apiPodPending = false, message = "生成完成；可继续输入修改要求")
+                prompt = "", continueEditing = true, hordeTaskPending = false, apiPodPending = false, message = resultMessage)
         }
     }
     fun saveImage() {

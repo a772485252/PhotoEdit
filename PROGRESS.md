@@ -196,3 +196,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Feature8abe4af67ba7871a3b2461caae12dcc33b49ae64. Run https://github.com/a772485252/PhotoEdit/actions/runs/41972620738 , job127064113097. Unit tests/lint/assemble, fixed certificate comparison, artifact upload and latest-apk publication all passed.
 - Unauthenticated GET to the status endpoint returned HTTP401 with invalid_api_key, confirming endpoint reachability/authentication envelope without creating a task or incurring charges.
 - No APIPod credentials were provided; real paid generation/editing, task resume/idempotency against an authenticated account, actual costs, regional access, photo consistency and Android device interaction remain unverified. No claims that VPN grants access.
+
+## V0.9 Venice integration
+- Added optional Venice provider with separately encrypted Key, Z-Image Turbo text generation and FireRed one-reference/continuous editing. Request model/indicative $0.01 vs $0.04 shown before generation. Existing signing/providers/default selection preserved, no dependencies added.
+- Reviewed official native generation/edit schemas, raw binary responses, base64 source, min256 dimensions, model-specific content behavior and pricing. Kept platform default content blur and expose blur header rather than claiming all output clear/permissive.
+- Synchronous fixed-length POST with no app retry. Timeout/unknown outcome retains draft/result and locks submission pending usage acknowledgement. No nonexistent task polling/cancellation controls; no fake settled costs.
+- Added boundary tests for reference/cost mapping, 4xx vs ambiguous outcome, key injection, dimensions/overflow and oversized prompt rejection. Version0.9.0/code12. Required CI pending; authenticated generation/editing, actual fees and device interaction unverified (no Venice Key available).
