@@ -19,8 +19,8 @@ object OutfitCatalog {
 object OutfitPrompts {
     private val block = Regex("(?s)【服装风格】.*?【/服装风格】")
     val lowerChoices = listOf(
-        "轻盈高开衩短裙，柔软薄纱叠层",
-        "俏皮短裙裤，轻透飘带点缀"
+        "白色低腰蕾丝内裤",
+        "白色连裤袜"
     )
 
     fun apply(existing: String, outfit: OutfitPreset, lowerIndex: Int = lowerChoices.indices.random()): String {
