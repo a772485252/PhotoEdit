@@ -42,6 +42,7 @@ import com.photoedit.app.domain.HordeRules
 import com.photoedit.app.domain.AppearanceCatalog
 import com.photoedit.app.domain.OutfitCatalog
 import com.photoedit.app.domain.PromptComposer
+import com.photoedit.app.domain.CameraCatalog
 import com.photoedit.app.domain.PosePrompts
 import com.photoedit.app.domain.TwoPanelPosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
@@ -66,6 +67,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var showSettings by remember { mutableStateOf(false) }
     var showPoses by remember { mutableStateOf(false) }
     var showOutfits by remember { mutableStateOf(false) }
+    var showCameras by remember { mutableStateOf(false) }
     var showAppearances by remember { mutableStateOf(false) }
     var outfitCategory by remember { mutableStateOf("全部") }
     var twoPanelIds by remember { mutableStateOf<String?>(null) }
@@ -133,6 +135,28 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }) { Text("清除长相") }
                         TextButton(onClick = { showAppearances = false }) { Text("关闭") }
                     }
+                }
+            }
+        }
+    }
+    if (showCameras && editingEnabled) {
+        Dialog(onDismissRequest = { showCameras = false }) {
+            Surface(shape = MaterialTheme.shapes.large) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("选择镜头", style = MaterialTheme.typography.titleLarge)
+                    Text("仅正面或背面低机位；保持自然透视与完整构图。", style = MaterialTheme.typography.bodySmall)
+                    CameraCatalog.presets.forEach { camera ->
+                        OutlinedCard(onClick = {
+                            onPrompt(PromptComposer.withCamera(state.prompt, camera))
+                            showCameras = false
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp)) {
+                                Text(camera.title, style = MaterialTheme.typography.titleSmall)
+                                Text(camera.description, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                    TextButton(onClick = { showCameras = false }, modifier = Modifier.align(Alignment.End)) { Text("关闭") }
                 }
             }
         }
@@ -421,6 +445,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                                 DropdownMenuItem(text = { Text("选择姿势") }, onClick = { showAttachment = false; showPoses = true })
                                 DropdownMenuItem(text = { Text("选择人物长相") }, onClick = { showAttachment = false; showAppearances = true })
                                 DropdownMenuItem(text = { Text("选择服装风格") }, onClick = { showAttachment = false; showOutfits = true })
+                                DropdownMenuItem(text = { Text("选择镜头") }, onClick = { showAttachment = false; showCameras = true })
                                 DropdownMenuItem(text = { Text("随机双宫格（一次生成）") }, onClick = {
                                     showAttachment = false
                                     val (left, right) = TwoPanelPosePrompts.choose()
@@ -431,6 +456,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }
                         TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
                         TextButton(onClick = { showOutfits = true }, enabled = editingEnabled) { Text("服装") }
+                        TextButton(onClick = { showCameras = true }, enabled = editingEnabled) { Text("镜头") }
                         TextButton(onClick = { showAppearances = true }, enabled = editingEnabled) { Text("长相") }
                         TextButton(onClick = {
                             val (left, right) = TwoPanelPosePrompts.choose()
