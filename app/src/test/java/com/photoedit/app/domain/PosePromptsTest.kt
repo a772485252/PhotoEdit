@@ -20,6 +20,25 @@ class PosePromptsTest {
         assertEquals("P080", PoseCatalog.poses.last().id)
         assertTrue(PoseCatalog.poses.all { it.description.isNotBlank() })
     }
+    @Test fun twoPanelPromptUsesDifferentPosesAndPreservesContext() {
+        val a = PoseCatalog.poses[0]
+        val b = PoseCatalog.poses[1]
+        val first = TwoPanelPosePrompts.apply("保持原人物，瀑布背景。", a, b)
+        assertTrue(first.contains("保持原人物，瀑布背景。"))
+        assertTrue(first.contains(a.description))
+        assertTrue(first.contains(b.description))
+        assertEquals(1, "【双宫格随机姿势】".toRegex().findAll(first).count())
+        val changed = TwoPanelPosePrompts.apply(first, b, a)
+        assertEquals(1, "【双宫格随机姿势】".toRegex().findAll(changed).count())
+        assertTrue(changed.contains("保持原人物，瀑布背景。"))
+        assertTrue(changed.contains("一张图片"))
+    }
+    @Test fun twoPanelChoiceIsDistinct() {
+        repeat(100) {
+            val (a, b) = TwoPanelPosePrompts.choose()
+            assertNotEquals(a.id, b.id)
+        }
+    }
     @Test fun emptyPromptAcceptsPose() {
         val pose = PoseCatalog.poses.first()
         assertEquals("【姿势】${pose.prompt}【/姿势】", PosePrompts.apply("", pose))
