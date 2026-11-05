@@ -51,7 +51,13 @@ jobs:
         run: gradle --no-daemon --no-build-cache clean testDebugUnitTest lintDebug assembleDebug
       - name: Verify APK signature
         if: github.event_name != 'pull_request'
-        run: '"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk'
+        run: |
+          set -euo pipefail
+          EXPECTED=$(keytool -exportcert -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey | sha256sum | cut -d ' ' -f 1)
+          SIGNATURE=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk)
+          printf '%s\n' "$SIGNATURE"
+          ACTUAL=$(printf '%s\n' "$SIGNATURE" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          test "$EXPECTED" = "$ACTUAL" || { echo "::error::APK signing certificate does not match the fixed keystore"; exit 1; }
       - name: Remove runner signing key
         if: always()
         run: rm -f "$HOME/.android/debug.keystore"
