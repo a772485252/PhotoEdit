@@ -39,7 +39,7 @@ import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.domain.HordeRules
 import com.photoedit.app.domain.OutfitCatalog
-import com.photoedit.app.domain.OutfitPrompts
+import com.photoedit.app.domain.PromptComposer
 import com.photoedit.app.domain.PosePrompts
 import com.photoedit.app.domain.TwoPanelPosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
@@ -97,7 +97,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     }
     if (showPoses && editingEnabled) {
         PosePicker(onDismiss = { showPoses = false }, onSelect = {
-            onPrompt(PosePrompts.apply(state.prompt, it))
+            onPrompt(PromptComposer.withPose(state.prompt, it))
             twoPanelIds = null
             showPoses = false
         })
@@ -121,7 +121,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             val filtered = OutfitCatalog.presets.filter { outfitCategory == "全部" || it.category == outfitCategory }
                             val outfit = filtered[index]
                             OutlinedCard(onClick = {
-                                onPrompt(OutfitPrompts.apply(state.prompt, outfit))
+                                onPrompt(PromptComposer.withOutfit(state.prompt, outfit))
                                 showOutfits = false
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.padding(12.dp)) {
@@ -388,7 +388,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                                 DropdownMenuItem(text = { Text("随机双宫格（一次生成）") }, onClick = {
                                     showAttachment = false
                                     val (left, right) = TwoPanelPosePrompts.choose()
-                                    onPrompt(TwoPanelPosePrompts.apply(state.prompt, left, right))
+                                    onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
                                     twoPanelIds = "${left.id} + ${right.id}"
                                 })
                             }
@@ -397,7 +397,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         TextButton(onClick = { showOutfits = true }, enabled = editingEnabled) { Text("服装") }
                         TextButton(onClick = {
                             val (left, right) = TwoPanelPosePrompts.choose()
-                            onPrompt(TwoPanelPosePrompts.apply(state.prompt, left, right))
+                            onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
                             twoPanelIds = "${left.id} + ${right.id}"
                         }, enabled = editingEnabled) { Text("随机双宫格") }
                         Spacer(Modifier.weight(1f))
