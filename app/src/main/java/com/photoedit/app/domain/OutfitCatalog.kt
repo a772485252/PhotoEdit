@@ -47,14 +47,14 @@ object OutfitPrompts {
         "F05" to "细密亮片修身舞台上衣，聚光灯下闪亮材质"
     )
     val lowerChoices = listOf(
-        "白色透明连裤袜，轻薄透肤材质，腰部与腿部自然贴合",
-        "白色低腰蕾丝内裤，细致花边与自然贴合的腰线"
+        "白色透明连裤袜",
+        "白色低腰蕾丝内裤"
     )
 
     fun apply(existing: String, outfit: OutfitPreset, lowerIndex: Int = lowerChoices.indices.random()): String {
         require(lowerIndex in lowerChoices.indices)
         val upper = upperById[outfit.id] ?: outfit.description
-        val replacement = "【服装风格】成年人物；上衣：${upper}；下装：${lowerChoices[lowerIndex]}。不保留原服装描述中的裙装、裤装或其他下装；保留上衣的款式、颜色、材质与装饰。服装适配姿势，身体结构自然。【/服装风格】"
+        val replacement = "【服装风格】成年人物；上衣：${upper}；下装：${lowerChoices[lowerIndex]}。【/服装风格】"
         return if (block.containsMatchIn(existing)) block.replace(existing) { replacement }
         else listOf(existing.trimEnd(), replacement).filter { it.isNotBlank() }.joinToString("\n\n")
     }
