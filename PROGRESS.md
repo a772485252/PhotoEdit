@@ -191,3 +191,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Checked endpoint conventions, async lifecycle, status/result/usage schema, idempotency semantics, error taxonomy and data-URI asset support in official docs; checked individual Z-Image Spicy / Qwen Edit Spicy schemas and regional notice on public product pages.
 - Pending operation retains body/idempotency/Key/ID/prompt in session memory; resumable queries and local stop; explicit end-tracking confirmation explains task may continue billing. No unverified server cancellation.
 - Added domain tests for image-source routing, price selection, definitive vs ambiguous submission failures, invalid header/task IDs and prompt limits. Version0.8.0/code11. CI and real paid API/device tests pending. No APIPod Key available; cannot verify authenticated generation, balance, account region eligibility or output quality.
+
+## V0.8 verified CI and authentication boundary
+- Feature8abe4af67ba7871a3b2461caae12dcc33b49ae64. Run https://github.com/a772485252/PhotoEdit/actions/runs/41972620738 , job127064113097. Unit tests/lint/assemble, fixed certificate comparison, artifact upload and latest-apk publication all passed.
+- Unauthenticated GET to the status endpoint returned HTTP401 with invalid_api_key, confirming endpoint reachability/authentication envelope without creating a task or incurring charges.
+- No APIPod credentials were provided; real paid generation/editing, task resume/idempotency against an authenticated account, actual costs, regional access, photo consistency and Android device interaction remain unverified. No claims that VPN grants access.
