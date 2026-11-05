@@ -68,7 +68,8 @@ class MainActivity : ComponentActivity() {
                                 }, onRemove = aiViewModel::removeReference, onGenerate = aiViewModel::generate, onSaveImage = {
                                     if (needsStoragePermission()) aiPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     else aiViewModel.saveImage()
-                                }) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                }, onNewSession = aiViewModel::newSession, onUseTurn = aiViewModel::useTurn,
+                                onContinue = aiViewModel::setContinueEditing) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
                                     canUsePrompt = !ai.busy, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
