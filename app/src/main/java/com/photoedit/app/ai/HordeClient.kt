@@ -36,16 +36,18 @@ class HordeClient {
         }.sortedByDescending { it.workers }.take(100)
     }
 
-    suspend fun submit(key: String, prompt: String, model: String, nsfw: Boolean, reference: Bitmap?): String = withContext(Dispatchers.IO) {
+    suspend fun submit(key: String, prompt: String, model: String, nsfw: Boolean, reference: Bitmap?, denoise: Double): String = withContext(Dispatchers.IO) {
         AiRules.validatePrompt(prompt)
-        val payload = JSONObject().put("prompt", prompt)
+        val profile = HordeRules.sampling(model)
+        val payload = JSONObject().put("prompt", HordeRules.optimizedPrompt(prompt, model))
             .put("models", JSONArray().put(HordeRules.validateModel(model)))
-            .put("params", JSONObject().put("width", 512).put("height", 512).put("steps", 25)
-                .put("n", 1).put("sampler_name", "k_euler_a").put("cfg_scale", 7.0)
-                .apply { if (reference != null) put("denoising_strength", 0.55) })
+            .put("params", JSONObject().put("width", 512).put("height", 512).put("steps", profile.steps)
+                .put("n", 1).put("sampler_name", profile.sampler).put("cfg_scale", profile.cfg)
+                .put("karras", profile.karras)
+                .apply { if (reference != null) put("denoising_strength", HordeRules.denoise(denoise)) })
             .put("nsfw", nsfw).put("censor_nsfw", !nsfw)
             .put("trusted_workers", true).put("slow_workers", true)
-            .put("r2", true).put("shared", false).put("allow_downgrade", true)
+            .put("r2", true).put("shared", false).put("allow_downgrade", false)
         if (reference != null) {
             // Fit, do not stretch or crop. The worker receives an aspect-correct source image.
             val scale = minOf(1f, 512f / maxOf(reference.width, reference.height))
@@ -54,7 +56,7 @@ class HordeClient {
             val stream = ByteArrayOutputStream()
             try {
                 @Suppress("DEPRECATION")
-                val ok = scaled.compress(Bitmap.CompressFormat.WEBP, 90, stream)
+                val ok = scaled.compress(Bitmap.CompressFormat.WEBP, 100, stream)
                 check(ok) { "参考图编码失败" }
             } finally { if (scaled !== reference) scaled.recycle() }
             payload.put("source_image", Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP))
@@ -126,8 +128,8 @@ class HordeClient {
             connection.connectTimeout = 15_000
             connection.readTimeout = 30_000
             connection.instanceFollowRedirects = false
-            connection.setRequestProperty("User-Agent", "PhotoEdit/0.7.0 (Android)")
-            connection.setRequestProperty("Client-Agent", "PhotoEdit:0.7.0:https://github.com/a772485252/PhotoEdit")
+            connection.setRequestProperty("User-Agent", "PhotoEdit/0.7.1 (Android)")
+            connection.setRequestProperty("Client-Agent", "PhotoEdit:0.7.1:https://github.com/a772485252/PhotoEdit")
             if (key != null) connection.setRequestProperty("apikey", HordeRules.apiKey(key))
             if (body != null) {
                 connection.doOutput = true
@@ -140,7 +142,7 @@ class HordeClient {
             if (code !in 200..299) {
                 val message = when (code) {
                     401 -> "AI Horde Key 无效，请检查设置"
-                    403 -> "AI Horde 拒绝请求，请检查账号 Kudos、参考图权限或内容规则"
+                    403 -> "AI Horde 拒绝请求，请检查账号 Kudos、参考图权限或内容规则；本次未自动降低画质"
                     404 -> "AI Horde 任务不存在或已过期"
                     429 -> "AI Horde 请求过于频繁，请稍后继续查询或重试"
                     400 -> "AI Horde 参数或模型不受支持，请刷新模型或调整提示词；部分请求需要 Kudos"

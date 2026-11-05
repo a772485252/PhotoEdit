@@ -77,7 +77,7 @@ A free native Android application for preparing images and short-form video mate
 - No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
 - Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
 - New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
-- Current version: 0.7.0 / versionCode 9.
+- Current version: 0.7.1 / versionCode 10.
 - Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .
 
 ## Personal persistent debug signing
@@ -97,3 +97,9 @@ A free native Android application for preparing images and short-form video mate
 - NSFW requests default enabled per user's preference; node/platform rules remain enforced. trusted_workers=true. Registered requests shared=false; anonymous txt2img sharing is controlled by Horde.
 - Poll check endpoint every 3 seconds, retrieve status/results only when done. Keep ID and submitted prompt/reference flag in ViewModel memory; stop waiting and resume query reuse ID. Explicit server cancel available when not polling. No disk chat history; process exit loses pending task handle.
 - Show real queue estimates, disable changing input while a task is pending, preserve draft on errors, distinguish timeout/unknown submission. Existing API Key masking/signing remain unchanged.
+
+## V0.7.1 512px portrait defaults
+- Keep output 512x512. Default Realistic Vision, with AbsoluteReality quick choice; migrate only legacy stable_diffusion default once and preserve explicit custom models.
+- These two SD1 portrait models use DPM++2M/Karras, 28 steps, CFG6 and transparent photographic/negative prompt augmentation; custom models retain generic original settings. No automatic prompt translation.
+- Disable allow_downgrade for every Horde request; insufficient Kudos is surfaced rather than silently lowering quality.
+- Reference changes use selectable 0.35/0.50/0.65 strength, default 0.35; WebP quality100 max512 input, fit aspect preserved. Lower strength favors source retention but does not restore lost detail or guarantee identity.

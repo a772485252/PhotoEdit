@@ -169,3 +169,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Live anonymous img2img with that landscape source: task 6f074e64-5d1d-4466-bc41-28118b0a6fc3 completed, censored=false; downloaded 512x512 WebP, 37,450 bytes. Both matched the implemented request parameters except NSFW=false for the benign test. Read active models successfully.
 - Python's default user agent initially hit Cloudflare 403/1010. Explicit PhotoEdit User-Agent plus Client-Agent succeeded. Android adapter uses both. No credentials, personal photos or explicit content used for tests.
 - No real APK/device layout, personal-key save/relaunch, stop/resume/cancel interaction, portrait identity or NSFW-content generation test performed. Pending handles stay in ViewModel memory only; force-close loses them.
+
+## V0.7.1 portrait quality configuration
+- User kept 512px and requested better portrait quality. Inspected current defaults and live official reference: stable_diffusion v1.5 generalist; Realistic Vision v2.0 photoreal humans; AbsoluteReality v1.0 SD1 realism.
+- Change default/migrate legacy selection once, add two portrait shortcuts, DPM++2M/Karras 28step CFG6 profiles, visible prompt augmentation, custom negative-prompt preservation and lower/selectable img2img strength. Keep custom models.
+- Disable silent downgrade; preserve 512 output and increase reference WebP encoding quality to100. No face restoration/identity claims or new SDK. Version0.7.1/code10.
+- Added upgrade/custom-model/negative-prompt/strength rules tests; live controlled portraits and signed CI pending.

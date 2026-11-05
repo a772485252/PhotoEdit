@@ -13,3 +13,9 @@ Device validation: anonymous text generation; personal Key save/clear/relaunch; 
 Official contract: https://aihorde.net/api/swagger.json
 Service behavior: https://www.aihorde.net/docs/image/learn/concepts_horde/
 Terms: https://aihorde.net/terms/
+
+## Portrait profile (0.7.1)
+
+Default Realistic Vision replaces only the old default on first upgrade. AbsoluteReality is another one-tap choice. Both are SD1-based; the app uses DPM++2M/Karras, 28steps and CFG6. It appends photographic detail hints and a targeted negative prompt while preserving custom negatives and the original editable input. Custom models retain the generic25step/EulerA/CFG7 profile.
+
+512x512 remains fixed. allow_downgrade=false: low Kudos errors are surfaced; no automatic paid fallback. Reference WebP quality100, max512 aspect-fit, strength0.35 by default with0.50/0.65 options in settings. Mild change retains more source detail/identity and also retains source defects; no face lock or blur-removal guarantee. These older models work best with concise English prompts; translation is manual through the separate prompt assistant, not an automatic extra API call.

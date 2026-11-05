@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.photoedit.app.domain.HordeRules
 import com.photoedit.app.domain.PosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
 import com.photoedit.app.ui.components.PosePicker
@@ -38,7 +39,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
  onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit,
  onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit,
  onHordeKey: (String) -> Unit, onSaveHordeKey: () -> Unit, onClearHordeKey: () -> Unit,
- onHordeModel: (String) -> Unit, onHordeNsfw: (Boolean) -> Unit, onRefreshHordeModels: () -> Unit,
+ onHordeModel: (String) -> Unit, onHordeDenoise: (Double) -> Unit, onHordeNsfw: (Boolean) -> Unit, onRefreshHordeModels: () -> Unit,
  onStopHordeWaiting: () -> Unit, onCancelHordeTask: () -> Unit) {
     val context = LocalContext.current
     val history = rememberLazyListState()
@@ -91,7 +92,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     }
                     Text("切换平台保留草稿和参考图，清空当前平台的结果记录。", style = MaterialTheme.typography.bodySmall)
                     if (horde) {
-                        Text("免费社区算力，非固定每日张数；Kudos 影响优先级，复杂请求可能要求积分。默认 512 × 512，可由平台降低参数。", style = MaterialTheme.typography.bodySmall)
+                        Text("免费社区算力 · 保持 512 × 512，不自动降档；积分不足会提示，不会自动付费。", style = MaterialTheme.typography.bodySmall)
                         OutlinedTextField(state.hordeKey, onHordeKey, label = { Text("个人 API Key（留空可匿名试用）") },
                             singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
                             visualTransformation = PasswordVisualTransformation())
@@ -100,6 +101,10 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             TextButton(onClick = onClearHordeKey, enabled = !state.busy) { Text("匿名模式") }
                         }
                         TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://aihorde.net/register"))) }) { Text("注册并获取个人 Key") }
+                        Text("人像优先", style = MaterialTheme.typography.titleSmall)
+                        HordeRules.portraitModels.forEach { model ->
+                            FilterChip(state.hordeModel == model, { onHordeModel(model) }, label = { Text(model) }, enabled = editingEnabled)
+                        }
                         OutlinedTextField(state.hordeModel, onHordeModel, label = { Text("模型名称") },
                             singleLine = true, enabled = editingEnabled, modifier = Modifier.fillMaxWidth())
                         Row {
@@ -114,6 +119,15 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                                 }
                             }
                         }
+                        if (state.hordeModel in HordeRules.portraitModels) {
+                            Text("写真优化已开启：匹配采样参数，并补充清晰度提示与负面词；原输入文字保留。", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("参考图修改程度", style = MaterialTheme.typography.titleSmall)
+                        listOf(0.35 to "保留更多原图", 0.50 to "平衡", 0.65 to "较大变化").forEach { (strength, label) ->
+                            FilterChip(kotlin.math.abs(state.hordeDenoise - strength) < 0.01,
+                                { onHordeDenoise(strength) }, label = { Text(label) }, enabled = editingEnabled)
+                        }
+                        Text("默认保留更多原图；变化越大，人物长相越可能改变。较低强度也可能保留原图的模糊，不是人脸锁定。英文提示词通常更适合这些模型，可用提示词助手整理。", style = MaterialTheme.typography.bodySmall)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(state.hordeNsfw, onHordeNsfw, enabled = editingEnabled)
                             Text("允许 NSFW 请求", style = MaterialTheme.typography.bodyMedium)

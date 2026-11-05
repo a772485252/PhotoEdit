@@ -35,7 +35,8 @@ data class AiUiState(
     val runwareKey: String = "",
     val provider: String = "horde",
     val hordeKey: String = "",
-    val hordeModel: String = "stable_diffusion",
+    val hordeModel: String = HordeRules.DEFAULT_MODEL,
+    val hordeDenoise: Double = 0.35,
     val hordeNsfw: Boolean = true,
     val hordeModels: List<HordeModel> = emptyList(),
     val hordeTaskPending: Boolean = false,
@@ -71,9 +72,13 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             val (_, hordeKey) = withContext(Dispatchers.IO) { hordeSettings.load() }
             val provider = imagePreferences.getString("provider", "horde").orEmpty()
                 .takeIf { it in listOf("cloudflare", "runware", "horde") } ?: "horde"
+            val hordeModel = HordeRules.migrateModel(imagePreferences.getString("horde_model", null),
+                imagePreferences.getBoolean("portrait_profile_migrated", false))
+            imagePreferences.edit().putString("horde_model", hordeModel).putBoolean("portrait_profile_migrated", true).apply()
             _state.value = _state.value.copy(account = account, token = token, runwareKey = runwareKey,
                 hordeKey = hordeKey, provider = provider,
-                hordeModel = imagePreferences.getString("horde_model", "stable_diffusion") ?: "stable_diffusion",
+                hordeModel = hordeModel,
+                hordeDenoise = imagePreferences.getFloat("horde_denoise", 0.35f).toDouble().coerceIn(0.2, 0.7),
                 hordeNsfw = imagePreferences.getBoolean("horde_nsfw", true))
         }
     }
@@ -91,6 +96,12 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
         if (!_state.value.busy && pendingHorde == null) {
             _state.value = _state.value.copy(hordeModel = value.take(200))
             imagePreferences.edit().putString("horde_model", value.take(200)).apply()
+        }
+    }
+    fun hordeDenoise(value: Double) {
+        if (!_state.value.busy && pendingHorde == null) {
+            _state.value = _state.value.copy(hordeDenoise = HordeRules.denoise(value))
+            imagePreferences.edit().putFloat("horde_denoise", value.toFloat()).apply()
         }
     }
     fun hordeNsfw(value: Boolean) {
@@ -198,7 +209,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
                         HordeRules.validateModel(state.hordeModel)
                         _state.value = _state.value.copy(message = "正在提交 AI Horde，请勿重复操作…")
                         submitUnknown.set(true)
-                        val id = try { hordeClient.submit(state.hordeKey, prompt, state.hordeModel, state.hordeNsfw, selected) }
+                        val id = try { hordeClient.submit(state.hordeKey, prompt, state.hordeModel, state.hordeNsfw, selected, state.hordeDenoise) }
                         catch (error: HordeTaskException) { submitUnknown.set(false); throw error }
                         task = PendingHorde(id, prompt, referenceUsed)
                         pendingHorde = task

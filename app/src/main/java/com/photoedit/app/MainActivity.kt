@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
                                 onClearRunwareKey = aiViewModel::clearRunwareKey,
                                 onHordeKey = aiViewModel::hordeKey, onSaveHordeKey = aiViewModel::saveHordeKey,
                                 onClearHordeKey = aiViewModel::clearHordeKey, onHordeModel = aiViewModel::hordeModel,
-                                onHordeNsfw = aiViewModel::hordeNsfw, onRefreshHordeModels = aiViewModel::refreshHordeModels,
+                                onHordeDenoise = aiViewModel::hordeDenoise, onHordeNsfw = aiViewModel::hordeNsfw, onRefreshHordeModels = aiViewModel::refreshHordeModels,
                                 onStopHordeWaiting = aiViewModel::stopHordeWaiting, onCancelHordeTask = aiViewModel::cancelHordeTask) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
                                     canUsePrompt = !ai.busy, onUsePrompt = { prompt ->
