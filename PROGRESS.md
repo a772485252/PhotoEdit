@@ -162,3 +162,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Retained Cloudflare/Runware, clarified paid label, persisted selected platform, exposed missing-Key recovery, fixed newly selected reference being overridden by continueEditing.
 - Reviewed live swagger contract: generate/async POST, generate/check GET, generate/status GET/DELETE; webp source_image, r2, shared, allow_downgrade, queue semantics and censored results.
 - Added key/header validation and queue-state tests. Version 0.7.0/code 9; signed CI and smoke-test results pending.
+
+## V0.7 verification
+- Feature dcd6416f9311183e287312f4ce54031439d9a929; run https://github.com/a772485252/PhotoEdit/actions/runs/41963725863 , job 127035783664 completed success. Build (unit tests, lint, assemble), persistent signature comparison, artifact upload and latest-apk publication all passed.
+- Live anonymous stable_diffusion txt2img smoke test: task 657f977f-8953-4cd5-8e94-6f27cf6341c0 completed, censored=false; downloaded 512x512 WebP, 96,506 bytes.
+- Live anonymous img2img with that landscape source: task 6f074e64-5d1d-4466-bc41-28118b0a6fc3 completed, censored=false; downloaded 512x512 WebP, 37,450 bytes. Both matched the implemented request parameters except NSFW=false for the benign test. Read active models successfully.
+- Python's default user agent initially hit Cloudflare 403/1010. Explicit PhotoEdit User-Agent plus Client-Agent succeeded. Android adapter uses both. No credentials, personal photos or explicit content used for tests.
+- No real APK/device layout, personal-key save/relaunch, stop/resume/cancel interaction, portrait identity or NSFW-content generation test performed. Pending handles stay in ViewModel memory only; force-close loses them.
