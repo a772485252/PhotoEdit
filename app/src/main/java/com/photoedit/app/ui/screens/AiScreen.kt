@@ -39,6 +39,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.domain.HordeRules
+import com.photoedit.app.domain.AppearanceCatalog
 import com.photoedit.app.domain.OutfitCatalog
 import com.photoedit.app.domain.PromptComposer
 import com.photoedit.app.domain.PosePrompts
@@ -65,6 +66,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var showSettings by remember { mutableStateOf(false) }
     var showPoses by remember { mutableStateOf(false) }
     var showOutfits by remember { mutableStateOf(false) }
+    var showAppearances by remember { mutableStateOf(false) }
     var outfitCategory by remember { mutableStateOf("全部") }
     var twoPanelIds by remember { mutableStateOf<String?>(null) }
     var showAttachment by remember { mutableStateOf(false) }
@@ -102,6 +104,35 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
             twoPanelIds = null
             showPoses = false
         })
+    }
+    if (showAppearances && editingEnabled) {
+        Dialog(onDismissRequest = { showAppearances = false }) {
+            Surface(shape = MaterialTheme.shapes.large) {
+                Column(Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("选择人物长相", style = MaterialTheme.typography.titleLarge)
+                    Text("外貌文字参考，仅影响提示词；不保证与示例照片是同一张脸。", style = MaterialTheme.typography.bodySmall)
+                    AppearanceCatalog.presets.forEach { appearance ->
+                        OutlinedCard(onClick = {
+                            onPrompt(PromptComposer.withAppearance(state.prompt, appearance))
+                            showAppearances = false
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp)) {
+                                Text(appearance.title, style = MaterialTheme.typography.titleSmall)
+                                Text(appearance.description, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = {
+                            onPrompt(PromptComposer.withoutAppearance(state.prompt))
+                            showAppearances = false
+                        }) { Text("清除长相") }
+                        TextButton(onClick = { showAppearances = false }) { Text("关闭") }
+                    }
+                }
+            }
+        }
     }
     if (showOutfits && editingEnabled) {
         Dialog(onDismissRequest = { showOutfits = false }) {
@@ -385,6 +416,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             DropdownMenu(expanded = showAttachment, onDismissRequest = { showAttachment = false }) {
                                 DropdownMenuItem(text = { Text("添加参考图") }, onClick = { showAttachment = false; onChoose() })
                                 DropdownMenuItem(text = { Text("选择姿势") }, onClick = { showAttachment = false; showPoses = true })
+                                DropdownMenuItem(text = { Text("选择人物长相") }, onClick = { showAttachment = false; showAppearances = true })
                                 DropdownMenuItem(text = { Text("选择服装风格") }, onClick = { showAttachment = false; showOutfits = true })
                                 DropdownMenuItem(text = { Text("随机双宫格（一次生成）") }, onClick = {
                                     showAttachment = false
@@ -396,6 +428,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }
                         TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
                         TextButton(onClick = { showOutfits = true }, enabled = editingEnabled) { Text("服装") }
+                        TextButton(onClick = { showAppearances = true }, enabled = editingEnabled) { Text("长相") }
                         TextButton(onClick = {
                             val (left, right) = TwoPanelPosePrompts.choose()
                             onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
