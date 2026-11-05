@@ -151,3 +151,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Replaced with compact provider/settings header, weighted LazyColumn conversation, and bounded scrollable bottom composer. Attachment is a 52dp thumbnail with optional full preview; details and credentials move into a scrollable dialog.
 - Plus menu and pose button live beside generation; prompt has at most four visible lines, scrolls internally. Latest result save remains inside history, no duplicate output. Explicit adjustResize supports IME.
 - Correct provider label/disclosure for Runware and Cloudflare; no transport, credential, reference or signing changes. Version 0.6.1/code 8. CI and device/keyboard verification pending.
+
+## V0.6.1 CI verified
+- Feature commit 43e1d33b81fa924d26516f2f3a83f35d78aac903. Run https://github.com/a772485252/PhotoEdit/actions/runs/41959683855 , job 127022819069.
+- Build command running unit tests, lint and assemble completed successfully; fixed signature verification, artifact upload and latest-apk publication completed successfully.
+- Native UI scrolling, small-screen/landscape/large-font behavior and keyboard transitions have not been verified on a device. Verify on the user's phone with an attachment and multi-turn conversation.
