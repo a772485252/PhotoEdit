@@ -77,7 +77,7 @@ A free native Android application for preparing images and short-form video mate
 - No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
 - Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
 - New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
-- Current version: 0.6.0 / versionCode 7.
+- Current version: 0.6.1 / versionCode 8.
 - Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .
 
 ## Personal persistent debug signing
@@ -87,3 +87,5 @@ A free native Android application for preparing images and short-form video mate
 ## V0.6 offline pose picker
 - Bundle 24 original VectorDrawable diagrams, front view with legs separated; 18 standing and 6 seated. No third-party image redistribution or new dependencies.
 - AI prompt button opens category grid and preview; confirmation replaces only a managed pose paragraph. Existing text/reference preserved, no automatic generation or upload.
+
+- V0.6.1 AI layout uses a compact header, scrolling conversation, and bounded bottom composer; credentials/details are in a scrollable settings dialog. Attachments display as small thumbnails, and keyboard uses adjustResize.

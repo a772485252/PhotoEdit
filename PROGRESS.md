@@ -145,3 +145,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Build step (testDebugUnitTest, lintDebug, assembleDebug), fixed certificate comparison, artifact upload and latest-apk publication all completed successfully. Job log download returned 404; recorded evidence is the workflow step results and published blob metadata.
 - Publication commit 30b173c4c6c3b2edf748adb998fe52be1664a7a0; APK blob 318a63260d9594418a45fb63ba60b6412e45bcfd. APK 9,700,978 bytes versus 9,658,821, increase 42,157 bytes. Original vector XMLs total 89,174 bytes.
 - All 24 diagrams rendered as a contact sheet and visually inspected; XML parsing and git diff checks passed. No emulator/device or live image-generation test performed. Device checks in docs/POSES.md remain pending.
+
+## V0.6.1 chat-style AI layout repair
+- User screenshot showed full-size attachment plus fixed settings rows pushing composer/actions outside viewport. Only history was scrollable.
+- Replaced with compact provider/settings header, weighted LazyColumn conversation, and bounded scrollable bottom composer. Attachment is a 52dp thumbnail with optional full preview; details and credentials move into a scrollable dialog.
+- Plus menu and pose button live beside generation; prompt has at most four visible lines, scrolls internally. Latest result save remains inside history, no duplicate output. Explicit adjustResize supports IME.
+- Correct provider label/disclosure for Runware and Cloudflare; no transport, credential, reference or signing changes. Version 0.6.1/code 8. CI and device/keyboard verification pending.
