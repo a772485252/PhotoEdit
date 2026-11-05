@@ -23,7 +23,7 @@ object PosePrompts {
     fun apply(existing: String, pose: PosePreset): String {
         val replacement = "【姿势】${pose.prompt}【/姿势】"
         return if (block.containsMatchIn(existing)) block.replace(existing) { replacement }
-        else listOf(existing.trimEnd(), replacement).filter { it.isNotBlank() }.joinToString("\\n\\n")
+        else listOf(existing.trimEnd(), replacement).filter { it.isNotBlank() }.joinToString("\n\n")
     }
 }
 
@@ -53,6 +53,6 @@ object TwoPanelPosePrompts {
             【/双宫格随机姿势】
         """.trimIndent()
         return if (gridBlock.containsMatchIn(cleaned)) gridBlock.replace(cleaned) { replacement }
-        else listOf(cleaned, replacement).filter { it.isNotBlank() }.joinToString("\\n\\n")
+        else listOf(cleaned, replacement).filter { it.isNotBlank() }.joinToString("\n\n")
     }
 }
