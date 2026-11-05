@@ -14,10 +14,10 @@ class PosePromptsTest {
         assertEquals(switched, PosePrompts.apply(switched, PoseCatalog.poses[1]))
     }
     @Test fun selectedAtlasIdsAreUnique() {
-        assertEquals(29, PoseCatalog.poses.size)
-        assertEquals(29, PoseCatalog.poses.map { it.id }.toSet().size)
+        assertEquals(30, PoseCatalog.poses.size)
+        assertEquals(30, PoseCatalog.poses.map { it.id }.toSet().size)
         assertEquals("P001", PoseCatalog.poses.first().id)
-        assertEquals("P080", PoseCatalog.poses.last().id)
+        assertEquals("X001", PoseCatalog.poses.last().id)
         assertTrue(PoseCatalog.poses.all { it.description.isNotBlank() })
     }
     @Test fun twoPanelPromptUsesDifferentPosesAndPreservesContext() {
