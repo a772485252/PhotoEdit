@@ -108,12 +108,14 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     if (showAppearances && editingEnabled) {
         Dialog(onDismissRequest = { showAppearances = false }) {
             Surface(shape = MaterialTheme.shapes.large) {
-                Column(Modifier.fillMaxWidth().padding(16.dp),
+                Column(Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("选择人物长相", style = MaterialTheme.typography.titleLarge)
                     Text("外貌文字参考，仅影响提示词；不保证与示例照片是同一张脸。", style = MaterialTheme.typography.bodySmall)
-                    AppearanceCatalog.presets.forEach { appearance ->
-                        OutlinedCard(onClick = {
+                    LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(AppearanceCatalog.presets.size) { index ->
+                            val appearance = AppearanceCatalog.presets[index]
+                            OutlinedCard(onClick = {
                             onPrompt(PromptComposer.withAppearance(state.prompt, appearance))
                             showAppearances = false
                         }, modifier = Modifier.fillMaxWidth()) {
@@ -122,6 +124,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                                 Text(appearance.description, style = MaterialTheme.typography.bodySmall)
                             }
                         }
+                    }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(onClick = {
