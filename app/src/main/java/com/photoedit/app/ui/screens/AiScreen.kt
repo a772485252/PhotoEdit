@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.photoedit.app.ui.components.PosePicker
+import com.photoedit.app.domain.PosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
 import com.photoedit.app.viewmodel.AiUiState
 
@@ -24,6 +26,13 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
  onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit) {
     val context = LocalContext.current
     var showSettings by remember { mutableStateOf(false) }
+    var showPoses by remember { mutableStateOf(false) }
+    if (showPoses && !state.busy) {
+        PosePicker(onDismiss = { showPoses = false }, onSelect = { pose ->
+            onPrompt(PosePrompts.apply(state.prompt, pose))
+            showPoses = false
+        })
+    }
     Column(Modifier.fillMaxSize().imePadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -89,6 +98,9 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                 Checkbox(checked = state.continueEditing, onCheckedChange = onContinue, enabled = !state.busy)
                 Text("继续编辑上一张生成图", modifier = Modifier.padding(top = 12.dp))
             }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            TextButton(onClick = { showPoses = true }, enabled = !state.busy) { Text("选姿势") }
         }
         OutlinedTextField(state.prompt, onPrompt, label = { Text("描述要生成或修改的图片") }, minLines = 2,
             enabled = !state.busy, modifier = Modifier.fillMaxWidth())

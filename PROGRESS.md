@@ -134,3 +134,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Workflow compares exported keystore certificate SHA-256 against APK certificate before upload/publication and fails on mismatch.
 - Verified run https://github.com/a772485252/PhotoEdit/actions/runs/41954151050 ; job 127004887191 completed success. Unit tests, lint, assembleDebug, certificate equality, upload and latest-apk publication all passed. BUILD SUCCESSFUL in 1m 7s.
 - APK and fixed keystore fingerprint matched exactly. Version 0.5.1/code 6. Fixed-key setup complete; physical-device update/data preservation remains untested. Earlier ephemeral-signed installations may require one uninstall/reinstall; preserve keys for re-entry first.
+
+## V0.6 offline pose picker (2026-11-05)
+- Implemented 24 original front-facing vector mannequin diagrams, standing/seated filters, prompt preview and explicit use/cancel. Original atlas images excluded because its license prohibits image redistribution.
+- Prompt selection preserves user text/reference; switching replaces prior managed pose, no network or generation triggered. Added pure prompt replacement tests.
+- Version 0.6.0/code 7; persistent signing unchanged. CI validation and real-device UI checks pending.
