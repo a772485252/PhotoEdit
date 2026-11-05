@@ -10,7 +10,7 @@ class PromptComposerTest {
         val a = PromptComposer.withOutfit("瀑布背景，保持人物面部。", outfit)
         val result = PromptComposer.withPose(a, pose)
         assertTrue(result.contains("瀑布背景，保持人物面部。"))
-        assertTrue(result.contains("月白与胭脂红拼色短款交领舞蹈上衣"))
+        assertTrue(result.contains("月白与樱粉拼色短款舞蹈上衣"))
         assertTrue(result.contains(pose.description))
         assertEquals(1, "【服装风格】".toRegex().findAll(result).count())
         assertEquals(1, "【姿势】".toRegex().findAll(result).count())
@@ -22,8 +22,8 @@ class PromptComposerTest {
         val changed = PromptComposer.withOutfit(first, OutfitCatalog.presets[1])
         assertTrue(changed.contains("摄影棚"))
         assertTrue(changed.contains(pose.description))
-        assertTrue(changed.contains("青白配色抹胸式舞蹈上衣"))
-        assertFalse(changed.contains("月白与胭脂红拼色短款交领舞蹈上衣"))
+        assertTrue(changed.contains("浅绯色短款盘扣上衣"))
+        assertFalse(changed.contains("月白与樱粉拼色短款舞蹈上衣"))
         assertEquals(1, "【服装风格】".toRegex().findAll(changed).count())
     }
 
