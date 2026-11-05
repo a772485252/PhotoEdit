@@ -5,17 +5,24 @@ package com.photoedit.app.domain
  * editable prompt. Managed blocks are replaced rather than accumulated.
  */
 object PromptComposer {
+    private val appearanceBlock = Regex("(?s)【人物长相】.*?【/人物长相】")
     private val outfitBlock = Regex("(?s)【服装风格】.*?【/服装风格】")
     private val poseBlock = Regex("(?s)【姿势】.*?【/姿势】")
     private val gridBlock = Regex("(?s)【双宫格随机姿势】.*?【/双宫格随机姿势】")
 
     private fun combine(existing: String, outfit: String?, pose: String?): String {
-        val custom = listOf(outfitBlock, poseBlock, gridBlock).fold(existing) { text, regex ->
+        val appearance = appearanceBlock.find(existing)?.value
+        val custom = listOf(appearanceBlock, outfitBlock, poseBlock, gridBlock).fold(existing) { text, regex ->
             regex.replace(text, "")
         }.trim()
-        return listOfNotNull(custom.takeIf { it.isNotBlank() }, outfit, pose)
+        return listOfNotNull(custom.takeIf { it.isNotBlank() }, appearance, outfit, pose)
             .joinToString("\n\n")
     }
+
+    fun withAppearance(existing: String, appearance: AppearancePreset): String =
+        AppearancePrompts.apply(existing, appearance)
+
+    fun withoutAppearance(existing: String): String = AppearancePrompts.clear(existing)
 
     fun withOutfit(existing: String, outfit: OutfitPreset): String {
         val selectedOutfit = outfitBlock.find(existing)?.value
