@@ -46,9 +46,9 @@ jobs:
           fi
           mkdir -p "$HOME/.android"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
-          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey >/dev/null
+          keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey
       - name: Build debug APK
-        run: gradle --no-daemon testDebugUnitTest lintDebug assembleDebug
+        run: gradle --no-daemon --no-build-cache clean testDebugUnitTest lintDebug assembleDebug
       - name: Verify APK signature
         if: github.event_name != 'pull_request'
         run: '"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk'
