@@ -38,6 +38,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.domain.HordeRules
+import com.photoedit.app.domain.OutfitCatalog
+import com.photoedit.app.domain.OutfitPrompts
 import com.photoedit.app.domain.PosePrompts
 import com.photoedit.app.domain.TwoPanelPosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
@@ -61,6 +63,8 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     val history = rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
     var showPoses by remember { mutableStateOf(false) }
+    var showOutfits by remember { mutableStateOf(false) }
+    var outfitCategory by remember { mutableStateOf("全部") }
     var twoPanelIds by remember { mutableStateOf<String?>(null) }
     var showAttachment by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
@@ -97,6 +101,40 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
             twoPanelIds = null
             showPoses = false
         })
+    }
+    if (showOutfits && editingEnabled) {
+        Dialog(onDismissRequest = { showOutfits = false }) {
+            Surface(shape = MaterialTheme.shapes.large) {
+                Column(Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("选择服装风格", style = MaterialTheme.typography.titleLarge)
+                    Text("17 套服装 · 仅插入提示词，不会额外请求 API", style = MaterialTheme.typography.bodySmall)
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("全部", "国风舞蹈", "宅舞", "清纯", "时尚").forEach { category ->
+                            FilterChip(outfitCategory == category, { outfitCategory = category },
+                                label = { Text(category) })
+                        }
+                    }
+                    LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(OutfitCatalog.presets.filter { outfitCategory == "全部" || it.category == outfitCategory }.size) { index ->
+                            val filtered = OutfitCatalog.presets.filter { outfitCategory == "全部" || it.category == outfitCategory }
+                            val outfit = filtered[index]
+                            OutlinedCard(onClick = {
+                                onPrompt(OutfitPrompts.apply(state.prompt, outfit))
+                                showOutfits = false
+                            }, modifier = Modifier.fillMaxWidth()) {
+                                Column(Modifier.padding(12.dp)) {
+                                    Text(outfit.title, style = MaterialTheme.typography.titleSmall)
+                                    Text(outfit.description, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                    }
+                    TextButton(onClick = { showOutfits = false }, modifier = Modifier.align(Alignment.End)) { Text("关闭") }
+                }
+            }
+        }
     }
     if (showReference && state.reference != null) {
         Dialog(onDismissRequest = { showReference = false }) {
@@ -346,6 +384,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             DropdownMenu(expanded = showAttachment, onDismissRequest = { showAttachment = false }) {
                                 DropdownMenuItem(text = { Text("添加参考图") }, onClick = { showAttachment = false; onChoose() })
                                 DropdownMenuItem(text = { Text("选择姿势") }, onClick = { showAttachment = false; showPoses = true })
+                                DropdownMenuItem(text = { Text("选择服装风格") }, onClick = { showAttachment = false; showOutfits = true })
                                 DropdownMenuItem(text = { Text("随机双宫格（一次生成）") }, onClick = {
                                     showAttachment = false
                                     val (left, right) = TwoPanelPosePrompts.choose()
@@ -355,6 +394,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             }
                         }
                         TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
+                        TextButton(onClick = { showOutfits = true }, enabled = editingEnabled) { Text("服装") }
                         TextButton(onClick = {
                             val (left, right) = TwoPanelPosePrompts.choose()
                             onPrompt(TwoPanelPosePrompts.apply(state.prompt, left, right))
