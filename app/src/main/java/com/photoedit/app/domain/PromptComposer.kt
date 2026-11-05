@@ -9,14 +9,22 @@ object PromptComposer {
     private val outfitBlock = Regex("(?s)【服装风格】.*?【/服装风格】")
     private val poseBlock = Regex("(?s)【姿势】.*?【/姿势】")
     private val gridBlock = Regex("(?s)【双宫格随机姿势】.*?【/双宫格随机姿势】")
+    private val cameraBlock = Regex("(?s)【镜头】.*?【/镜头】")
 
     private fun combine(existing: String, outfit: String?, pose: String?): String {
         val appearance = appearanceBlock.find(existing)?.value
-        val custom = listOf(appearanceBlock, outfitBlock, poseBlock, gridBlock).fold(existing) { text, regex ->
+        val custom = listOf(appearanceBlock, outfitBlock, poseBlock, gridBlock, cameraBlock).fold(existing) { text, regex ->
             regex.replace(text, "")
         }.trim()
         return listOfNotNull(custom.takeIf { it.isNotBlank() }, appearance, outfit, pose)
             .joinToString("\n\n")
+    }
+
+    fun withCamera(existing: String, camera: CameraPreset): String {
+        val outfit = outfitBlock.find(existing)?.value
+        val pose = gridBlock.find(existing)?.value ?: poseBlock.find(existing)?.value
+        val next = CameraPrompts.apply("", camera)
+        return combine(existing, listOfNotNull(outfit, pose, next).joinToString("\n\n"), null)
     }
 
     fun withAppearance(existing: String, appearance: AppearancePreset): String =
