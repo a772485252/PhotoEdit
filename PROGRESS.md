@@ -218,3 +218,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - One normal Generate action submits one image request; no additional API calls or local collage processing.
 - Regenerating random selection replaces only managed two-panel block, preserving surrounding user text; single-pose block removed when switching.
 - Added unit tests for uniqueness and replacement; version 0.9.2/code14. Build and device/model compliance not yet verified.
+
+## V0.9.4 expressive poses
+- Enhanced five standing-pose prompts to emphasize three-quarter angles, waist/hip silhouettes, and unobstructed pelvic outlines.
+- Added custom X001 prone look-back with raised hips; 29 original full_sexy entries retained plus one app-authored pose (30 total).
+- Picker count and unit tests updated; version 0.9.4/code16. CI/device validation pending.
