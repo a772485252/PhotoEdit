@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold { padding ->
                     Column(Modifier.fillMaxSize().padding(padding)) {
                         TabRow(selectedTabIndex = tab) {
-                            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("离线宫格") })
+                            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("图片拆分") })
                             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("AI 图片") })
                             Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("提示词助手") })
                         }
