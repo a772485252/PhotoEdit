@@ -212,3 +212,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Replaced 24 pose entries with 29 selected full_sexy IDs, Chinese titles and independently written detailed action descriptions.
 - Reused original generic category illustration vectors; no upstream thumbnails or images bundled. Generic icons do not accurately depict each individual pose.
 - Added unique/count test and categories; version 0.9.1/code13. CI and device validation pending.
+
+## V0.9.2 one-request random two-panel image
+- Added local random choice of two distinct poses from 29 presets, composed into one left/right two-panel prompt.
+- One normal Generate action submits one image request; no additional API calls or local collage processing.
+- Regenerating random selection replaces only managed two-panel block, preserving surrounding user text; single-pose block removed when switching.
+- Added unit tests for uniqueness and replacement; version 0.9.2/code14. Build and device/model compliance not yet verified.
