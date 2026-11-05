@@ -14,11 +14,12 @@ class PosePromptsTest {
         assertEquals(switched, PosePrompts.apply(switched, PoseCatalog.poses[1]))
     }
     @Test fun selectedAtlasIdsAreUnique() {
-        assertEquals(30, PoseCatalog.poses.size)
-        assertEquals(30, PoseCatalog.poses.map { it.id }.toSet().size)
-        assertEquals("P001", PoseCatalog.poses.first().id)
+        assertEquals(23, PoseCatalog.poses.size)
+        assertEquals(23, PoseCatalog.poses.map { it.id }.toSet().size)
+        assertEquals("P002", PoseCatalog.poses.first().id)
         assertEquals("X001", PoseCatalog.poses.last().id)
         assertTrue(PoseCatalog.poses.all { it.description.isNotBlank() })
+        assertTrue(PoseCatalog.poses.none { it.id in setOf("P001", "P003", "P006", "P007", "P010", "P015", "P016") })
     }
     @Test fun twoPanelPromptUsesDifferentPosesAndPreservesContext() {
         val a = PoseCatalog.poses[0]
