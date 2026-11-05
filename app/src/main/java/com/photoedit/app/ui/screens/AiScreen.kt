@@ -123,11 +123,11 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             Text("写真优化已开启：匹配采样参数，并补充清晰度提示与负面词；原输入文字保留。", style = MaterialTheme.typography.bodySmall)
                         }
                         Text("参考图修改程度", style = MaterialTheme.typography.titleSmall)
-                        listOf(0.35 to "保留更多原图", 0.50 to "平衡", 0.65 to "较大变化").forEach { (strength, label) ->
+                        listOf(0.35 to "保留更多原图", 0.55 to "平衡", 0.65 to "较大变化").forEach { (strength, label) ->
                             FilterChip(kotlin.math.abs(state.hordeDenoise - strength) < 0.01,
                                 { onHordeDenoise(strength) }, label = { Text(label) }, enabled = editingEnabled)
                         }
-                        Text("默认保留更多原图；变化越大，人物长相越可能改变。较低强度也可能保留原图的模糊，不是人脸锁定。英文提示词通常更适合这些模型，可用提示词助手整理。", style = MaterialTheme.typography.bodySmall)
+                        Text("默认平衡；低强度更偏向保留原图，变化越大，人物长相越可能改变。较低强度也可能保留原图的模糊，不是人脸锁定。英文提示词通常更适合这些模型，可用提示词助手整理。", style = MaterialTheme.typography.bodySmall)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(state.hordeNsfw, onHordeNsfw, enabled = editingEnabled)
                             Text("允许 NSFW 请求", style = MaterialTheme.typography.bodyMedium)

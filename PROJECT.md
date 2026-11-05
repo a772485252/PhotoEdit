@@ -102,4 +102,4 @@ A free native Android application for preparing images and short-form video mate
 - Keep output 512x512. Default Realistic Vision, with AbsoluteReality quick choice; migrate only legacy stable_diffusion default once and preserve explicit custom models.
 - These two SD1 portrait models use DPM++2M/Karras, 28 steps, CFG6 and transparent photographic/negative prompt augmentation; custom models retain generic original settings. No automatic prompt translation.
 - Disable allow_downgrade for every Horde request; insufficient Kudos is surfaced rather than silently lowering quality.
-- Reference changes use selectable 0.35/0.50/0.65 strength, default 0.35; WebP quality100 max512 input, fit aspect preserved. Lower strength favors source retention but does not restore lost detail or guarantee identity.
+- Reference changes use selectable 0.35/0.55/0.65 strength, default 0.55; WebP quality100 max512 input, fit aspect preserved. Lower strength favors source retention but does not restore lost detail or guarantee identity.

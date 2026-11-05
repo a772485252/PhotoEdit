@@ -175,3 +175,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Change default/migrate legacy selection once, add two portrait shortcuts, DPM++2M/Karras 28step CFG6 profiles, visible prompt augmentation, custom negative-prompt preservation and lower/selectable img2img strength. Keep custom models.
 - Disable silent downgrade; preserve 512 output and increase reference WebP encoding quality to100. No face restoration/identity claims or new SDK. Version0.7.1/code10.
 - Added upgrade/custom-model/negative-prompt/strength rules tests; live controlled portraits and signed CI pending.
+
+## V0.7.1 live portrait findings
+- Compared same 512px clothed adult head-and-shoulders prompt and seed13371337: legacy stable_diffusion/EulerA25/CFG7 vs Realistic Vision and AbsoluteReality with DPM++2M/Karras28/CFG6 and quality negatives. All three anonymous requests completed and returned uncensored512x512 WebP. The two portrait samples had more natural/visible skin and eye detail than the legacy sample; this is a small subjective smoke comparison, not a general quality benchmark.
+- Reference tests reused the synthetic Realistic Vision portrait, same model/prompt/seed at0.35 and0.55. Both completed.0.35 retained pose but introduced visibly rougher skin/edge detail;0.55 was smoother/clearer in this sample. Therefore final default is balanced0.55, with0.35 and0.65 available rather than assuming lower strength improves clarity. No face-ID match guarantee.
+- Temporary poll transport403 recovered by querying the same IDs; no duplicate submissions. Initial build run41970037343 passed unit tests/lint/assemble/signature/upload/publication. Final default-strength adjustment requires a new CI result.

@@ -36,7 +36,7 @@ data class AiUiState(
     val provider: String = "horde",
     val hordeKey: String = "",
     val hordeModel: String = HordeRules.DEFAULT_MODEL,
-    val hordeDenoise: Double = 0.35,
+    val hordeDenoise: Double = 0.55,
     val hordeNsfw: Boolean = true,
     val hordeModels: List<HordeModel> = emptyList(),
     val hordeTaskPending: Boolean = false,
@@ -78,7 +78,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(account = account, token = token, runwareKey = runwareKey,
                 hordeKey = hordeKey, provider = provider,
                 hordeModel = hordeModel,
-                hordeDenoise = imagePreferences.getFloat("horde_denoise", 0.35f).toDouble().coerceIn(0.2, 0.7),
+                hordeDenoise = imagePreferences.getFloat("horde_denoise", 0.55f).toDouble().coerceIn(0.2, 0.7),
                 hordeNsfw = imagePreferences.getBoolean("horde_nsfw", true))
         }
     }
