@@ -139,3 +139,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Implemented 24 original front-facing vector mannequin diagrams, standing/seated filters, prompt preview and explicit use/cancel. Original atlas images excluded because its license prohibits image redistribution.
 - Prompt selection preserves user text/reference; switching replaces prior managed pose, no network or generation triggered. Added pure prompt replacement tests.
 - Version 0.6.0/code 7; persistent signing unchanged. CI validation and real-device UI checks pending.
+
+## V0.6 verified build and publication
+- Feature commit 66ffc96456daa6150d5e386b150a468fc4ee2df0. Workflow https://github.com/a772485252/PhotoEdit/actions/runs/41958663551 , job 127019536145.
+- Build step (testDebugUnitTest, lintDebug, assembleDebug), fixed certificate comparison, artifact upload and latest-apk publication all completed successfully. Job log download returned 404; recorded evidence is the workflow step results and published blob metadata.
+- Publication commit 30b173c4c6c3b2edf748adb998fe52be1664a7a0; APK blob 318a63260d9594418a45fb63ba60b6412e45bcfd. APK 9,700,978 bytes versus 9,658,821, increase 42,157 bytes. Original vector XMLs total 89,174 bytes.
+- All 24 diagrams rendered as a contact sheet and visually inspected; XML parsing and git diff checks passed. No emulator/device or live image-generation test performed. Device checks in docs/POSES.md remain pending.
