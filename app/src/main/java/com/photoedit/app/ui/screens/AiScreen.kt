@@ -437,6 +437,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
                             twoPanelIds = "${left.id} + ${right.id}"
                         }, enabled = editingEnabled) { Text("随机双宫格") }
+                    }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         Button(onClick = onGenerate, enabled = !state.busy && !veniceUnknown && hasKey && (pendingTask || state.prompt.isNotBlank()),
                             shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else if (veniceUnknown) "先核对用量" else if (venice) "生成 · $" + VeniceRules.estimate(effectiveReference) else if (apiPod) "生成 · $" + apiPodEstimate else "生成 ↑") }
