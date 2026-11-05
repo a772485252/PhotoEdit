@@ -127,3 +127,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - User requested simplest personal-use setup: one persistent standard debug keystore, password android, alias androiddebugkey; no release-signing changes.
 - Workflow restores one Actions secret PHOTOEDIT_DEBUG_KEYSTORE_BASE64, validates the key, verifies APK signature, and removes runner key after build. Missing secret blocks publication; PR checks remain independent.
 - Version 0.5.1/code 6. No keystore/private key committed. Owner must provision secret because connector has no Secrets-write capability. New signed APK and device update verification are pending.
+
+## Persistent signing verified (2026-11-05)
+- Owner configured PHOTOEDIT_DEBUG_KEYSTORE_BASE64. Fixed key SHA-256: 2a04e72f637fd9d58d8a3702373532b94e5a1755060185b26f896cdf33057840.
+- Initial runs restored the correct file but AGP used a different default Android user-home key. Explicit debug signing storeFile now resolves HOME/.android/debug.keystore. Clean/no-build-cache alone was insufficient; do not rely on implicit key discovery.
+- Workflow compares exported keystore certificate SHA-256 against APK certificate before upload/publication and fails on mismatch.
+- Verified run https://github.com/a772485252/PhotoEdit/actions/runs/41954151050 ; job 127004887191 completed success. Unit tests, lint, assembleDebug, certificate equality, upload and latest-apk publication all passed. BUILD SUCCESSFUL in 1m 7s.
+- APK and fixed keystore fingerprint matched exactly. Version 0.5.1/code 6. Fixed-key setup complete; physical-device update/data preservation remains untested. Earlier ephemeral-signed installations may require one uninstall/reinstall; preserve keys for re-entry first.
