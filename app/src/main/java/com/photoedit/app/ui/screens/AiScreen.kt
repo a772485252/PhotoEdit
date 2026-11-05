@@ -108,7 +108,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                 Column(Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("选择服装风格", style = MaterialTheme.typography.titleLarge)
-                    Text("17 套服装 · 仅插入提示词，不会额外请求 API", style = MaterialTheme.typography.bodySmall)
+                    Text("17 种上衣风格 · 下装随机：白色透明连裤袜 / 白色低腰蕾丝内裤；仅修改提示词", style = MaterialTheme.typography.bodySmall)
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("全部", "国风舞蹈", "宅舞", "清纯", "时尚").forEach { category ->
@@ -126,7 +126,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.padding(12.dp)) {
                                     Text(outfit.title, style = MaterialTheme.typography.titleSmall)
-                                    Text(outfit.description, style = MaterialTheme.typography.bodySmall)
+                                    Text("保留该风格上衣设计；下装在两种白色款式中随机替换。", style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
