@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val image: Bitmap? = null,
-    val gridSize: Int = 3,
+    val gridSize: Int = 1,
     val tiles: List<Bitmap> = emptyList(),
     val busy: Boolean = false,
     val message: String? = null
