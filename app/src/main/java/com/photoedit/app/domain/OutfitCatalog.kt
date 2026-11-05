@@ -24,10 +24,37 @@ object OutfitCatalog {
     )
 }
 
+/** Keep the selected style's upper garment; replace every lower garment with one local random choice. */
 object OutfitPrompts {
     private val block = Regex("(?s)【服装风格】.*?【/服装风格】")
-    fun apply(existing: String, outfit: OutfitPreset): String {
-        val replacement = "【服装风格】成年人物穿着：${outfit.description}。保持服装款式、颜色、材质和配饰一致，服装适配人物动作，身体结构自然。【/服装风格】"
+    private val upperById = mapOf(
+        "C01" to "月白与胭脂红渐变交领短上衣，刺绣云纹，飘逸长袖与轻纱披帛",
+        "C02" to "改良汉服短款对襟上衣，细腻刺绣，轻薄披帛与珍珠发饰",
+        "C03" to "新中式立领盘扣修身上衣，细腻提花面料，东方剪裁",
+        "D01" to "黑粉拼色短外套与修身内搭，甜酷偶像舞台风",
+        "D02" to "海军领衬衫、蝴蝶结领结与针织开衫，日系学院风",
+        "D03" to "亮色短款运动夹克与合身运动背心，元气运动风",
+        "D04" to "银黑拼色短夹克与结构感修身上衣，未来机能风",
+        "D05" to "蕾丝方领泡泡袖甜系洛丽塔上衣，蝴蝶结与精致刺绣",
+        "Q01" to "白色棉质方领短袖上衣，少量蕾丝细节，柔和自然",
+        "Q02" to "浅色细针织开衫与纯色内搭，干净日常",
+        "Q03" to "奶油色亚麻衬衫，天然面料纹理，文艺森系",
+        "Q04" to "浅蓝色轻薄防晒衬衫与简洁无袖内搭，清爽海边风",
+        "F01" to "剪裁利落的短西装与修身背心，黑白灰都市街拍风",
+        "F02" to "缎面修身礼服式上衣，精致肩线与高级光泽",
+        "F03" to "亮色修身短上衣，千禧年Y2K风格与彩色发夹",
+        "F04" to "修身针织上衣与轻薄西装外套，韩系低饱和色系",
+        "F05" to "细密亮片修身舞台上衣，聚光灯下闪亮材质"
+    )
+    val lowerChoices = listOf(
+        "白色透明连裤袜，轻薄透肤材质，腰部与腿部自然贴合",
+        "白色低腰蕾丝内裤，细致花边与自然贴合的腰线"
+    )
+
+    fun apply(existing: String, outfit: OutfitPreset, lowerIndex: Int = lowerChoices.indices.random()): String {
+        require(lowerIndex in lowerChoices.indices)
+        val upper = upperById[outfit.id] ?: outfit.description
+        val replacement = "【服装风格】成年人物；上衣：$"+"{upper}；下装：$"+"{lowerChoices[lowerIndex]}。不保留原服装描述中的裙装、裤装或其他下装；保留上衣的款式、颜色、材质与装饰。服装适配姿势，身体结构自然。【/服装风格】"
         return if (block.containsMatchIn(existing)) block.replace(existing) { replacement }
         else listOf(existing.trimEnd(), replacement).filter { it.isNotBlank() }.joinToString("\n\n")
     }
