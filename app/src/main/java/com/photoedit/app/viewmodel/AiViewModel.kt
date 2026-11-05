@@ -19,6 +19,8 @@ import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
+data class ImageTurn(val prompt: String, val image: Bitmap, val referenceUsed: Boolean)
+
 // Token is in volatile ViewModel memory; never save UI state into a Bundle or logs.
 data class AiUiState(
     val account: String = AiRules.DEFAULT_ACCOUNT,
@@ -26,6 +28,8 @@ data class AiUiState(
     val prompt: String = "",
     val reference: Bitmap? = null,
     val result: Bitmap? = null,
+    val turns: List<ImageTurn> = emptyList(),
+    val continueEditing: Boolean = true,
     val busy: Boolean = true,
     val message: String? = null
 )
@@ -69,12 +73,16 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun removeReference() { if (!_state.value.busy) _state.value = _state.value.copy(reference = null) }
+    fun setContinueEditing(value: Boolean) { if (!_state.value.busy) _state.value = _state.value.copy(continueEditing = value) }
+    fun useTurn(index: Int) { if (!_state.value.busy) _state.value.turns.getOrNull(index)?.let { _state.value = _state.value.copy(reference = it.image, continueEditing = false, message = "已选中历史图片作为参考") } }
+    fun newSession() { if (!_state.value.busy) _state.value = _state.value.copy(turns = emptyList(), result = null, reference = null, prompt = "", message = null, continueEditing = true) }
     fun generate() {
         if (_state.value.busy) return
         val state = _state.value
         perform {
-            val image = client.generate(state.account, state.token, state.prompt.trim(), state.reference)
-            _state.value = _state.value.copy(result = image, message = "生成完成，请保存到手机相册")
+            val selected = if (state.continueEditing && state.result != null) state.result else state.reference
+            val image = client.generate(state.account, state.token, state.prompt.trim(), selected)
+            _state.value = _state.value.copy(result = image, turns = state.turns + ImageTurn(state.prompt.trim(), image, selected != null), prompt = "", continueEditing = true, message = "生成完成；可继续输入修改要求")
         }
     }
     fun saveImage() {
