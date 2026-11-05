@@ -202,3 +202,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Reviewed official native generation/edit schemas, raw binary responses, base64 source, min256 dimensions, model-specific content behavior and pricing. Kept platform default content blur and expose blur header rather than claiming all output clear/permissive.
 - Synchronous fixed-length POST with no app retry. Timeout/unknown outcome retains draft/result and locks submission pending usage acknowledgement. No nonexistent task polling/cancellation controls; no fake settled costs.
 - Added boundary tests for reference/cost mapping, 4xx vs ambiguous outcome, key injection, dimensions/overflow and oversized prompt rejection. Version0.9.0/code12. Required CI pending; authenticated generation/editing, actual fees and device interaction unverified (no Venice Key available).
+
+## V0.9 verified build and remaining API boundary
+- Feature bea7ad7453e014023bea9f48a259af6e6766a878. Run https://github.com/a772485252/PhotoEdit/actions/runs/41977097726 , job127078375041 completed success: unit tests/lint/assemble, fixed-signature equality, artifact upload and publication all passed.
+- Published APK commit3d6119a6510aedcc9b398b9a614357081e41d27b. Version0.9.0/code12. No Android emulator/real-device interaction test performed.
+- This environment's unauthenticated Venice API probes returned HTTP200 text/html with Site Unavailable, rather than the API JSON envelope; this does not verify service access or authentication. No credentials available and no paid requests made. Actual connectivity, generation/edit quality and billing remain unverified. Do not imply compilation proves live API operation.
