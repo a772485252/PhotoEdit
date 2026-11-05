@@ -29,7 +29,7 @@ fun PosePicker(onDismiss: () -> Unit, onSelect: (PosePreset) -> Unit) {
             Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("选择姿势", style = MaterialTheme.typography.titleLarge)
-                Text("29 个精选姿势 · 原创通用简图 · 离线可用", style = MaterialTheme.typography.bodySmall)
+                Text("30 个精选姿势 · 原创通用简图 · 离线可用", style = MaterialTheme.typography.bodySmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("全部", "站姿", "坐姿", "跪姿", "卧姿", "特殊").forEach { item ->
                         FilterChip(selected = category == item, onClick = { category = item }, label = { Text(item) })
