@@ -1,21 +1,18 @@
-# Offline pose picker
+# Offline pose picker — V0.9.1
 
-24 independently authored front-view mannequin vectors (18 standing, 6 seated).
-All legs are separated and do not cross. Artwork uses Android VectorDrawable;
-there are no bitmap originals, remote image calls or new dependencies.
+29 entries selected from RuiC-PoseAtlas full_sexy series:
+P001, P002, P003, P004, P006, P007, P010, P012, P014, P015, P016, P017, P018, P019, P020, P022, P027, P029, P031, P032, P033, P047, P054, P055, P060, P066, P070, P078, P080.
 
-The RuiC-PoseAtlas LICENSE scope notice explicitly excludes img/ and thumbs/
-and prohibits redistribution of the image data. No images or metadata from
-that project are bundled. Source reviewed 2026-11-05:
-https://github.com/HRuiCcc/RuiC-PoseAtlas/blob/main/LICENSE
+Source names and IDs: https://github.com/HRuiCcc/RuiC-PoseAtlas
+Upstream LICENSE excludes img/ and thumbs/ from redistribution.
+No upstream image assets are bundled. Existing independently authored
+VectorDrawable mannequins are reused as **generic category illustrations**,
+not exact depictions of the pose. Original Chinese detailed action prompts
+are authoritative; browsing remains fully offline.
 
-Select AI 图片 → 选姿势 → a card → 使用姿势. This fills an editable Chinese
-pose paragraph and does not generate or upload anything. Existing text and
-face reference stay in place. Selecting another pose replaces the managed
-【姿势】…【/姿势】 paragraph instead of accumulating conflicting poses.
-The diagrams are illustrative; text-only pose matching depends on the model.
+AI 图片 → 选姿势 → choose pose → 使用姿势. Switching only replaces the
+managed 【姿势】 paragraph, preserving the user's other text and reference.
+No generation/upload is triggered by selection.
 
-Device checks: offline browse, standing/seated filters, selection/preview,
-cancel, repeated selection preserving other prompt text and face reference,
-and manually triggered generation for each provider. Small screens and larger
-font settings should also be checked.
+Device verification pending: 29 entries, categories, keyboard/small screens,
+repeated selection, preserving other prompts/reference, model pose accuracy.
