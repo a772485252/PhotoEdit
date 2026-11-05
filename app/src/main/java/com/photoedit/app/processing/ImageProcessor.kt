@@ -58,7 +58,7 @@ class ImageProcessor(private val context: Context) {
 
     suspend fun preview(source: Bitmap, grid: GridSpec): List<Bitmap> = withContext(Dispatchers.Default) {
         val scale = minOf(1f, 1200f / maxOf(source.width, source.height))
-        val small = Bitmap.createScaledBitmap(source, (source.width * scale).toInt().coerceAtLeast(grid.size),
+        val small = Bitmap.createScaledBitmap(source, (source.width * scale).toInt().coerceAtLeast(grid.columns),
             (source.height * scale).toInt().coerceAtLeast(grid.size), true)
         try {
             grid.bounds(small.width, small.height).map { b ->
