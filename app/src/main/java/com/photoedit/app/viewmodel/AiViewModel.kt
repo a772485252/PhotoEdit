@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.photoedit.app.ai.AiSettingsStore
 import com.photoedit.app.ai.CloudflareClient
+import com.photoedit.app.ai.RunwareClient
 import com.photoedit.app.domain.AiRules
 import com.photoedit.app.processing.GalleryWriter
 import com.photoedit.app.processing.ImageProcessor
@@ -25,6 +26,8 @@ data class ImageTurn(val prompt: String, val image: Bitmap, val referenceUsed: B
 data class AiUiState(
     val account: String = AiRules.DEFAULT_ACCOUNT,
     val token: String = "",
+    val runwareKey: String = "",
+    val provider: String = "cloudflare",
     val prompt: String = "",
     val reference: Bitmap? = null,
     val result: Bitmap? = null,
@@ -36,6 +39,8 @@ data class AiUiState(
 
 class AiViewModel(application: Application) : AndroidViewModel(application) {
     private val settings = AiSettingsStore(application)
+    private val runwareSettings = AiSettingsStore(application, "runware_private")
+    private val runwareClient = RunwareClient()
     private val processor = ImageProcessor(application)
     private val gallery = GalleryWriter(application)
     private val client = CloudflareClient()
@@ -44,11 +49,29 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     init {
         perform {
             val (account, token) = withContext(Dispatchers.IO) { settings.load() }
-            _state.value = _state.value.copy(account = account, token = token)
+            val (_, runwareKey) = withContext(Dispatchers.IO) { runwareSettings.load() }
+            _state.value = _state.value.copy(account = account, token = token, runwareKey = runwareKey)
         }
     }
     fun account(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(account = value.trim()) }
     fun token(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim()) }
+    fun provider(value: String) { if (!_state.value.busy && value in listOf("cloudflare", "runware")) _state.value = _state.value.copy(provider = value, result = null, turns = emptyList(), reference = null) }
+    fun runwareKey(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(runwareKey = value.trim()) }
+    fun saveRunwareKey() {
+        if (_state.value.busy) return
+        val key = _state.value.runwareKey
+        perform {
+            withContext(Dispatchers.IO) { runwareSettings.save(AiRules.DEFAULT_ACCOUNT, key) }
+            _state.value = _state.value.copy(message = "Runware Key 已加密保存")
+        }
+    }
+    fun clearRunwareKey() {
+        if (_state.value.busy) return
+        perform {
+            withContext(Dispatchers.IO) { runwareSettings.clear() }
+            _state.value = _state.value.copy(runwareKey = "", message = "已清除 Runware Key")
+        }
+    }
     fun prompt(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(prompt = value.take(4000)) }
     fun saveSettings() {
         if (_state.value.busy) return
@@ -81,7 +104,8 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
         val state = _state.value
         perform {
             val selected = if (state.continueEditing && state.result != null) state.result else state.reference
-            val image = client.generate(state.account, state.token, state.prompt.trim(), selected)
+            val image = if (state.provider == "runware") runwareClient.generate(state.runwareKey, state.prompt.trim(), selected)
+                else client.generate(state.account, state.token, state.prompt.trim(), selected)
             _state.value = _state.value.copy(result = image, turns = state.turns + ImageTurn(state.prompt.trim(), image, selected != null), prompt = "", continueEditing = true, message = "生成完成；可继续输入修改要求")
         }
     }
