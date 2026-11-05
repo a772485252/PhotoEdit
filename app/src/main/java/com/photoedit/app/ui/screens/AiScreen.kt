@@ -412,7 +412,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())
                     twoPanelIds?.let { Text("已随机选中：$it · 点击随机双宫格可重新抽取；生成时仅请求一张图片。", style = MaterialTheme.typography.labelSmall) }
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
                         Box {
                             TextButton(onClick = { showAttachment = true }, enabled = editingEnabled,
                                 modifier = Modifier.semantics { contentDescription = "添加图片或姿势" }) { Text("+") }
@@ -437,7 +437,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
                             twoPanelIds = "${left.id} + ${right.id}"
                         }, enabled = editingEnabled) { Text("随机双宫格") }
-                        Spacer(Modifier.weight(1f))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         Button(onClick = onGenerate, enabled = !state.busy && !veniceUnknown && hasKey && (pendingTask || state.prompt.isNotBlank()),
                             shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else if (veniceUnknown) "先核对用量" else if (venice) "生成 · $" + VeniceRules.estimate(effectiveReference) else if (apiPod) "生成 · $" + apiPodEstimate else "生成 ↑") }
                     }
