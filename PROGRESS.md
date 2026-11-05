@@ -1,6 +1,6 @@
 # PhotoEdit — Development Progress
 
-Last updated: 2026-11-04
+Last updated: 2026-11-05
 
 ## Current milestone
 V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified and APK published. Live API/device verification pending.
@@ -122,3 +122,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Download: https://github.com/a772485252/PhotoEdit/raw/refs/heads/main/latest-apk/PhotoEdit-debug.apk
 - No build failures. Existing GitHub Actions deprecation warnings remain non-blocking.
 - No live API, emulator or real-device testing performed. User retains Keys on-device; do not infer API/model availability from the successful build.
+
+## Personal persistent debug signing (2026-11-05)
+- User requested simplest personal-use setup: one persistent standard debug keystore, password android, alias androiddebugkey; no release-signing changes.
+- Workflow restores one Actions secret PHOTOEDIT_DEBUG_KEYSTORE_BASE64, validates the key, verifies APK signature, and removes runner key after build. Missing secret blocks publication; PR checks remain independent.
+- Version 0.5.1/code 6. No keystore/private key committed. Owner must provision secret because connector has no Secrets-write capability. New signed APK and device update verification are pending.
