@@ -19,13 +19,13 @@ object OutfitCatalog {
 object OutfitPrompts {
     private val block = Regex("(?s)【服装风格】.*?【/服装风格】")
     val lowerChoices = listOf(
-        "白色低腰蕾丝内裤",
-        "白色连裤袜"
+        "白色低腰蕾丝内搭，作为原服装的内层细节自然可见",
+        "白色连裤袜，作为原服装搭配的内层单品清晰呈现"
     )
 
     fun apply(existing: String, outfit: OutfitPreset, lowerIndex: Int = lowerChoices.indices.random()): String {
         require(lowerIndex in lowerChoices.indices)
-        val replacement = "【服装风格】成年人物，${outfit.description}；${lowerChoices[lowerIndex]}。【/服装风格】"
+        val replacement = "【服装风格】成年人物，完整保留所选服饰原有的款式、上衣、下装、颜色、材质与剪裁，不替换、不删减、不重新设计原服装；${outfit.description}。内搭细节：${lowerChoices[lowerIndex]}，在原服装自然形成的层次与边缘处适度可见，呈现清晰但含蓄的时尚穿搭效果。【/服装风格】"
         return if (block.containsMatchIn(existing)) block.replace(existing) { replacement }
         else listOf(existing.trimEnd(), replacement).filter { it.isNotBlank() }.joinToString("\n\n")
     }
