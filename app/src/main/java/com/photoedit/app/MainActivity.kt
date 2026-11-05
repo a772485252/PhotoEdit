@@ -75,9 +75,13 @@ class MainActivity : ComponentActivity() {
                                 onHordeKey = aiViewModel::hordeKey, onSaveHordeKey = aiViewModel::saveHordeKey,
                                 onClearHordeKey = aiViewModel::clearHordeKey, onHordeModel = aiViewModel::hordeModel,
                                 onHordeDenoise = aiViewModel::hordeDenoise, onHordeNsfw = aiViewModel::hordeNsfw, onRefreshHordeModels = aiViewModel::refreshHordeModels,
-                                onStopHordeWaiting = aiViewModel::stopHordeWaiting, onCancelHordeTask = aiViewModel::cancelHordeTask) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                onStopHordeWaiting = aiViewModel::stopHordeWaiting, onCancelHordeTask = aiViewModel::cancelHordeTask,
+                                onApiPodKey = aiViewModel::apiPodKey, onSaveApiPodKey = aiViewModel::saveApiPodKey,
+                                onClearApiPodKey = aiViewModel::clearApiPodKey, onApiPodPro = aiViewModel::apiPodPro,
+                                onStopApiPodWaiting = aiViewModel::stopApiPodWaiting,
+                                onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
-                                    canUsePrompt = !ai.busy, onUsePrompt = { prompt ->
+                                    canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
                                         tab = 1
                                     }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,

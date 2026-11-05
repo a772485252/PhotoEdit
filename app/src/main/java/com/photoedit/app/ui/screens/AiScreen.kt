@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.HordeRules
 import com.photoedit.app.domain.PosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
@@ -40,7 +41,9 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
  onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit,
  onHordeKey: (String) -> Unit, onSaveHordeKey: () -> Unit, onClearHordeKey: () -> Unit,
  onHordeModel: (String) -> Unit, onHordeDenoise: (Double) -> Unit, onHordeNsfw: (Boolean) -> Unit, onRefreshHordeModels: () -> Unit,
- onStopHordeWaiting: () -> Unit, onCancelHordeTask: () -> Unit) {
+ onStopHordeWaiting: () -> Unit, onCancelHordeTask: () -> Unit,
+ onApiPodKey: (String) -> Unit, onSaveApiPodKey: () -> Unit, onClearApiPodKey: () -> Unit,
+ onApiPodPro: (Boolean) -> Unit, onStopApiPodWaiting: () -> Unit, onAbandonApiPodTracking: () -> Unit) {
     val context = LocalContext.current
     val history = rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
@@ -49,14 +52,21 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var showReference by remember { mutableStateOf(false) }
     val runware = state.provider == "runware"
     val horde = state.provider == "horde"
-    val editingEnabled = !state.busy && !state.hordeTaskPending
+    val apiPod = state.provider == "apipod"
+    val pendingTask = state.hordeTaskPending || state.apiPodPending
+    val effectiveReference = (state.continueEditing && state.result != null) || state.reference != null
+    val apiPodModel = ApiPodRules.model(effectiveReference, state.apiPodPro)
+    val apiPodEstimate = ApiPodRules.estimate(effectiveReference, state.apiPodPro)
+    var confirmAbandon by remember { mutableStateOf(false) }
+    val editingEnabled = !state.busy && !pendingTask
     var showHordeModels by remember { mutableStateOf(false) }
     val providerName = when {
+        apiPod -> "APIPod · 付费"
         horde -> "AI Horde · 免费队列"
         runware -> "Runware · Muse Image"
         else -> "Cloudflare · FLUX.2 Klein"
     }
-    val hasKey = horde || if (runware) state.runwareKey.isNotBlank() else state.token.isNotBlank()
+    val hasKey = when { apiPod -> state.apiPodKey.isNotBlank(); horde -> true; runware -> state.runwareKey.isNotBlank(); else -> state.token.isNotBlank() }
 
     LaunchedEffect(state.turns.size) {
         // One footer item always exists, including in an empty conversation.
@@ -78,6 +88,12 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
             }
         }
     }
+    if (confirmAbandon) {
+        AlertDialog(onDismissRequest = { confirmAbandon = false }, title = { Text("结束本地跟踪？") },
+            text = { Text("这不会取消 APIPod 平台任务，也不会退费。平台任务可能仍在运行，请先在控制台核对，避免再次提交重复任务。") },
+            confirmButton = { TextButton(onClick = { confirmAbandon = false; onAbandonApiPodTracking() }) { Text("结束跟踪") } },
+            dismissButton = { TextButton(onClick = { confirmAbandon = false }) { Text("保留任务") } })
+    }
     if (showSettings) {
         Dialog(onDismissRequest = { showSettings = false }) {
             Surface(shape = MaterialTheme.shapes.large) {
@@ -86,12 +102,29 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("图片生成设置", style = MaterialTheme.typography.titleLarge)
                     Column {
+                        FilterChip(apiPod, { onProvider("apipod") }, label = { Text("APIPod · 付费") }, enabled = editingEnabled)
                         FilterChip(horde, { onProvider("horde") }, label = { Text("AI Horde · 免费") }, enabled = editingEnabled)
-                        FilterChip(!runware && !horde, { onProvider("cloudflare") }, label = { Text("Cloudflare") }, enabled = editingEnabled)
+                        FilterChip(!runware && !horde && !apiPod, { onProvider("cloudflare") }, label = { Text("Cloudflare") }, enabled = editingEnabled)
                         FilterChip(runware, { onProvider("runware") }, label = { Text("Runware · 付费") }, enabled = editingEnabled)
                     }
                     Text("切换平台保留草稿和参考图，清空当前平台的结果记录。", style = MaterialTheme.typography.bodySmall)
-                    if (horde) {
+                    if (apiPod) {
+                        Text("按次付费，不是免费额度。文生图约 $0.015/次，Pro 约 $0.025/次，参考图编辑约 $0.04/次；实际以平台价格与结算为准。", style = MaterialTheme.typography.bodySmall)
+                        OutlinedTextField(state.apiPodKey, onApiPodKey, label = { Text("APIPod API Key") }, singleLine = true,
+                            enabled = editingEnabled, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+                        Row {
+                            TextButton(onClick = onSaveApiPodKey, enabled = editingEnabled) { Text("保存 Key") }
+                            TextButton(onClick = onClearApiPodKey, enabled = editingEnabled) { Text("清除 Key") }
+                        }
+                        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.apipod.ai/"))) }) { Text("打开 APIPod 控制台") }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(state.apiPodPro, onApiPodPro, enabled = editingEnabled && !effectiveReference)
+                            Text("文生图使用 Pro", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Text("本次模型：$apiPodModel", style = MaterialTheme.typography.bodySmall)
+                        Text("无参考图使用 Z-Image；有参考图或继续编辑时使用 Qwen Image Edit。上传图片最长边 1024 像素，编辑输出跟随主图；文生图尺寸由模型决定。", style = MaterialTheme.typography.bodySmall)
+                        Text("Spicy 路线面向成年人，平台明确不向中国大陆、香港、澳门开放。VPN 不保证账号或模型可用；请先确认地区资格。平台与上游内容规则仍生效。", style = MaterialTheme.typography.bodySmall)
+                    } else if (horde) {
                         Text("免费社区算力 · 保持 512 × 512，不自动降档；积分不足会提示，不会自动付费。", style = MaterialTheme.typography.bodySmall)
                         OutlinedTextField(state.hordeKey, onHordeKey, label = { Text("个人 API Key（留空可匿名试用）") },
                             singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
@@ -187,6 +220,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             SelectionContainer { Text(turn.prompt, Modifier.padding(12.dp)) }
                         }
                         PhotoPreview(turn.image, "第 ${index + 1} 次生成结果")
+                        turn.costUsd?.let { Text("平台结算：$" + it.toString(), style = MaterialTheme.typography.labelSmall) }
                         Row {
                             TextButton(onClick = { onUseTurn(index) }, enabled = editingEnabled) { Text("继续编辑") }
                             if (index == state.turns.lastIndex) {
@@ -201,6 +235,11 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             Text("想创作什么画面？", style = MaterialTheme.typography.titleLarge)
                             Text(if (horde) "免费排队生成，输入描述或点 + 添加参考图。" else "输入描述，或点 + 添加参考图。", style = MaterialTheme.typography.bodyMedium)
                             if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("设置 API Key") }
+                        }
+                        if (apiPod && state.apiPodPending) {
+                            Text("原操作已保留，继续查询不会另建新的逻辑任务。", style = MaterialTheme.typography.bodySmall)
+                            if (state.busy) TextButton(onClick = onStopApiPodWaiting) { Text("停止本机等待") }
+                            else TextButton(onClick = { confirmAbandon = true }) { Text("结束本地跟踪…") }
                         }
                         if (horde && state.hordeTaskPending) {
                             Text("当前模型：${state.hordeModel}", style = MaterialTheme.typography.bodySmall)
@@ -238,12 +277,13 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }
                     }
                     Text(when {
-                        state.hordeTaskPending -> "原任务已提交，继续查询不会重新生成。"
+                        pendingTask -> "原任务已保留，请继续查询或处理原任务。"
                         state.continueEditing && state.result != null -> "本次参考：上一张生成结果"
                         state.reference != null -> "本次参考：已选图片"
                         else -> "本次参考：无（文生图）"
                     }, style = MaterialTheme.typography.labelSmall)
-                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 ${if (runware) "Runware Key" else "Cloudflare Token"}") }
+                    if (apiPod) Text(apiPodModel + " · 约 $" + apiPodEstimate + "/次 · 以平台结算为准", style = MaterialTheme.typography.labelSmall)
+                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 ${if (apiPod) "APIPod Key" else if (runware) "Runware Key" else "Cloudflare Token"}") }
                     OutlinedTextField(state.prompt, onPrompt, placeholder = { Text("描述画面或修改要求…") },
                         minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())
@@ -258,8 +298,8 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }
                         TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
                         Spacer(Modifier.weight(1f))
-                        Button(onClick = onGenerate, enabled = !state.busy && hasKey && (state.hordeTaskPending || state.prompt.isNotBlank()),
-                            shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (state.hordeTaskPending) "继续查询" else "生成 ↑") }
+                        Button(onClick = onGenerate, enabled = !state.busy && hasKey && (pendingTask || state.prompt.isNotBlank()),
+                            shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else if (apiPod) "生成 · $" + apiPodEstimate else "生成 ↑") }
                     }
                 }
             }

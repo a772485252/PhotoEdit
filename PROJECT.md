@@ -77,7 +77,7 @@ A free native Android application for preparing images and short-form video mate
 - No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
 - Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
 - New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
-- Current version: 0.7.1 / versionCode 10.
+- Current version: 0.8.0 / versionCode 11.
 - Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .
 
 ## Personal persistent debug signing
@@ -103,3 +103,11 @@ A free native Android application for preparing images and short-form video mate
 - These two SD1 portrait models use DPM++2M/Karras, 28 steps, CFG6 and transparent photographic/negative prompt augmentation; custom models retain generic original settings. No automatic prompt translation.
 - Disable allow_downgrade for every Horde request; insufficient Kudos is surfaced rather than silently lowering quality.
 - Reference changes use selectable 0.35/0.55/0.65 strength, default 0.55; WebP quality100 max512 input, fit aspect preserved. Lower strength favors source retention but does not restore lost detail or guarantee identity.
+
+## V0.8 APIPod paid image provider
+- Optional provider with distinct apipod_private encrypted Key; retain free Horde as default and existing providers. No auto billing or provider fallback.
+- Explicitly show selected request model and indicative per-request charge: z-image-spicy ($0.015) / optional z-image-spicy-pro ($0.025) for text; qwen-image-edit-spicy ($0.04) for one reference. Prices subject to platform settlement; usage.cost displayed when supplied.
+- Normal fixed HTTPS API only. Show documented mainland China/Hong Kong/Macau restriction; do not promise VPN access or implement any region-bypass mechanism.
+- Async POST with per-logical-operation Idempotency-Key and retained exact body/key; authenticated status polling with bounded backoff/jitter. In-memory pending state survives local stop/poll failures; continue-query reuses task ID or same idempotent create. No automatic POST retries.
+- Data-URI PNG reference max1024, body bounded; results download without forwarding Key, HTTPS/no redirects/private-address filtering, bounded bytes and decode size.
+- Stop-wait pauses locally only. Explicit confirmed end-tracking does not cancel platform task or refund. All history/operation handles are session memory only; do not force-close while task unresolved.

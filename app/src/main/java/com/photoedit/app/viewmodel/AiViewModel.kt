@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.photoedit.app.ai.ApiPodClient
+import com.photoedit.app.ai.ApiPodOperation
+import com.photoedit.app.ai.ApiPodException
 import com.photoedit.app.ai.AiSettingsStore
 import com.photoedit.app.ai.CloudflareClient
 import com.photoedit.app.ai.HordeClient
@@ -26,7 +29,7 @@ import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-data class ImageTurn(val prompt: String, val image: Bitmap, val referenceUsed: Boolean)
+data class ImageTurn(val prompt: String, val image: Bitmap, val referenceUsed: Boolean, val costUsd: Double? = null)
 
 // Token is in volatile ViewModel memory; never save UI state into a Bundle or logs.
 data class AiUiState(
@@ -34,6 +37,9 @@ data class AiUiState(
     val token: String = "",
     val runwareKey: String = "",
     val provider: String = "horde",
+    val apiPodKey: String = "",
+    val apiPodPro: Boolean = false,
+    val apiPodPending: Boolean = false,
     val hordeKey: String = "",
     val hordeModel: String = HordeRules.DEFAULT_MODEL,
     val hordeDenoise: Double = 0.55,
@@ -54,6 +60,10 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     private val runwareSettings = AiSettingsStore(application, "runware_private")
     private val runwareClient = RunwareClient()
     private val hordeClient = HordeClient()
+    private val apiPodClient = ApiPodClient()
+    private val apiPodSettings = AiSettingsStore(application, "apipod_private")
+    private var pendingApiPod: ApiPodOperation? = null
+    private fun hasPending() = pendingHorde != null || pendingApiPod != null
     private val hordeSettings = AiSettingsStore(application, "horde_private")
     private val imagePreferences = application.getSharedPreferences("image_preferences", android.content.Context.MODE_PRIVATE)
     private data class PendingHorde(val id: String, val prompt: String, val referenceUsed: Boolean)
@@ -70,13 +80,15 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             val (account, token) = withContext(Dispatchers.IO) { settings.load() }
             val (_, runwareKey) = withContext(Dispatchers.IO) { runwareSettings.load() }
             val (_, hordeKey) = withContext(Dispatchers.IO) { hordeSettings.load() }
+            val (_, apiPodKey) = withContext(Dispatchers.IO) { apiPodSettings.load() }
             val provider = imagePreferences.getString("provider", "horde").orEmpty()
-                .takeIf { it in listOf("cloudflare", "runware", "horde") } ?: "horde"
+                .takeIf { it in listOf("cloudflare", "runware", "horde", "apipod") } ?: "horde"
             val hordeModel = HordeRules.migrateModel(imagePreferences.getString("horde_model", null),
                 imagePreferences.getBoolean("portrait_profile_migrated", false))
             imagePreferences.edit().putString("horde_model", hordeModel).putBoolean("portrait_profile_migrated", true).apply()
             _state.value = _state.value.copy(account = account, token = token, runwareKey = runwareKey,
-                hordeKey = hordeKey, provider = provider,
+                hordeKey = hordeKey, provider = provider, apiPodKey = apiPodKey,
+                apiPodPro = imagePreferences.getBoolean("apipod_pro", false),
                 hordeModel = hordeModel,
                 hordeDenoise = imagePreferences.getFloat("horde_denoise", 0.55f).toDouble().coerceIn(0.2, 0.7),
                 hordeNsfw = imagePreferences.getBoolean("horde_nsfw", true))
@@ -85,27 +97,60 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     fun account(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(account = value.trim()) }
     fun token(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim()) }
     fun provider(value: String) {
-        if (_state.value.busy || value !in listOf("cloudflare", "runware", "horde") || value == _state.value.provider) return
-        if (pendingHorde != null) { _state.value = _state.value.copy(message = "请先继续查询或取消 AI Horde 原任务"); return }
+        if (_state.value.busy || value !in listOf("cloudflare", "runware", "horde", "apipod") || value == _state.value.provider) return
+        if (hasPending()) { _state.value = _state.value.copy(message = "请先处理当前平台的原任务"); return }
         // Keep draft/reference when changing transport; only the provider's result history resets.
         _state.value = _state.value.copy(provider = value, result = null, turns = emptyList(), continueEditing = false)
         imagePreferences.edit().putString("provider", value).apply()
     }
+    fun apiPodKey(value: String) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(apiPodKey = value.trim()) }
+    fun apiPodPro(value: Boolean) {
+        if (!_state.value.busy && !hasPending()) {
+            _state.value = _state.value.copy(apiPodPro = value)
+            imagePreferences.edit().putBoolean("apipod_pro", value).apply()
+        }
+    }
+    fun saveApiPodKey() {
+        if (_state.value.busy || hasPending()) return
+        val key = _state.value.apiPodKey
+        perform {
+            com.photoedit.app.domain.ApiPodRules.validateKey(key)
+            withContext(Dispatchers.IO) { apiPodSettings.save(AiRules.DEFAULT_ACCOUNT, key) }
+            _state.value = _state.value.copy(message = "APIPod Key 已加密保存；尚未验证余额和地区资格")
+        }
+    }
+    fun clearApiPodKey() {
+        if (_state.value.busy || hasPending()) return
+        perform {
+            withContext(Dispatchers.IO) { apiPodSettings.clear() }
+            _state.value = _state.value.copy(apiPodKey = "", message = "已清除 APIPod Key")
+        }
+    }
+    fun stopApiPodWaiting() {
+        if (pendingApiPod == null || !_state.value.busy) return
+        operation?.cancel()
+        _state.value = _state.value.copy(message = "已请求停止本机等待；平台任务可能继续并计费，可继续查询原操作")
+    }
+    fun abandonApiPodTracking() {
+        if (_state.value.busy) return
+        pendingApiPod = null
+        _state.value = _state.value.copy(apiPodPending = false, message = "已结束本机跟踪；没有取消平台任务，可能继续计费，请先在平台核对结果")
+    }
     fun hordeKey(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(hordeKey = value.trim()) }
     fun hordeModel(value: String) {
-        if (!_state.value.busy && pendingHorde == null) {
+        if (!_state.value.busy && !hasPending()) {
             _state.value = _state.value.copy(hordeModel = value.take(200))
             imagePreferences.edit().putString("horde_model", value.take(200)).apply()
         }
     }
     fun hordeDenoise(value: Double) {
-        if (!_state.value.busy && pendingHorde == null) {
+        if (!_state.value.busy && !hasPending()) {
             _state.value = _state.value.copy(hordeDenoise = HordeRules.denoise(value))
             imagePreferences.edit().putFloat("horde_denoise", value.toFloat()).apply()
         }
     }
     fun hordeNsfw(value: Boolean) {
-        if (!_state.value.busy && pendingHorde == null) {
+        if (!_state.value.busy && !hasPending()) {
             _state.value = _state.value.copy(hordeNsfw = value)
             imagePreferences.edit().putBoolean("horde_nsfw", value).apply()
         }
@@ -166,7 +211,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(runwareKey = "", message = "已清除 Runware Key")
         }
     }
-    fun prompt(value: String) { if (!_state.value.busy && pendingHorde == null) _state.value = _state.value.copy(prompt = value.take(4000)) }
+    fun prompt(value: String) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(prompt = value.take(4000)) }
     fun saveSettings() {
         if (_state.value.busy) return
         val state = _state.value
@@ -183,16 +228,16 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun selectReference(uri: Uri?) {
-        if (uri == null || _state.value.busy || pendingHorde != null) return
+        if (uri == null || _state.value.busy || hasPending()) return
         perform {
             val bitmap = processor.load(uri)
             _state.value = _state.value.copy(reference = bitmap, continueEditing = false, message = "参考图已加载，只有点击生成才上传")
         }
     }
-    fun removeReference() { if (!_state.value.busy && pendingHorde == null) _state.value = _state.value.copy(reference = null) }
-    fun setContinueEditing(value: Boolean) { if (!_state.value.busy && pendingHorde == null) _state.value = _state.value.copy(continueEditing = value) }
-    fun useTurn(index: Int) { if (!_state.value.busy && pendingHorde == null) _state.value.turns.getOrNull(index)?.let { _state.value = _state.value.copy(reference = it.image, continueEditing = false, message = "已选中历史图片作为参考") } }
-    fun newSession() { if (!_state.value.busy && pendingHorde == null) _state.value = _state.value.copy(turns = emptyList(), result = null, reference = null, prompt = "", message = null, continueEditing = true) }
+    fun removeReference() { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(reference = null) }
+    fun setContinueEditing(value: Boolean) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(continueEditing = value) }
+    fun useTurn(index: Int) { if (!_state.value.busy && !hasPending()) _state.value.turns.getOrNull(index)?.let { _state.value = _state.value.copy(reference = it.image, continueEditing = false, message = "已选中历史图片作为参考") } }
+    fun newSession() { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(turns = emptyList(), result = null, reference = null, prompt = "", message = null, continueEditing = true) }
     fun generate() {
         if (_state.value.busy) return
         val state = _state.value
@@ -200,6 +245,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             val selected = if (state.continueEditing && state.result != null) state.result else state.reference
             var prompt = state.prompt.trim()
             var referenceUsed = selected != null
+            var costUsd: Double? = null
             val image = when (state.provider) {
                 "horde" -> {
                     var task = pendingHorde
@@ -230,12 +276,32 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
                         throw error
                     }
                 }
+                "apipod" -> {
+                    val task = pendingApiPod ?: apiPodClient.prepare(state.apiPodKey, prompt, selected, state.apiPodPro).also {
+                        pendingApiPod = it
+                        _state.value = _state.value.copy(apiPodPending = true)
+                    }
+                    prompt = task.prompt
+                    referenceUsed = task.referenceUsed
+                    try {
+                        val result = apiPodClient.run(task) { message -> _state.value = _state.value.copy(message = message) }
+                        costUsd = result.costUsd
+                        result.image
+                    } catch (error: ApiPodException) {
+                        if (error.definitive || error.terminal) {
+                            pendingApiPod = null
+                            _state.value = _state.value.copy(apiPodPending = false)
+                        }
+                        throw error
+                    }
+                }
                 "runware" -> runwareClient.generate(state.runwareKey, prompt, selected)
                 else -> client.generate(state.account, state.token, prompt, selected)
             }
             pendingHorde = null
-            _state.value = _state.value.copy(result = image, turns = state.turns + ImageTurn(prompt, image, referenceUsed),
-                prompt = "", continueEditing = true, hordeTaskPending = false, message = "生成完成；可继续输入修改要求")
+            pendingApiPod = null
+            _state.value = _state.value.copy(result = image, turns = state.turns + ImageTurn(prompt, image, referenceUsed, costUsd),
+                prompt = "", continueEditing = true, hordeTaskPending = false, apiPodPending = false, message = "生成完成；可继续输入修改要求")
         }
     }
     fun saveImage() {
@@ -253,7 +319,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             try { action() }
             catch (error: CancellationException) { throw error }
             catch (_: SocketTimeoutException) { _state.value = _state.value.copy(message = "请求超时，结果未知。请检查控制台用量；未自动重试。") }
-            catch (_: UnknownHostException) { _state.value = _state.value.copy(message = "无法连接所选平台，请检查网络；已有 AI Horde 任务可继续查询") }
+            catch (_: UnknownHostException) { _state.value = _state.value.copy(message = "无法连接所选平台，请检查网络；已有平台任务可继续查询") }
             catch (error: Exception) {
                 val safe = if (error is IllegalArgumentException || error is java.io.IOException) error.message else "操作失败，请清除设置后重试"
                 _state.value = _state.value.copy(message = safe ?: "操作失败，请重试")
