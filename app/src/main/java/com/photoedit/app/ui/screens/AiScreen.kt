@@ -1,8 +1,12 @@
 package com.photoedit.app.ui.screens
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +22,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
@@ -26,6 +34,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.domain.HordeRules
@@ -55,6 +64,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var twoPanelIds by remember { mutableStateOf<String?>(null) }
     var showAttachment by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
+    var enlargedResult by remember { mutableStateOf<Bitmap?>(null) }
     val runware = state.provider == "runware"
     val horde = state.provider == "horde"
     val apiPod = state.provider == "apipod"
@@ -97,6 +107,9 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                 }
             }
         }
+    }
+    enlargedResult?.let { image ->
+        ZoomableResultDialog(image, onDismiss = { enlargedResult = null })
     }
     if (confirmAbandon) {
         AlertDialog(onDismissRequest = { confirmAbandon = false }, title = { Text("结束本地跟踪？") },
@@ -249,7 +262,8 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
                             SelectionContainer { Text(turn.prompt, Modifier.padding(12.dp)) }
                         }
-                        PhotoPreview(turn.image, "第 ${index + 1} 次生成结果")
+                        PhotoPreview(turn.image, "第 ${index + 1} 次生成结果", Modifier.clickable { enlargedResult = turn.image })
+                        Text("点击图片可全屏查看、双指缩放", style = MaterialTheme.typography.labelSmall)
                         turn.costUsd?.let { Text("平台结算：$" + it.toString(), style = MaterialTheme.typography.labelSmall) }
                         Row {
                             TextButton(onClick = { onUseTurn(index) }, enabled = editingEnabled) { Text("继续编辑") }
@@ -352,6 +366,59 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     }
                 }
             }
+        }
+    }
+}
+
+/** Full-screen local preview; does not upload or re-encode the original bitmap. */
+@Composable
+private fun ZoomableResultDialog(image: Bitmap, onDismiss: () -> Unit) {
+    var scale by remember(image) { mutableFloatStateOf(1f) }
+    var offset by remember(image) { mutableStateOf(Offset.Zero) }
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(Modifier.fillMaxSize().background(Color.Black)) {
+            Image(
+                bitmap = image.asImageBitmap(),
+                contentDescription = "生成图片全屏预览",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+                    .pointerInput(image) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            val next = (scale * zoom).coerceIn(1f, 5f)
+                            scale = next
+                            offset = if (next <= 1f) Offset.Zero else {
+                                val maxX = size.width * (next - 1f) / 2f
+                                val maxY = size.height * (next - 1f) / 2f
+                                Offset(
+                                    (offset.x + pan.x).coerceIn(-maxX, maxX),
+                                    (offset.y + pan.y).coerceIn(-maxY, maxY)
+                                )
+                            }
+                        }
+                    }
+                    .pointerInput(image) {
+                        detectTapGestures(onDoubleTap = {
+                            scale = if (scale > 1f) 1f else 2f
+                            offset = Offset.Zero
+                        })
+                    }
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+                    }
+            )
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+            ) { Text("关闭", color = Color.White) }
+            Text(
+                "双指缩放 · 拖动查看 · 双击切换大小",
+                color = Color.White,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(20.dp)
+            )
         }
     }
 }
