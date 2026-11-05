@@ -13,6 +13,13 @@ class PosePromptsTest {
         assertTrue(switched.contains(PoseCatalog.poses[1].description))
         assertEquals(switched, PosePrompts.apply(switched, PoseCatalog.poses[1]))
     }
+    @Test fun selectedAtlasIdsAreUnique() {
+        assertEquals(29, PoseCatalog.poses.size)
+        assertEquals(29, PoseCatalog.poses.map { it.id }.toSet().size)
+        assertEquals("P001", PoseCatalog.poses.first().id)
+        assertEquals("P080", PoseCatalog.poses.last().id)
+        assertTrue(PoseCatalog.poses.all { it.description.isNotBlank() })
+    }
     @Test fun emptyPromptAcceptsPose() {
         val pose = PoseCatalog.poses.first()
         assertEquals("【姿势】${pose.prompt}【/姿势】", PosePrompts.apply("", pose))
