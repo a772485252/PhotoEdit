@@ -16,6 +16,19 @@ android {
         versionName = "0.5.1"
     }
 
+    // Android user-home can differ on CI; never rely on the implicit debug key path.
+    signingConfigs {
+        getByName("debug") {
+            if (System.getenv("GITHUB_ACTIONS") == "true" &&
+                System.getenv("GITHUB_EVENT_NAME") != "pull_request") {
+                storeFile = file(System.getenv("HOME") + "/.android/debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
