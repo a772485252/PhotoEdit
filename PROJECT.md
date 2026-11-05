@@ -82,4 +82,4 @@ A free native Android application for preparing images and short-form video mate
 
 ## Personal persistent debug signing
 - Reuse standard debug signing via one Actions secret PHOTOEDIT_DEBUG_KEYSTORE_BASE64. No separate password secrets or release-signing configuration. See docs/SIGNING.md.
-- Push/manual publishing requires this key; PR checks use disposable keys and never publish latest-apk. Secret provisioning and signed build/device verification are pending.
+- Push/manual publishing requires this key; PR checks use disposable keys and never publish latest-apk. Secret provisioning and signed CI build verified in run 41954151050; APK certificate matches the persistent key. Device update verification remains pending. Debug signing explicitly resolves HOME/.android/debug.keystore; workflow rejects certificate mismatches before publication.
