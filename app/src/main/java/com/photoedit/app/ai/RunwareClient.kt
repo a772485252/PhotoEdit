@@ -14,7 +14,7 @@ import java.net.URL
 import java.util.UUID
 
 class RunwareClient {
-    companion object { const val MODEL = "meta:muse-image@1" }
+    companion object { const val MODEL = "meta:muse@image" }
     suspend fun generate(key: String, prompt: String, reference: Bitmap?): Bitmap = withContext(Dispatchers.IO) {
         require(key.isNotBlank()) { "请先填写 Runware API Key" }
         require(prompt.isNotBlank()) { "请输入提示词" }
