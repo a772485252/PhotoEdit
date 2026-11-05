@@ -143,10 +143,10 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                 Column(Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("选择服装风格", style = MaterialTheme.typography.titleLarge)
-                    Text("17 种上衣风格 · 下装随机：白色透明连裤袜 / 白色低腰蕾丝内裤；仅修改提示词", style = MaterialTheme.typography.bodySmall)
+                    Text("8 套甜美、宅舞与时尚穿搭 · 自动组合服饰描述", style = MaterialTheme.typography.bodySmall)
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("全部", "国风舞蹈", "宅舞", "清纯", "时尚").forEach { category ->
+                        listOf("全部", "国风舞蹈", "宅舞", "甜美", "时尚").forEach { category ->
                             FilterChip(outfitCategory == category, { outfitCategory = category },
                                 label = { Text(category) })
                         }
