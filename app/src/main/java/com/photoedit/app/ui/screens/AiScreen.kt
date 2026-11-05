@@ -30,6 +30,7 @@ import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.domain.HordeRules
 import com.photoedit.app.domain.PosePrompts
+import com.photoedit.app.domain.TwoPanelPosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
 import com.photoedit.app.ui.components.PosePicker
 import com.photoedit.app.viewmodel.AiUiState
@@ -51,6 +52,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     val history = rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
     var showPoses by remember { mutableStateOf(false) }
+    var twoPanelIds by remember { mutableStateOf<String?>(null) }
     var showAttachment by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
     val runware = state.provider == "runware"
@@ -82,6 +84,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     if (showPoses && editingEnabled) {
         PosePicker(onDismiss = { showPoses = false }, onSelect = {
             onPrompt(PosePrompts.apply(state.prompt, it))
+            twoPanelIds = null
             showPoses = false
         })
     }
@@ -321,6 +324,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     OutlinedTextField(state.prompt, onPrompt, placeholder = { Text("描述画面或修改要求…") },
                         minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())
+                    twoPanelIds?.let { Text("已随机选中：$it · 点击随机双宫格可重新抽取；生成时仅请求一张图片。", style = MaterialTheme.typography.labelSmall) }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Box {
                             TextButton(onClick = { showAttachment = true }, enabled = editingEnabled,
@@ -328,9 +332,20 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             DropdownMenu(expanded = showAttachment, onDismissRequest = { showAttachment = false }) {
                                 DropdownMenuItem(text = { Text("添加参考图") }, onClick = { showAttachment = false; onChoose() })
                                 DropdownMenuItem(text = { Text("选择姿势") }, onClick = { showAttachment = false; showPoses = true })
+                                DropdownMenuItem(text = { Text("随机双宫格（一次生成）") }, onClick = {
+                                    showAttachment = false
+                                    val (left, right) = TwoPanelPosePrompts.choose()
+                                    onPrompt(TwoPanelPosePrompts.apply(state.prompt, left, right))
+                                    twoPanelIds = "${left.id} + ${right.id}"
+                                })
                             }
                         }
                         TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
+                        TextButton(onClick = {
+                            val (left, right) = TwoPanelPosePrompts.choose()
+                            onPrompt(TwoPanelPosePrompts.apply(state.prompt, left, right))
+                            twoPanelIds = "${left.id} + ${right.id}"
+                        }, enabled = editingEnabled) { Text("随机双宫格") }
                         Spacer(Modifier.weight(1f))
                         Button(onClick = onGenerate, enabled = !state.busy && !veniceUnknown && hasKey && (pendingTask || state.prompt.isNotBlank()),
                             shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else if (veniceUnknown) "先核对用量" else if (venice) "生成 · $" + VeniceRules.estimate(effectiveReference) else if (apiPod) "生成 · $" + apiPodEstimate else "生成 ↑") }
