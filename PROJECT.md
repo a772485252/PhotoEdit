@@ -77,7 +77,7 @@ A free native Android application for preparing images and short-form video mate
 - No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
 - Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
 - New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
-- Current version: 0.6.1 / versionCode 8.
+- Current version: 0.7.0 / versionCode 9.
 - Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .
 
 ## Personal persistent debug signing
@@ -89,3 +89,11 @@ A free native Android application for preparing images and short-form video mate
 - AI prompt button opens category grid and preview; confirmation replaces only a managed pose paragraph. Existing text/reference preserved, no automatic generation or upload.
 
 - V0.6.1 AI layout uses a compact header, scrolling conversation, and bounded bottom composer; credentials/details are in a scrollable settings dialog. Attachments display as small thumbnails, and keyboard uses adjustResize.
+
+## V0.7 AI Horde
+- Add optional free community image generation via https://aihorde.net/api/v2. Blank key uses anonymous 0000000000; personal key uses a separate encrypted namespace. No paid fallback or automatic resubmission.
+- Default first selection AI Horde; persist chosen platform, model and NSFW flag. Existing provider credentials unchanged. Keep draft/reference on platform switch.
+- 512x512, 25 steps, one image, platform allow_downgrade; optional img2img uses max512 WebP input, denoising strength 0.55. Model availability and compatible workers vary; refresh active model list explicitly.
+- NSFW requests default enabled per user's preference; node/platform rules remain enforced. trusted_workers=true. Registered requests shared=false; anonymous txt2img sharing is controlled by Horde.
+- Poll check endpoint every 3 seconds, retrieve status/results only when done. Keep ID and submitted prompt/reference flag in ViewModel memory; stop waiting and resume query reuse ID. Explicit server cancel available when not polling. No disk chat history; process exit loses pending task handle.
+- Show real queue estimates, disable changing input while a task is pending, preserve draft on errors, distinguish timeout/unknown submission. Existing API Key masking/signing remain unchanged.

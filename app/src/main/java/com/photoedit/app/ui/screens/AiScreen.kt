@@ -36,7 +36,10 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
              onPrompt: (String) -> Unit, onSaveSettings: () -> Unit, onClearSettings: () -> Unit,
              onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit,
  onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit,
- onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit) {
+ onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit,
+ onHordeKey: (String) -> Unit, onSaveHordeKey: () -> Unit, onClearHordeKey: () -> Unit,
+ onHordeModel: (String) -> Unit, onHordeNsfw: (Boolean) -> Unit, onRefreshHordeModels: () -> Unit,
+ onStopHordeWaiting: () -> Unit, onCancelHordeTask: () -> Unit) {
     val context = LocalContext.current
     val history = rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
@@ -44,14 +47,21 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var showAttachment by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
     val runware = state.provider == "runware"
-    val providerName = if (runware) "Runware · Muse Image" else "Cloudflare · FLUX.2 Klein"
-    val hasKey = if (runware) state.runwareKey.isNotBlank() else state.token.isNotBlank()
+    val horde = state.provider == "horde"
+    val editingEnabled = !state.busy && !state.hordeTaskPending
+    var showHordeModels by remember { mutableStateOf(false) }
+    val providerName = when {
+        horde -> "AI Horde · 免费队列"
+        runware -> "Runware · Muse Image"
+        else -> "Cloudflare · FLUX.2 Klein"
+    }
+    val hasKey = horde || if (runware) state.runwareKey.isNotBlank() else state.token.isNotBlank()
 
-    LaunchedEffect(state.turns.size, state.busy, state.message) {
+    LaunchedEffect(state.turns.size) {
         // One footer item always exists, including in an empty conversation.
         history.animateScrollToItem(state.turns.size)
     }
-    if (showPoses && !state.busy) {
+    if (showPoses && editingEnabled) {
         PosePicker(onDismiss = { showPoses = false }, onSelect = {
             onPrompt(PosePrompts.apply(state.prompt, it))
             showPoses = false
@@ -74,12 +84,43 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     .verticalScroll(rememberScrollState()).padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("图片生成设置", style = MaterialTheme.typography.titleLarge)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(!runware, { onProvider("cloudflare") }, label = { Text("Cloudflare") }, enabled = !state.busy)
-                        FilterChip(runware, { onProvider("runware") }, label = { Text("Runware") }, enabled = !state.busy)
+                    Column {
+                        FilterChip(horde, { onProvider("horde") }, label = { Text("AI Horde · 免费") }, enabled = editingEnabled)
+                        FilterChip(!runware && !horde, { onProvider("cloudflare") }, label = { Text("Cloudflare") }, enabled = editingEnabled)
+                        FilterChip(runware, { onProvider("runware") }, label = { Text("Runware · 付费") }, enabled = editingEnabled)
                     }
-                    Text("切换平台会清空本次图片会话。", style = MaterialTheme.typography.bodySmall)
-                    if (runware) {
+                    Text("切换平台保留草稿和参考图，清空当前平台的结果记录。", style = MaterialTheme.typography.bodySmall)
+                    if (horde) {
+                        Text("免费社区算力，非固定每日张数；Kudos 影响优先级，复杂请求可能要求积分。默认 512 × 512，可由平台降低参数。", style = MaterialTheme.typography.bodySmall)
+                        OutlinedTextField(state.hordeKey, onHordeKey, label = { Text("个人 API Key（留空可匿名试用）") },
+                            singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
+                            visualTransformation = PasswordVisualTransformation())
+                        Row {
+                            TextButton(onClick = onSaveHordeKey, enabled = !state.busy) { Text("保存 Key") }
+                            TextButton(onClick = onClearHordeKey, enabled = !state.busy) { Text("匿名模式") }
+                        }
+                        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://aihorde.net/register"))) }) { Text("注册并获取个人 Key") }
+                        OutlinedTextField(state.hordeModel, onHordeModel, label = { Text("模型名称") },
+                            singleLine = true, enabled = editingEnabled, modifier = Modifier.fillMaxWidth())
+                        Row {
+                            TextButton(onClick = onRefreshHordeModels, enabled = !state.busy) { Text("刷新在线模型") }
+                            Box {
+                                TextButton(onClick = { showHordeModels = true }, enabled = editingEnabled && state.hordeModels.isNotEmpty()) { Text("选择模型") }
+                                DropdownMenu(expanded = showHordeModels, onDismissRequest = { showHordeModels = false }, modifier = Modifier.heightIn(max = 280.dp)) {
+                                    state.hordeModels.forEach { model ->
+                                        DropdownMenuItem(text = { Text("${model.name} · ${model.workers} 节点") },
+                                            onClick = { onHordeModel(model.name); showHordeModels = false })
+                                    }
+                                }
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(state.hordeNsfw, onHordeNsfw, enabled = editingEnabled)
+                            Text("允许 NSFW 请求", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Text("仅由接受此类请求的节点处理，可能等得更久；平台与节点内容规则仍生效。图生图不保证保脸或精确换装。", style = MaterialTheme.typography.bodySmall)
+                        Text("参考图交由志愿节点处理。匿名文生图及提示词会被平台共享给 LAION；个人 Key 请求关闭主动共享。", style = MaterialTheme.typography.bodySmall)
+                    } else if (runware) {
                         OutlinedTextField(state.runwareKey, onRunwareKey, label = { Text("Runware API Key") },
                             singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
                             visualTransformation = PasswordVisualTransformation())
@@ -105,7 +146,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }) { Text("查看官方用量") }
                         Text("请保持 Free 套餐。已开通付费的账号，超额计费由平台控制。", style = MaterialTheme.typography.bodySmall)
                     }
-                    Text("点击生成才会向所选平台发送提示词和参考图。不会自动重试或切换平台。参考图上传前缩小至最长边 511 像素，人物长相不保证完全一致。", style = MaterialTheme.typography.bodySmall)
+                    Text("点击生成才会向所选平台发送提示词和参考图。不会自动重试或切换平台。参考图会按所选平台缩小，人物长相不保证完全一致。", style = MaterialTheme.typography.bodySmall)
                     state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     TextButton(onClick = { showSettings = false }, modifier = Modifier.align(Alignment.End)) { Text("完成") }
                 }
@@ -120,7 +161,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                 TextButton(onClick = { showSettings = true }, modifier = Modifier.weight(1f)) {
                     Text("$providerName ▾", maxLines = 1, style = MaterialTheme.typography.titleSmall)
                 }
-                TextButton(onClick = onNewSession, enabled = !state.busy) { Text("新会话") }
+                TextButton(onClick = onNewSession, enabled = editingEnabled) { Text("新会话") }
             }
             HorizontalDivider()
             LazyColumn(state = history, modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -133,7 +174,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }
                         PhotoPreview(turn.image, "第 ${index + 1} 次生成结果")
                         Row {
-                            TextButton(onClick = { onUseTurn(index) }, enabled = !state.busy) { Text("继续编辑") }
+                            TextButton(onClick = { onUseTurn(index) }, enabled = editingEnabled) { Text("继续编辑") }
                             if (index == state.turns.lastIndex) {
                                 TextButton(onClick = onSaveImage, enabled = !state.busy) { Text("保存图片") }
                             }
@@ -144,8 +185,13 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (state.turns.isEmpty() && !state.busy) {
                             Text("想创作什么画面？", style = MaterialTheme.typography.titleLarge)
-                            Text("输入描述，或点 + 添加参考图。", style = MaterialTheme.typography.bodyMedium)
+                            Text(if (horde) "免费排队生成，输入描述或点 + 添加参考图。" else "输入描述，或点 + 添加参考图。", style = MaterialTheme.typography.bodyMedium)
                             if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("设置 API Key") }
+                        }
+                        if (horde && state.hordeTaskPending) {
+                            Text("当前模型：${state.hordeModel}", style = MaterialTheme.typography.bodySmall)
+                            if (state.busy) TextButton(onClick = onStopHordeWaiting) { Text("停止等待（保留平台任务）") }
+                            else TextButton(onClick = onCancelHordeTask) { Text("取消原任务") }
                         }
                         if (state.busy) {
                             LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -166,33 +212,40 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                                 contentScale = ContentScale.Crop)
                             Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
                                 Text("已添加参考图", style = MaterialTheme.typography.labelMedium)
-                                TextButton(onClick = onChoose, enabled = !state.busy, contentPadding = PaddingValues(0.dp)) { Text("更换") }
+                                TextButton(onClick = onChoose, enabled = editingEnabled, contentPadding = PaddingValues(0.dp)) { Text("更换") }
                             }
-                            TextButton(onClick = onRemove, enabled = !state.busy) { Text("移除") }
+                            TextButton(onClick = onRemove, enabled = editingEnabled) { Text("移除") }
                         }
                     }
                     if (state.result != null) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = state.continueEditing, onCheckedChange = onContinue, enabled = !state.busy)
+                            Checkbox(checked = state.continueEditing, onCheckedChange = onContinue, enabled = editingEnabled)
                             Text("继续编辑上一张结果", style = MaterialTheme.typography.bodySmall)
                         }
                     }
+                    Text(when {
+                        state.hordeTaskPending -> "原任务已提交，继续查询不会重新生成。"
+                        state.continueEditing && state.result != null -> "本次参考：上一张生成结果"
+                        state.reference != null -> "本次参考：已选图片"
+                        else -> "本次参考：无（文生图）"
+                    }, style = MaterialTheme.typography.labelSmall)
+                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 ${if (runware) "Runware Key" else "Cloudflare Token"}") }
                     OutlinedTextField(state.prompt, onPrompt, placeholder = { Text("描述画面或修改要求…") },
-                        minLines = 1, maxLines = 4, enabled = !state.busy,
+                        minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Box {
-                            TextButton(onClick = { showAttachment = true }, enabled = !state.busy,
+                            TextButton(onClick = { showAttachment = true }, enabled = editingEnabled,
                                 modifier = Modifier.semantics { contentDescription = "添加图片或姿势" }) { Text("+") }
                             DropdownMenu(expanded = showAttachment, onDismissRequest = { showAttachment = false }) {
                                 DropdownMenuItem(text = { Text("添加参考图") }, onClick = { showAttachment = false; onChoose() })
                                 DropdownMenuItem(text = { Text("选择姿势") }, onClick = { showAttachment = false; showPoses = true })
                             }
                         }
-                        TextButton(onClick = { showPoses = true }, enabled = !state.busy) { Text("姿势") }
+                        TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
                         Spacer(Modifier.weight(1f))
-                        Button(onClick = onGenerate, enabled = !state.busy && hasKey && state.prompt.isNotBlank(),
-                            shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else "生成 ↑") }
+                        Button(onClick = onGenerate, enabled = !state.busy && hasKey && (state.hordeTaskPending || state.prompt.isNotBlank()),
+                            shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (state.hordeTaskPending) "继续查询" else "生成 ↑") }
                     }
                 }
             }

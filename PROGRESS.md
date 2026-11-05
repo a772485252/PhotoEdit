@@ -156,3 +156,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Feature commit 43e1d33b81fa924d26516f2f3a83f35d78aac903. Run https://github.com/a772485252/PhotoEdit/actions/runs/41959683855 , job 127022819069.
 - Build command running unit tests, lint and assemble completed successfully; fixed signature verification, artifact upload and latest-apk publication completed successfully.
 - Native UI scrolling, small-screen/landscape/large-font behavior and keyboard transitions have not been verified on a device. Verify on the user's phone with an attachment and multi-turn conversation.
+
+## V0.7 AI Horde integration (2026-11-05)
+- Added native async Horde adapter, model refresh, encrypted optional Key, anonymous mode, NSFW setting, pending-ID resume and explicit cancel. No added dependencies or SDK.
+- Retained Cloudflare/Runware, clarified paid label, persisted selected platform, exposed missing-Key recovery, fixed newly selected reference being overridden by continueEditing.
+- Reviewed live swagger contract: generate/async POST, generate/check GET, generate/status GET/DELETE; webp source_image, r2, shared, allow_downgrade, queue semantics and censored results.
+- Added key/header validation and queue-state tests. Version 0.7.0/code 9; signed CI and smoke-test results pending.

@@ -71,7 +71,11 @@ class MainActivity : ComponentActivity() {
                                 }, onNewSession = aiViewModel::newSession, onUseTurn = aiViewModel::useTurn,
                                 onContinue = aiViewModel::setContinueEditing, onProvider = aiViewModel::provider,
                                 onRunwareKey = aiViewModel::runwareKey, onSaveRunwareKey = aiViewModel::saveRunwareKey,
-                                onClearRunwareKey = aiViewModel::clearRunwareKey) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                onClearRunwareKey = aiViewModel::clearRunwareKey,
+                                onHordeKey = aiViewModel::hordeKey, onSaveHordeKey = aiViewModel::saveHordeKey,
+                                onClearHordeKey = aiViewModel::clearHordeKey, onHordeModel = aiViewModel::hordeModel,
+                                onHordeNsfw = aiViewModel::hordeNsfw, onRefreshHordeModels = aiViewModel::refreshHordeModels,
+                                onStopHordeWaiting = aiViewModel::stopHordeWaiting, onCancelHordeTask = aiViewModel::cancelHordeTask) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
                                     canUsePrompt = !ai.busy, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
