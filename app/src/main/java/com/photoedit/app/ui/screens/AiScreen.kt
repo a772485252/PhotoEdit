@@ -20,7 +20,8 @@ import com.photoedit.app.viewmodel.AiUiState
 fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) -> Unit,
              onPrompt: (String) -> Unit, onSaveSettings: () -> Unit, onClearSettings: () -> Unit,
              onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit,
- onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit) {
+ onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit,
+ onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit) {
     val context = LocalContext.current
     var showSettings by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().imePadding().padding(16.dp),
@@ -32,7 +33,20 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
         }
         Text("FLUX.2 Klein 4B · 输出 1024 × 1024")
         Text("云端功能需要联网。点击生成会向 Cloudflare 发送提示词和所选参考图。", style = MaterialTheme.typography.bodySmall)
-        if (showSettings) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(state.provider == "cloudflare", { onProvider("cloudflare") }, label = { Text("Cloudflare") }, enabled = !state.busy)
+            FilterChip(state.provider == "runware", { onProvider("runware") }, label = { Text("Runware") }, enabled = !state.busy)
+        }
+        if (state.provider == "runware") Text("Muse Image · 审核 low（较宽松，仍遵守平台规则）· 约 $0.01/张", style = MaterialTheme.typography.bodySmall)
+        if (showSettings && state.provider == "runware") {
+            OutlinedTextField(state.runwareKey, onRunwareKey, label = { Text("Runware API Key") }, singleLine = true,
+                modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+            Row {
+                OutlinedButton(onClick = onSaveRunwareKey, enabled = !state.busy) { Text("保存 Runware Key") }
+                TextButton(onClick = onClearRunwareKey, enabled = !state.busy) { Text("清除 Key") }
+            }
+        }
+        if (showSettings && state.provider == "cloudflare") {
         OutlinedTextField(state.account, onAccount, label = { Text("Account ID") }, singleLine = true,
             enabled = !state.busy, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(state.token, onToken, label = { Text("API Token（仅保存在本机）") }, singleLine = true,
@@ -78,7 +92,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
         }
         OutlinedTextField(state.prompt, onPrompt, label = { Text("描述要生成或修改的图片") }, minLines = 2,
             enabled = !state.busy, modifier = Modifier.fillMaxWidth())
-        Button(onClick = onGenerate, enabled = !state.busy && state.token.isNotBlank() && state.prompt.isNotBlank(),
+        Button(onClick = onGenerate, enabled = !state.busy && (if (state.provider == "runware") state.runwareKey.isNotBlank() else state.token.isNotBlank()) && state.prompt.isNotBlank(),
             modifier = Modifier.fillMaxWidth()) { Text(if (state.reference == null) "文生图" else "参考图生成") }
         if (state.busy) { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("正在处理，请稍候…") }
         state.result?.let {
