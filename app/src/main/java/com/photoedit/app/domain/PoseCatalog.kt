@@ -47,3 +47,33 @@ object PosePrompts {
         else listOf(existing.trimEnd(), replacement).filter { it.isNotBlank() }.joinToString("\n\n")
     }
 }
+
+/** One API request for one two-panel image. Randomness is resolved locally before submission. */
+object TwoPanelPosePrompts {
+    private val gridBlock = Regex("(?s)【双宫格随机姿势】.*?【/双宫格随机姿势】")
+    private val singleBlock = Regex("(?s)【姿势】.*?【/姿势】")
+
+    fun choose(pool: List<PosePreset> = PoseCatalog.poses): Pair<PosePreset, PosePreset> {
+        require(pool.size >= 2) { "至少需要两个不同姿势" }
+        val pair = pool.distinctBy { it.id }.shuffled().take(2)
+        require(pair.size == 2) { "至少需要两个不同编号" }
+        return pair[0] to pair[1]
+    }
+
+    fun apply(existing: String, left: PosePreset, right: PosePreset): String {
+        require(left.id != right.id) { "左右姿势不能相同" }
+        val cleaned = singleBlock.replace(existing, "").trim()
+        val replacement = """
+            【双宫格随机姿势】
+            生成一张图片，严格左右两个等宽独立画面，两个画面各占一半；不是生成两张单独图片。
+            左右为同一位成年人物，保持相同面部、发型、肤色、服装、场景和摄影光线，仅动作不同。若有参考图，以参考人物为准。
+            【左画面 ${left.id}：${left.title}】${left.description}【/左画面】
+            【右画面 ${right.id}：${right.title}】${right.description}【/右画面】
+            两侧分别完整呈现动作，人体比例自然，四肢和手指正确，人物不跨越分界线。
+            不要第三幅画面、重复人物、文字、编号、标签、水印或多余边框。
+            【/双宫格随机姿势】
+        """.trimIndent()
+        return if (gridBlock.containsMatchIn(cleaned)) gridBlock.replace(cleaned) { replacement }
+        else listOf(cleaned, replacement).filter { it.isNotBlank() }.joinToString("\n\n")
+    }
+}
