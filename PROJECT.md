@@ -196,3 +196,8 @@ A free native Android application for preparing images and short-form video mate
 - The custom instruction is stored locally in Android SharedPreferences and applied as the system instruction to future prompt-generation requests for all active chat providers; ordinary chat keeps its own default instruction. No prompt history is persisted.
 - Saving or restoring rules clears the in-memory conversation to prevent prior context from overriding new rules. The default instruction remains ChatRules.SYSTEM_PROMPT. Maximum rule length is 8000 characters; empty rules cannot be saved.
 - No network request is made when editing rules. Source version 0.9.26 / code 38; APK workflow remains manual-only.
+
+
+## V0.9.27 prompt framing refinement
+- Default prompt assistant instructions prioritize fully visible head, hands and feet with narrow safe margins before maximizing subject size. Minimize unnecessary background space and perspective distortion. Existing locally saved custom instructions are preserved until the user selects Restore Default.
+- Manual APK workflow version updated to 0.9.27 / versionCode 39.
