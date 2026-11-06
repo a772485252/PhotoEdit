@@ -223,3 +223,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Enhanced five standing-pose prompts to emphasize three-quarter angles, waist/hip silhouettes, and unobstructed pelvic outlines.
 - Added custom X001 prone look-back with raised hips; 29 original full_sexy entries retained plus one app-authored pose (30 total).
 - Picker count and unit tests updated; version 0.9.4/code16. CI/device validation pending.
+
+
+## V0.9.13 chat-first prompt assistant redesign (2026-11-06)
+- Rebuilt the Prompt Assistant tab as a chat-first screen: compact provider/model header, scrollable conversation list, fixed bottom composer, prompt/general-chat mode chips, and first-use suggestion shortcuts.
+- Moved provider selection, independently encrypted OpenRouter/Groq API Keys, model catalog/search, custom model ID and paid-model opt-in into a scrollable settings dialog. Existing ChatViewModel, API clients, model policies, and encrypted storage identities are reused.
+- Kept conversation memory session-only; no local chat history or image/reference upload. Prompt transfer still only populates the AI image prompt and does not submit a generation request.
+- Added explicit regenerate-last-answer action using the same last user turn and existing bounded context rules. Copy and prompt transfer remain available on assistant messages.
+- No new dependencies or API endpoint changes. Version 0.9.13 / versionCode 25. GitHub Actions build and physical-device layout/keyboard checks pending.
