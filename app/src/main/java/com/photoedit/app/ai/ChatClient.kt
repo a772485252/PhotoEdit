@@ -83,6 +83,7 @@ class ChatClient {
             ChatProvider.OPENROUTER -> "https://openrouter.ai/api/v1"
             ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
             ChatProvider.VENICE -> "https://api.venice.ai/api/v1"
+            ChatProvider.APIPOD -> "https://api.apipod.ai/v1"
         }
         val connection = URL(base + path).openConnection() as HttpURLConnection
         try {
