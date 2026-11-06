@@ -12,8 +12,8 @@ android {
         applicationId = "com.photoedit.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 33
-        versionName = "0.9.21"
+        versionCode = 34
+        versionName = "0.9.22"
     }
 
     // Android user-home can differ on CI; never rely on the implicit debug key path.
