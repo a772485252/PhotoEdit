@@ -340,3 +340,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Public references: Cloudflare GLM-4.7-Flash model pricing and Workers AI pricing; Venice API Key Rate Limits and Balances; APIPod Grok 4.5 model/channel pricing.
 
 - Follow-up source review corrected coroutine cancellation propagation in the asynchronous Venice balance refresh. This is included in the same V0.9.23 work; no behavior or API contract changed.
+
+
+## V0.9.24 APIPod Grok option visibility fix (2026-11-06)
+- Confirmed APIPod is already a selectable Prompt Assistant provider and its default chat model is Grok 4.5 (model ID `grok-4.5`); this is separate from image-generation model choices.
+- Fixed the provider selector layout in the “模型与 API 设置” dialog: Cloudflare and Venice remain on the first row, while APIPod · Grok 4.5 is placed on a dedicated second row so it cannot be clipped off narrow phone screens.
+- No provider routing, API endpoint, credential storage, pricing, or image-generation model settings changed.
+- Version 0.9.24 / versionCode 36. Source change committed; build, unit tests, and device visibility still require validation. APK build not triggered.
