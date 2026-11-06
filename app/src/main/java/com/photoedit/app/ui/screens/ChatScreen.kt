@@ -278,25 +278,29 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text("聊天服务", style = MaterialTheme.typography.titleSmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = state.provider == ChatProvider.CLOUDFLARE,
-                            onClick = { onProvider(ChatProvider.CLOUDFLARE) },
-                            label = { Text("Cloudflare · GLM") },
-                            enabled = !state.busy
-                        )
-                        FilterChip(
-                            selected = state.provider == ChatProvider.VENICE,
-                            onClick = { onProvider(ChatProvider.VENICE) },
-                            label = { Text("Venice · Uncensored") },
-                            enabled = !state.busy
-                        )
-                        FilterChip(
-                            selected = state.provider == ChatProvider.APIPOD,
-                            onClick = { onProvider(ChatProvider.APIPOD) },
-                            label = { Text("APIPod · Grok") },
-                            enabled = !state.busy
-                        )
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = state.provider == ChatProvider.CLOUDFLARE,
+                                onClick = { onProvider(ChatProvider.CLOUDFLARE) },
+                                label = { Text("Cloudflare · GLM") },
+                                enabled = !state.busy
+                            )
+                            FilterChip(
+                                selected = state.provider == ChatProvider.VENICE,
+                                onClick = { onProvider(ChatProvider.VENICE) },
+                                label = { Text("Venice · Uncensored") },
+                                enabled = !state.busy
+                            )
+                        }
+                        Row {
+                            FilterChip(
+                                selected = state.provider == ChatProvider.APIPOD,
+                                onClick = { onProvider(ChatProvider.APIPOD) },
+                                label = { Text("APIPod · Grok 4.5") },
+                                enabled = !state.busy
+                            )
+                        }
                     }
                     Text(
                         when (state.provider) {
