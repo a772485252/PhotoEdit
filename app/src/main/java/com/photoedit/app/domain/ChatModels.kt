@@ -4,7 +4,8 @@ enum class ChatProvider(val label: String, val namespace: String, val defaultMod
     OPENROUTER("OpenRouter", "openrouter_chat_private", "nvidia/nemotron-3.5-super-vl:free"),
     GROQ("Groq", "groq_chat_private", "openai/gpt-oss-20b"),
     CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash"),
-    VENICE("Venice AI", "venice_chat_private", "venice-uncensored-1-2")
+    VENICE("Venice AI", "venice_chat_private", "venice-uncensored-1-2"),
+    APIPOD("APIPod", "apipod_private", "grok-4.5")
 }
 
 data class ChatModel(val id: String, val name: String, val free: Boolean? = null)
@@ -24,6 +25,9 @@ object ChatModels {
         )
         ChatProvider.VENICE -> listOf(
             ChatModel(provider.defaultModel, "Venice Uncensored 1.2")
+        )
+        ChatProvider.APIPOD -> listOf(
+            ChatModel(provider.defaultModel, "Grok 4.5 · APIPod")
         )
     }
 
