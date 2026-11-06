@@ -194,7 +194,7 @@ A free native Android application for preparing images and short-form video mate
 ## Editable prompt-assistant instructions (v0.9.26)
 - In Generate Prompt mode, an “扩写规则” control opens one editable multi-line instruction field with Save, Cancel and Restore Default actions.
 - The custom instruction is stored locally in Android SharedPreferences and applied as the system instruction to future prompt-generation requests for all active chat providers; ordinary chat keeps its own default instruction. No prompt history is persisted.
-- Saving or restoring rules clears the in-memory conversation to prevent prior context from overriding new rules. The default instruction remains ChatRules.SYSTEM_PROMPT. Maximum rule length is 8000 characters; empty rules cannot be saved.
+- Saving or restoring rules updates the system instruction for the next prompt request without clearing the in-memory conversation or unsent input draft. The default instruction remains ChatRules.SYSTEM_PROMPT. Existing conversation context is retained and may still inform the next request. Maximum rule length is 8000 characters; empty rules cannot be saved.
 - No network request is made when editing rules. Source version 0.9.26 / code 38; APK workflow remains manual-only.
 
 
@@ -216,3 +216,10 @@ A free native Android application for preparing images and short-form video mate
 - Added the Android foreground-service/data-sync and WAKE_LOCK declarations. No WorkManager dependency or provider/API routing change.
 - Scope/limitations: this protects normal screen-off operation while the app process remains alive; it does not make provider task state durable across force-stop, process death, device reboot, or OEM battery-manager termination. Doze/network policy and vendor power management may still affect connectivity. Results remain in ViewModel memory and are not written to gallery automatically.
 - Source version 0.9.28 / versionCode 40. APK workflow remains manual-only.
+
+
+## V0.9.30 Preserve Prompt Assistant conversation when editing rules (2026-11-06)
+- Fixed Save Rules and Restore Default: both operations previously cleared the in-memory chat messages. They now update only the active prompt instruction and status notice; the conversation transcript and unsent composer draft remain unchanged.
+- The updated instruction is used on the next prompt-mode request. Existing conversation turns remain available as context; users can explicitly start a new chat when they want a clean context.
+- Updated the rule-editor explanation to state that the current conversation and input draft are retained. Added a focused ChatRules test proving a custom system instruction can be applied while previous conversation turns remain in the request context.
+- Source version 0.9.30 / versionCode 42. APK workflow remains manual-only; this release is built only on explicit user request.
