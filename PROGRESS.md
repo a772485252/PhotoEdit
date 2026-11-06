@@ -384,3 +384,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated ChatRules.SYSTEM_PROMPT to default to close full-body framing with head, hands, and feet completely in frame and a small safety margin, choose one camera angle/pose when unspecified, honor explicit user framing, and output one finished prompt without alternatives or commentary.
 - Added a focused ChatRulesTest assertion for the new instruction. Existing anatomy completeness guidance remains in place.
 - Files: ChatRules.kt, ChatRulesTest.kt, PROJECT.md, PROGRESS.md. No API changes or UI layout changes. Version remains 0.9.25 / code 37; no APK build triggered. Tests and real-model compliance are unverified.
+
+
+## V0.9.26 Editable Prompt Assistant rules (2026-11-06)
+- Added a dedicated “扩写规则” button in the Generate Prompt composer and a scrollable, phone-width dialog for editing one full text instruction (up to 8000 characters), canceling, saving, or restoring the built-in default.
+- Added local SharedPreferences storage via ChatSettingsStore and state/actions in ChatViewModel. ChatRules.messages now accepts a per-request instruction override in prompt mode only; ordinary chat remains unaffected.
+- Saving/restoring clears transient conversation context; no local chat history is saved and editing rules does not call a paid API. Rules persist across app restarts.
+- Updated ChatScreen.kt, MainActivity.kt, ChatViewModel.kt, ChatSettingsStore.kt, ChatRules.kt, Gradle version and workflow default. Source version 0.9.26 / code 38.
+- UI reviewed for scrollable editor, keyboard entry, reachable dialog buttons and mode visibility; compilation, unit tests, narrow-screen device check and provider integration remain unverified. No APK build triggered.
