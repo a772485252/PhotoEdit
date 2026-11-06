@@ -251,12 +251,20 @@ fun ChatScreen(
                             label = { Text("Venice · Uncensored") },
                             enabled = !state.busy
                         )
+                        FilterChip(
+                            selected = state.provider == ChatProvider.APIPOD,
+                            onClick = { onProvider(ChatProvider.APIPOD) },
+                            label = { Text("APIPod · Grok") },
+                            enabled = !state.busy
+                        )
                     }
                     Text(
-                        if (state.provider == ChatProvider.CLOUDFLARE)
-                            "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费；Token 需要 Workers AI 调用权限。"
-                        else
-                            "使用与 Venice 图片生成共用的 API Key。API 按所选模型的输入、输出 Token 价格计费，不包含在网页端免费次数中。",
+                        when (state.provider) {
+                            ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
+                            ChatProvider.VENICE -> "使用与 Venice 图片生成共用的 API Key。API 按所选模型 Token 价格计费。"
+                            ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
+                            else -> "使用当前服务商的 API Key。"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -278,10 +286,12 @@ fun ChatScreen(
                     Text("模型选择", style = MaterialTheme.typography.titleSmall)
                     ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
                     Text(
-                        if (state.provider == ChatProvider.CLOUDFLARE)
-                            "Cloudflare Token 会加密保存在本机，仅用于提示词助手。清除后需要重新配置。"
-                        else
-                            "Venice 聊天与图片生成共用同一个 Key；在这里清除也会同时影响 Venice 图片生成。",
+                        when (state.provider) {
+                            ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
+                            ChatProvider.VENICE -> "Venice 聊天与图片生成共用同一个 Key；在这里清除也会同时影响 Venice 图片生成。"
+                            ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
+                            else -> "当前服务商凭据保存在本机。"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -350,7 +360,7 @@ private fun ModelSelector(
                             Text(
                                 model.name + "\n" + model.id + if (router) {
                                     if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
-                                } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else if (state.provider == ChatProvider.VENICE) " · Venice API 按 Token 计费" else " · Cloudflare Workers AI"
+                                } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else if (state.provider == ChatProvider.VENICE) " · Venice API 按 Token 计费" else if (state.provider == ChatProvider.APIPOD) " · APIPod 按 Token 计费" else " · Cloudflare Workers AI"
                             )
                         },
                         onClick = { expanded = false; onModel(model.id) }
