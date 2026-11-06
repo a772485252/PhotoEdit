@@ -209,3 +209,10 @@ A free native Android application for preparing images and short-form video mate
 - Full: `gradle --build-cache --parallel testDebugUnitTest lintDebug assembleDebug`, followed by identical signature verification and publication.
 - Gradle setup-gradle action caches Gradle user-home dependencies/state. Neither mode runs `clean` or disables build cache, allowing incremental/cache reuse on compatible runners.
 - Use Quick for routine UI/text-only changes. Use Full for domain/business rules, API/provider, storage, image-processing, dependency changes, and important milestone releases.
+
+## V0.9.28 Screen-off image generation (2026-11-06)
+- Added a user-started Android foreground service for AI image generation. The service displays an ongoing notification and holds a bounded 30-minute partial wake lock so the existing ViewModel request/polling coroutine can continue while the display is off.
+- The notification opens PhotoEdit and explicitly states that the generated result is previewed in-app and is not automatically saved to the gallery. Gallery export remains behind the existing explicit “保存图片” action.
+- Added the Android foreground-service/data-sync and WAKE_LOCK declarations. No WorkManager dependency or provider/API routing change.
+- Scope/limitations: this protects normal screen-off operation while the app process remains alive; it does not make provider task state durable across force-stop, process death, device reboot, or OEM battery-manager termination. Doze/network policy and vendor power management may still affect connectivity. Results remain in ViewModel memory and are not written to gallery automatically.
+- Source version 0.9.28 / versionCode 40. APK workflow remains manual-only.
