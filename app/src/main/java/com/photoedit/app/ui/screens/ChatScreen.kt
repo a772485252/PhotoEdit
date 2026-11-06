@@ -237,9 +237,26 @@ fun ChatScreen(
                     Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("当前服务：Cloudflare Workers AI", style = MaterialTheme.typography.titleSmall)
+                    Text("聊天服务", style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = state.provider == ChatProvider.CLOUDFLARE,
+                            onClick = { onProvider(ChatProvider.CLOUDFLARE) },
+                            label = { Text("Cloudflare · GLM") },
+                            enabled = !state.busy
+                        )
+                        FilterChip(
+                            selected = state.provider == ChatProvider.VENICE,
+                            onClick = { onProvider(ChatProvider.VENICE) },
+                            label = { Text("Venice · Uncensored") },
+                            enabled = !state.busy
+                        )
+                    }
                     Text(
-                        "提示词助手使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 使用 Workers AI 免费 Neurons 额度；Token 需要具备 Workers AI 调用权限。",
+                        if (state.provider == ChatProvider.CLOUDFLARE)
+                            "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费；Token 需要 Workers AI 调用权限。"
+                        else
+                            "使用独立的 Venice API Key，与图片生成设置分开保存。Venice API 按所选模型的输入、输出 Token 价格计费，不包含在网页端免费次数中。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -261,7 +278,10 @@ fun ChatScreen(
                     Text("模型选择", style = MaterialTheme.typography.titleSmall)
                     ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
                     Text(
-                        "Cloudflare Token 会加密保存在本机，仅用于提示词助手。清除后需要重新配置；不会影响 APIPod 或 Venice 图片生成设置。",
+                        if (state.provider == ChatProvider.CLOUDFLARE)
+                            "Cloudflare Token 会加密保存在本机，仅用于提示词助手。清除后需要重新配置。"
+                        else
+                            "Venice 聊天 Key 独立加密保存在本机；不会自动复用或修改 Venice 图片生成 Key。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -330,7 +350,7 @@ private fun ModelSelector(
                             Text(
                                 model.name + "\n" + model.id + if (router) {
                                     if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
-                                } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else " · Cloudflare Workers AI"
+                                } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else if (state.provider == ChatProvider.VENICE) " · Venice API 按 Token 计费" else " · Cloudflare Workers AI"
                             )
                         },
                         onClick = { expanded = false; onModel(model.id) }
