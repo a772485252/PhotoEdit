@@ -208,7 +208,7 @@ fun ChatScreen(
                         value = state.input,
                         onValueChange = onInput,
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text(if (state.promptMode) "描述你想生成的画面…" else "发送消息…") },
+                        placeholder = { Text(if (state.promptMode) "输入创意或粘贴需要优化的提示词…" else "发送消息…") },
                         minLines = 1,
                         maxLines = 4,
                         enabled = !state.busy,
