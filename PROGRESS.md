@@ -423,3 +423,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added a focused unit test for applying custom rules while preserving previous conversation turns.
 - Updated app version to 0.9.30 / versionCode 42 and synchronized the manual APK workflow default.
 - Source changes committed. Full APK build requested; CI tests, lint, signature verification and publication are pending.
+
+
+## V0.9.31 Prompt Assistant background generation (2026-11-06)
+- Added PromptGenerationForegroundService with a dedicated low-importance ongoing notification and a 30-minute partial wake lock. It is started from the foreground user action and stopped in the ChatViewModel operation finally block.
+- Prompt Assistant send and regenerate now run with the foreground service active, so screen-off and ordinary app switching have stronger process priority and CPU availability. Existing ChatClient, selected provider/model, credential handling, and billing behavior are unchanged.
+- Updated ChatScreen progress/help copy and registered the service as a non-exported dataSync foreground service. No new dependencies, automatic retries, disk history, or gallery writes.
+- Limitations: this is best-effort while the process remains alive; force-stop, process death, reboot, network loss, Doze/OEM restrictions and notification permission/settings can still affect completion or notification visibility. The in-memory response/history is not durable across process death.
+- Files: PromptGenerationForegroundService.kt (new), ChatViewModel.kt, ChatScreen.kt, AndroidManifest.xml, app/build.gradle.kts, .github/workflows/android-apk.yml, PROJECT.md, PROGRESS.md.
+- Version 0.9.31 / versionCode 43. No APK build requested yet; compilation, tests, lint and physical-device background/screen-off behavior remain unverified.
