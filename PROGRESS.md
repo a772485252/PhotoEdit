@@ -290,3 +290,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Retained focused AiRules tests for Cloudflare credential/prompt validation and quota/auth error classification.
 - No broad UI or network-mocking test infrastructure added. CI should continue requiring testDebugUnitTest to pass before APK build.
 - Version 0.9.21 / versionCode 33. CI verification pending.
+
+
+## APK 构建流程规则调整（2026-11-06）
+- 用户明确要求：日常代码修改、功能提交不自动触发 APK 构建，避免每次小改动都消耗构建资源。
+- Android APK GitHub Actions workflow 改为仅支持手动触发（workflow_dispatch）；不再响应 main push 或 pull request。
+- 只有用户明确提出“生成最新 APK 下载链接”等 APK 交付请求时，才手动启动构建。
+- 交付前必须确认测试、Lint、APK 编译、签名验证均成功，并确认 latest-apk/PhotoEdit-debug.apk 已更新；未验证不得提供下载链接。
+- 该规则已同步写入 AGENTS.md，后续会话必须遵守。
