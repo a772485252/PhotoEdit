@@ -406,3 +406,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Both modes retain Android SDK setup, persistent debug signing, APK certificate SHA-256 verification, artifact upload, and latest-apk publication. Neither runs clean or disables Gradle build cache. setup-gradle continues to cache Gradle user-home state.
 - Updated AGENTS.md with selection guidance: Quick for routine UI/text-only work; Full for domain/business, API/provider, storage, image processing, dependency, or milestone changes. Quick explicitly skips unit tests and Lint.
 - Workflow and documentation only; app version unchanged; no APK build triggered. Actual speedup depends on cache hit and GitHub runner state.
+
+## V0.9.28 Screen-off image generation (2026-11-06)
+- Added `GenerationForegroundService`, started only after the user taps Generate. It posts a low-importance ongoing notification with a tap-to-open action and a clear no-auto-gallery-save message.
+- Acquires a `PARTIAL_WAKE_LOCK` with a 30-minute timeout while the existing ViewModel generation coroutine runs; releases it when the service stops. Generation completion/failure stops the service.
+- Added manifest permissions for foreground service, dataSync service type and wake lock; updated AI screen progress copy to explain screen-off behavior.
+- Confirmed by source inspection that gallery writing remains exclusively in the explicit `saveImage()` action. Generation results continue to be held as in-memory Bitmaps for in-app preview; no automatic MediaStore or gallery write was added.
+- Files: `GenerationForegroundService.kt`, `AiViewModel.kt`, `AiScreen.kt`, `AndroidManifest.xml`, `app/build.gradle.kts`, `.github/workflows/android-apk.yml`, `PROJECT.md`, `PROGRESS.md`.
+- Version 0.9.28 / versionCode 40. Build, unit tests, lint, and physical-device screen-off/battery-policy behavior are not verified. Per project policy, no APK build was triggered; wait for an explicit APK/download request.
+- Limitations: screen-off continuation is best-effort under Android Doze and manufacturer battery policies. Foreground service improves process priority and the wake lock keeps CPU active, but force-stop, process death, reboot or OEM task termination can still interrupt the request. This is not a durable persisted task queue.
