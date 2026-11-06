@@ -323,3 +323,18 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - This is a documentation/rules-only change. No app code, model routing, API credentials, or APK artifact changed. APK build not run.
 
 - Final privacy audit also removed the remaining personal account-identifier reference from PROJECT.md. Historical CI run/commit/artifact references are public repository build metadata; no user credentials or personal identifiers are included.
+
+
+## V0.9.23 Prompt Assistant model pricing and balance display (2026-11-06)
+- Chat header now emphasizes the currently selected provider/model name and exact model ID.
+- Added per-10,000-Chinese-character reference estimates for the three selectable model routes:
+  - Cloudflare GLM-4.7-Flash: approximately $0.0006 input / $0.0040 output, also showing approximately 55 / 364 Neurons. Based on published $0.0605/M input and $0.40/M output token pricing.
+  - Venice Uncensored 1.2: approximately $0.0020 input / $0.0090 output, based on published $0.20/M input and $0.90/M output pricing.
+  - APIPod Grok 4.5: approximately $0.002–$0.014 input / $0.006–$0.042 output, covering the published Grok Lite and xAI-default channel rates. APIPod channel routing can vary, so the UI shows a range.
+- All character estimates explicitly assume approximately one token per Chinese character. Actual tokenization, context, channel, cache and output length affect the final charge; unknown/custom models show no invented price.
+- Added Venice balance lookup through the documented GET API-key rate-limits/balances endpoint. The app displays returned USD, DIEM and bundled credits; it refreshes on provider selection, after successful chat requests, and through a manual refresh control. The balance is kept in transient UI state only and is not written to project docs or logs.
+- Cloudflare's daily 10,000-Neuron free allocation is shown, but remaining account Neurons are not queried. APIPod's API-key balance is not queried in-app; the UI directs users to the APIPod console rather than calling an undocumented endpoint.
+- Updated focused ChatModels unit tests for model-specific estimates and unknown-model handling.
+- Files changed: ChatModels.kt, ChatClient.kt, ChatViewModel.kt, ChatScreen.kt, MainActivity.kt, ChatModelsTest.kt, app/build.gradle.kts, PROJECT.md.
+- Version 0.9.23 / versionCode 35. Unit tests/build/device/API balance validation have not yet been run. No APK build was triggered; APK remains manual-only on explicit user request.
+- Public references: Cloudflare GLM-4.7-Flash model pricing and Workers AI pricing; Venice API Key Rate Limits and Balances; APIPod Grok 4.5 model/channel pricing.
