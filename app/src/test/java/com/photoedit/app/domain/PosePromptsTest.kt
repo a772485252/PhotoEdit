@@ -13,6 +13,9 @@ class PosePromptsTest {
         assertTrue(switched.contains(PoseCatalog.poses[1].description))
         assertEquals(switched, PosePrompts.apply(switched, PoseCatalog.poses[1]))
     }
+    @Test fun poseDescriptionsDoNotOverrideCamera() {
+        assertTrue(PoseCatalog.poses.none { it.description.contains("机位") || it.description.contains("拍摄") || it.description.contains("构图") })
+    }
     @Test fun selectedAtlasIdsAreUnique() {
         assertEquals(8, PoseCatalog.poses.size)
         assertEquals(8, PoseCatalog.poses.map { it.id }.toSet().size)
