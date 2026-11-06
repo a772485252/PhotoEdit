@@ -298,3 +298,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - 只有用户明确提出“生成最新 APK 下载链接”等 APK 交付请求时，才手动启动构建。
 - 交付前必须确认测试、Lint、APK 编译、签名验证均成功，并确认 latest-apk/PhotoEdit-debug.apk 已更新；未验证不得提供下载链接。
 - 该规则已同步写入 AGENTS.md，后续会话必须遵守。
+
+
+## V0.9.22 prompt assistant first-use UX (2026-11-06)
+- Replaced the image-generation-style empty state ("想生成什么样的图片？" and four category shortcuts) with a prompt-assistant-specific introduction explaining text expansion/optimization and clarifying that this page does not generate images.
+- Removed the four suggestion chips; added concise usage guidance for describing a subject, clothing, action, scene, or existing prompt.
+- Added visible loading feedback while the conversation is empty, so a first request no longer appears to do nothing while the API is processing. The submit button now reads "生成提示词" in prompt mode and "发送" in normal chat mode.
+- No API endpoint, model, credentials, billing, or image-generation behavior changed. API failure diagnosis still requires the exact in-app notice shown after pressing "生成提示词"; no live Cloudflare request or APK build was performed.
+- Version 0.9.22 / versionCode 34 should be applied in the next version bump before an APK build. APK builds remain manual-only and are not triggered by this code edit.
