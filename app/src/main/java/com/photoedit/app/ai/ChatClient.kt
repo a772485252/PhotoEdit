@@ -24,6 +24,7 @@ class ChatClient {
             put(JSONObject().put("role", it.role).put("content", it.text))
         } })
         if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
+        if (provider == ChatProvider.VENICE) body.put("max_tokens", 2048)
         if (provider == ChatProvider.GROQ) {
             body.put("max_completion_tokens", 2048)
             if (model.startsWith("openai/gpt-oss-")) body.put("reasoning_effort", "low")
@@ -81,6 +82,7 @@ class ChatClient {
             ChatProvider.GROQ -> "https://api.groq.com/openai/v1"
             ChatProvider.OPENROUTER -> "https://openrouter.ai/api/v1"
             ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
+            ChatProvider.VENICE -> "https://api.venice.ai/api/v1"
         }
         val connection = URL(base + path).openConnection() as HttpURLConnection
         try {
