@@ -362,3 +362,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added user-experience requirements: predictable familiar interaction, one-hand reachability, low friction, immediate feedback, preservation of safe drafts/selections, clear errors, and no misleading controls.
 - Updated AGENTS.md to require reading UI_DESIGN.md and reviewing related domain/ViewModel logic before every UI change. Updated PROJECT.md to link the standard.
 - Documentation-only change. No app source/version/APK changed; build not run.
+
+
+## APK workflow versioned run titles (2026-11-06)
+- Updated `.github/workflows/android-apk.yml` so manually triggered runs are titled `PhotoEdit v<version> · Android APK`, making the version visible in the Actions list.
+- Added required `app_version` workflow input with current default 0.9.24 and an early validation step comparing it to Gradle `versionName`. A mismatch fails before SDK setup/build to prevent mislabeled APK runs.
+- Updated AGENTS.md to require versioned run titles and synchronized defaults; documented the workflow behavior in PROJECT.md.
+- Workflow/docs only. No APK build triggered; no app source/version changed. Workflow execution remains pending.
