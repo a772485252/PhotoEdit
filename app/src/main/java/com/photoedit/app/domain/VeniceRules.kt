@@ -1,7 +1,7 @@
 package com.photoedit.app.domain
 
 object VeniceRules {
-    const val GENERATE = "z-image-turbo"
+    const val GENERATE = "lustify-v8"
     const val EDIT = "firered-image-edit"
     fun model(hasReference: Boolean) = if (hasReference) EDIT else GENERATE
     fun estimate(hasReference: Boolean) = if (hasReference) "0.04" else "0.01"
