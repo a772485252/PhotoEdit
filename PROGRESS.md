@@ -398,3 +398,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Replaced conflicting near-camera language in ChatRules.SYSTEM_PROMPT with explicit full-body visibility, minimal safe margins, large subject framing, minimal background, and natural proportions/perspective. Existing local custom rules remain unchanged until Restore Default.
 - Updated app/build.gradle.kts to 0.9.27 (versionCode 39) and synchronized manual workflow input default.
 - Source change committed; APK build requested but not yet verified. No build success claimed.
+
+
+## APK workflow quick/full modes and caching (2026-11-06)
+- Added manual workflow_dispatch choice `build_mode`: Quick (default) or Full. Run title now includes both version and mode.
+- Quick executes `gradle --build-cache --parallel assembleDebug`; Full executes `gradle --build-cache --parallel testDebugUnitTest lintDebug assembleDebug`.
+- Both modes retain Android SDK setup, persistent debug signing, APK certificate SHA-256 verification, artifact upload, and latest-apk publication. Neither runs clean or disables Gradle build cache. setup-gradle continues to cache Gradle user-home state.
+- Updated AGENTS.md with selection guidance: Quick for routine UI/text-only work; Full for domain/business, API/provider, storage, image processing, dependency, or milestone changes. Quick explicitly skips unit tests and Lint.
+- Workflow and documentation only; app version unchanged; no APK build triggered. Actual speedup depends on cache hit and GitHub runner state.
