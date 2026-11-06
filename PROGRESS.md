@@ -49,9 +49,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 
 ## Cloudflare setup handoff (2026-11-04)
 - User registered Cloudflare and reached the Workers AI REST API setup page.
-- User authorized saving Account ID `4d17f32858b5ec94a9d493d703b54fb9` publicly as the pre-filled personal default for the upcoming integration.
-- Account ID was transcribed from the provided setup screenshot; no API Token was provided or stored.
-- Next AI implementation must initialize the Account ID field with the value in PROJECT.md, allow overrides, and leave API Token blank.
+- The integration uses the application's configured account identifier from encrypted/local configuration; no user-specific identifier is documented here.
+- Keep API credentials out of source control and project documentation; enter them only in the app's protected local settings.
 - No AI settings/client or new APK was produced by this documentation-only update. Existing V0.2 APK remains current.
 
 ## V0.3 Cloudflare AI implementation (2026-11-04)
@@ -124,12 +123,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - No live API, emulator or real-device testing performed. User retains Keys on-device; do not infer API/model availability from the successful build.
 
 ## Personal persistent debug signing (2026-11-05)
-- User requested simplest personal-use setup: one persistent standard debug keystore, password android, alias androiddebugkey; no release-signing changes.
+- Configure one persistent debug-signing credential through repository Actions secrets; never document passwords, aliases, key material, or certificate fingerprints.
 - Workflow restores one Actions secret PHOTOEDIT_DEBUG_KEYSTORE_BASE64, validates the key, verifies APK signature, and removes runner key after build. Missing secret blocks publication; PR checks remain independent.
 - Version 0.5.1/code 6. No keystore/private key committed. Owner must provision secret because connector has no Secrets-write capability. New signed APK and device update verification are pending.
 
 ## Persistent signing verified (2026-11-05)
-- Owner configured PHOTOEDIT_DEBUG_KEYSTORE_BASE64. Fixed key SHA-256: 2a04e72f637fd9d58d8a3702373532b94e5a1755060185b26f896cdf33057840.
+- Persistent signing is configured through a protected Actions secret; signing material and fingerprints are intentionally excluded from project documentation.
 - Initial runs restored the correct file but AGP used a different default Android user-home key. Explicit debug signing storeFile now resolves HOME/.android/debug.keystore. Clean/no-build-cache alone was insufficient; do not rely on implicit key discovery.
 - Workflow compares exported keystore certificate SHA-256 against APK certificate before upload/publication and fails on mismatch.
 - Verified run https://github.com/a772485252/PhotoEdit/actions/runs/41954151050 ; job 127004887191 completed success. Unit tests, lint, assembleDebug, certificate equality, upload and latest-apk publication all passed. BUILD SUCCESSFUL in 1m 7s.
@@ -165,8 +164,7 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 
 ## V0.7 verification
 - Feature dcd6416f9311183e287312f4ce54031439d9a929; run https://github.com/a772485252/PhotoEdit/actions/runs/41963725863 , job 127035783664 completed success. Build (unit tests, lint, assemble), persistent signature comparison, artifact upload and latest-apk publication all passed.
-- Live anonymous stable_diffusion txt2img smoke test: task 657f977f-8953-4cd5-8e94-6f27cf6341c0 completed, censored=false; downloaded 512x512 WebP, 96,506 bytes.
-- Live anonymous img2img with that landscape source: task 6f074e64-5d1d-4466-bc41-28118b0a6fc3 completed, censored=false; downloaded 512x512 WebP, 37,450 bytes. Both matched the implemented request parameters except NSFW=false for the benign test. Read active models successfully.
+- Anonymous text-to-image and reference-image smoke tests completed successfully; returned 512x512 WebP outputs. Temporary task/request identifiers are intentionally not retained in project documentation.
 - Python's default user agent initially hit Cloudflare 403/1010. Explicit PhotoEdit User-Agent plus Client-Agent succeeded. Android adapter uses both. No credentials, personal photos or explicit content used for tests.
 - No real APK/device layout, personal-key save/relaunch, stop/resume/cancel interaction, portrait identity or NSFW-content generation test performed. Pending handles stay in ViewModel memory only; force-close loses them.
 
@@ -183,7 +181,7 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 
 ## V0.7.1 final CI verified
 - Final configuration commit9f276a625a25690df5a018dc318e0004e606c905. Run https://github.com/a772485252/PhotoEdit/actions/runs/41970636084 , job127057798528 completed success: unit tests/lint/assemble, persistent certificate comparison, upload and latest-apk publication all passed.
-- Text portrait tasks: baseline b5376b68-d25f-4c82-923e-0cad9a763d3d; Realistic Vision358d09c7-5942-4619-a15b-7d9f4569eaa7; AbsoluteReality da3f8ba3-a9c5-43e6-aed3-3897b6368f75. Reference tasks: strength0.35 8d87031d-83b4-461d-bb3a-2548ad4868e1; strength0.55 bd4f52aa-ba9e-4616-a7af-69ba7303acac. All completed, downloaded and visually inspected.
+- Baseline and portrait-model text tests plus two reference-strength tests completed; outputs were downloaded and visually inspected. Temporary task/request identifiers are intentionally not retained.
 - Scope: one English prompt/seed for clothed synthetic adult head-and-shoulders portraits; no real user photos, full-body benchmark, NSFW generation, Android device or identity-matching test. Visual differences support the chosen presets but not a universal quality or face-consistency guarantee.
 
 ## V0.8 APIPod integration
@@ -315,3 +313,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Real-time balance query is not yet implemented/verified for Cloudflare, Venice or APIPod. APIPod Grok 4.5 effective price depends on APIPod's route/pricing, so do not substitute xAI direct pricing. Per-10,000-character estimates require verified provider/model input and output prices plus actual token usage or an explicit approximation.
 - Removed an unverified Venice balance request and speculative per-character cost figures before finalizing. No API request, model routing, credentials, or billing behavior changed.
 - The V0.9.22 prompt-assistant first-use UX changes remain. Current version 0.9.22 / versionCode 34; no APK build was triggered. Device and authenticated API validation pending.
+
+
+## Documentation continuity and privacy rule (2026-11-06)
+- AGENTS.md now requires every meaningful code/config/UI/model/API/build-rule change to update PROGRESS.md in the same work session, and PROJECT.md whenever current architecture, active models/providers, visible behavior, constraints, or operating rules change.
+- New sessions must read AGENTS.md, PROJECT.md, and the latest PROGRESS.md entries before work; source code is authoritative when documentation conflicts, and documentation must then be corrected.
+- Project documentation is restricted to non-sensitive project-level technical facts and non-sensitive validation outcomes. Account identifiers, API keys/tokens/passwords, signing material/fingerprints, private request/task IDs, personal contact/location details, personal photos/metadata, exact account balances/usage, and other private user data are prohibited.
+- Audited and redacted historical progress entries containing a personal account identifier, signing password/fingerprint, and temporary generation task IDs. No credentials or personal identifiers are retained in this entry.
+- This is a documentation/rules-only change. No app code, model routing, API credentials, or APK artifact changed. APK build not run.
