@@ -137,7 +137,7 @@ fun ChatScreen(
                     ) {
                         CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         Text(
-                            if (state.input.isNotBlank()) "正在生成提示词，请稍候…" else "正在准备聊天服务…",
+                            if (state.input.isNotBlank()) "正在生成提示词…可切换到其他应用，后台会继续运行" else "正在准备聊天服务…",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -209,7 +209,7 @@ fun ChatScreen(
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                            Text("正在思考…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("正在生成…可切换到其他应用，后台将继续运行", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -264,7 +264,7 @@ fun ChatScreen(
                     ) { Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送") }
                 }
                 Text(
-                    "聊天仅发送文字和最近对话，不会上传参考图；带入生图页也不会自动生成图片。",
+                    "聊天仅发送文字和最近对话，不会上传参考图；生成期间可切换到其他应用。通知显示取决于系统通知权限。",
                     modifier = Modifier.padding(start = 4.dp, top = 6.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
