@@ -50,13 +50,13 @@ object ChatModels {
      */
     fun priceGuide(provider: ChatProvider, model: String): PriceGuide? = when {
         provider == ChatProvider.CLOUDFLARE && model == "@cf/zai-org/glm-4.7-flash" ->
-            PriceGuide("$0.0006 · 约55 Neurons", "$0.0040 · 约364 Neurons",
+            PriceGuide("\$0.0006 · 约55 Neurons", "\$0.0040 · 约364 Neurons",
                 "按 1 字≈1 Token 粗估；Workers AI 实际按 Neurons 计量")
         provider == ChatProvider.VENICE && model == "venice-uncensored-1-2" ->
-            PriceGuide("$0.0020", "$0.0090",
+            PriceGuide("\$0.0020", "\$0.0090",
                 "按 1 字≈1 Token 粗估；Venice 按实际 Token 用量计费")
         provider == ChatProvider.APIPOD && model == "grok-4.5" ->
-            PriceGuide("$0.002–$0.014", "$0.006–$0.042",
+            PriceGuide("\$0.002–\$0.014", "\$0.006–\$0.042",
                 "按 1 字≈1 Token 粗估；区间对应 APIPod Grok Lite 至 xAI 默认渠道")
         else -> null
     }
