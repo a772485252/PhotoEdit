@@ -85,7 +85,7 @@ fun ChatScreen(
                             ChatProvider.VENICE ->
                                 state.balanceInfo ?: if (state.token.isBlank()) "余额：请先配置 Venice API Key" else "余额：点击刷新查询"
                             ChatProvider.APIPOD ->
-                                "余额：请查看 APIPod 控制台（当前 Key 接口未提供余额查询）"
+                                "余额：尚未接入应用内查询，请在 APIPod 控制台查看"
                             else -> "余额：请查看服务商控制台"
                         },
                         style = MaterialTheme.typography.labelSmall,
