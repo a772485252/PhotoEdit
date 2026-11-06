@@ -28,5 +28,14 @@ class ChatRulesTest {
     @Test fun modeChoosesDifferentInstructions() {
         assertNotEquals(ChatRules.messages(emptyList(), "hello", true).first(), ChatRules.messages(emptyList(), "hello", false).first())
     }
+    @Test fun customRulesTakeEffectWithoutDroppingConversationContext() {
+        val history = listOf(ChatMessage("user", "之前的提示词"), ChatMessage("assistant", "之前的扩写结果"))
+        val request = ChatRules.messages(history, "继续修改", true, "新的自定义扩写规则")
+        assertEquals("新的自定义扩写规则", request.first().text)
+        assertEquals("之前的提示词", request[1].text)
+        assertEquals("之前的扩写结果", request[2].text)
+        assertEquals("继续修改", request.last().text)
+    }
+
     @Test(expected = IllegalArgumentException::class) fun blankRequestRejected() { ChatRules.messages(emptyList(), " ", true) }
 }
