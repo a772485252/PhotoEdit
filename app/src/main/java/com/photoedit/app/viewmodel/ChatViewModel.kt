@@ -27,7 +27,8 @@ data class ChatUiState(
     val models: List<ChatModel> = ChatModels.presets(ChatProvider.CLOUDFLARE),
     val allowPaid: Boolean = false,
     val token: String = "", val input: String = "", val promptMode: Boolean = true,
-    val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null
+    val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null,
+    val balanceInfo: String? = null, val balanceLoading: Boolean = false
 )
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,6 +46,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 models = ChatModels.presets(provider))
             val loaded = withContext(Dispatchers.IO) { settings.load(provider) }
             _state.value = _state.value.copy(token = loaded.token, model = loaded.model)
+            if (provider == ChatProvider.VENICE && loaded.token.isNotBlank()) refreshBalance()
         }
     }
 
@@ -57,7 +59,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             withContext(Dispatchers.IO) { settings.select(value, loaded.model) }
             _state.value = _state.value.copy(provider = value, token = loaded.token, model = loaded.model,
                 modelDraft = "", models = catalogs[value] ?: ChatModels.presets(value), allowPaid = false,
-                messages = emptyList(), notice = if (value == ChatProvider.APIPOD) "已读取图片生成设置中的 APIPod Key；聊天与图片共用同一个 Key" else "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
+                balanceInfo = null, balanceLoading = false, messages = emptyList(),
+                notice = if (value == ChatProvider.APIPOD) "已读取图片生成设置中的 APIPod Key；聊天与图片共用同一个 Key" else "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
+            if (value == ChatProvider.VENICE && loaded.token.isNotBlank()) refreshBalance()
         }
     }
 
@@ -93,7 +97,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun token(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim()) }
+    fun refreshBalance() {
+        val snapshot = _state.value
+        if (snapshot.provider != ChatProvider.VENICE || snapshot.token.isBlank() || snapshot.balanceLoading) return
+        _state.value = _state.value.copy(balanceLoading = true, balanceInfo = "正在查询余额…")
+        viewModelScope.launch {
+            try {
+                val balance = withContext(Dispatchers.IO) { client.veniceBalance(snapshot.token) }
+                val current = _state.value
+                if (current.provider == snapshot.provider && current.token == snapshot.token)
+                    _state.value = current.copy(balanceInfo = balance)
+            } catch (_: CancellationException) {
+                throw
+            } catch (_: Exception) {
+                val current = _state.value
+                if (current.provider == snapshot.provider && current.token == snapshot.token)
+                    _state.value = current.copy(balanceInfo = "余额查询失败，请检查 Key 或稍后刷新")
+            } finally {
+                val current = _state.value
+                if (current.provider == snapshot.provider && current.token == snapshot.token)
+                    _state.value = current.copy(balanceLoading = false)
+            }
+        }
+    }
+
+    fun token(value: String) {
+        if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim(), balanceInfo = null)
+    }
     fun input(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(input = value.take(2000)) }
     fun mode(value: Boolean) {
         if (!_state.value.busy && _state.value.promptMode != value)
@@ -106,6 +136,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         perform {
             withContext(Dispatchers.IO) { settings.saveKey(state.provider, state.token) }
             _state.value = _state.value.copy(notice = "${state.provider.label} Key 已加密保存在本机，尚未验证 API 权限")
+            if (state.provider == ChatProvider.VENICE) refreshBalance()
         }
     }
     fun clearKey() {
@@ -114,7 +145,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         perform {
             withContext(Dispatchers.IO) { settings.clearKey(state.provider) }
             drafts.remove(state.provider)
-            _state.value = _state.value.copy(token = "", notice = "已清除 ${state.provider.label} Key；其他平台设置不受影响")
+            _state.value = _state.value.copy(token = "", balanceInfo = null, balanceLoading = false,
+                notice = "已清除 ${state.provider.label} Key；其他平台设置不受影响")
         }
     }
     fun send() {
@@ -125,6 +157,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(input = "",
                 messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+            if (state.provider == ChatProvider.VENICE) refreshBalance()
         }
     }
     fun regenerateLast() {
@@ -138,6 +171,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+            if (state.provider == ChatProvider.VENICE) refreshBalance()
         }
     }
     private fun perform(block: suspend () -> Unit) {
