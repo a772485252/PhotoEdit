@@ -44,6 +44,8 @@ object ChatModels {
             "约 $0.0006 输入 / $0.0040 输出"
         provider == ChatProvider.VENICE && model == "venice-uncensored-1-2" ->
             "约 $0.0020 输入 / $0.0090 输出"
+        provider == ChatProvider.APIPOD && model == "grok-4.5" ->
+            "约 $0.014 输入 / $0.042 输出（按当前默认 xAI 渠道估算）"
         provider == ChatProvider.APIPOD ->
             "按 APIPod 当前路由价格计费，费用以实际账单为准"
         else -> "当前模型价格暂未配置，费用以服务商账单为准"
