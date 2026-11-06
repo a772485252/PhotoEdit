@@ -138,10 +138,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
-            if (state.provider == ChatProvider.VENICE) {
-                val balance = runCatching { client.veniceBalance(state.token) }.getOrNull()
-                _state.value = _state.value.copy(balanceInfo = balance)
-            }
         }
     }
     private fun perform(block: suspend () -> Unit) {
