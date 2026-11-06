@@ -279,7 +279,7 @@ fun ChatScreen(
             title = { Text("自定义扩写规则") },
             text = {
                 Column(Modifier.fillMaxWidth().heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
-                    Text("修改后保存到本机，下一次生成提示词时生效；不影响普通聊天。", style = MaterialTheme.typography.bodySmall)
+                    Text("修改后保存到本机，下一次生成提示词时生效；当前聊天记录和输入草稿都会保留。", style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(value = rulesDraft, onValueChange = { rulesDraft = it.take(8000) },
                         modifier = Modifier.fillMaxWidth(), minLines = 7, maxLines = 16,
