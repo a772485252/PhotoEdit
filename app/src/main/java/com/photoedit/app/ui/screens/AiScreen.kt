@@ -228,11 +228,8 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("图片生成设置", style = MaterialTheme.typography.titleLarge)
                     Column {
-                        FilterChip(venice, { onProvider("venice") }, label = { Text("Venice · 付费") }, enabled = editingEnabled)
-                        FilterChip(apiPod, { onProvider("apipod") }, label = { Text("APIPod · 付费") }, enabled = editingEnabled)
-                        FilterChip(horde, { onProvider("horde") }, label = { Text("AI Horde · 免费") }, enabled = editingEnabled)
-                        FilterChip(!runware && !horde && !apiPod && !venice, { onProvider("cloudflare") }, label = { Text("Cloudflare") }, enabled = editingEnabled)
-                        FilterChip(runware, { onProvider("runware") }, label = { Text("Runware · 付费") }, enabled = editingEnabled)
+                        FilterChip(apiPod, { onProvider("apipod") }, label = { Text("APIPod") }, enabled = editingEnabled)
+                        FilterChip(venice, { onProvider("venice") }, label = { Text("Venice") }, enabled = editingEnabled)
                     }
                     Text("切换平台保留草稿和参考图，清空当前平台的结果记录。", style = MaterialTheme.typography.bodySmall)
                     if (venice) {
