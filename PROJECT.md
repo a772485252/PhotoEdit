@@ -42,7 +42,7 @@ A free native Android application for preparing images and short-form video mate
 - No Android Studio or Java installed locally at project kickoff.
 
 ## Cloudflare AI integration — personal defaults
-- User explicitly authorized committing their non-secret Cloudflare Account ID as the default: `4d17f32858b5ec94a9d493d703b54fb9`.
+- The app uses a configured Cloudflare account identifier; its value is supplied through protected local configuration and is intentionally not recorded in project documentation.
 - Pre-fill this Account ID in the future AI settings screen; retain an editable override.
 - API Token must remain empty by default, entered on-device and stored using Android Keystore-backed encryption; never commit it or embed it in the APK.
 - Personal use; cloud text-to-image/reference-image editing planned. Keep existing offline tools available without credentials.
