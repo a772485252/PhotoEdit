@@ -369,3 +369,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added required `app_version` workflow input with current default 0.9.24 and an early validation step comparing it to Gradle `versionName`. A mismatch fails before SDK setup/build to prevent mislabeled APK runs.
 - Updated AGENTS.md to require versioned run titles and synchronized defaults; documented the workflow behavior in PROJECT.md.
 - Workflow/docs only. No APK build triggered; no app source/version changed. Workflow execution remains pending.
+
+
+## V0.9.25 Deterministic prompt composition and anatomy guidance (2026-11-06)
+- Removed camera-angle and framing instructions from all eight PoseCatalog descriptions; pose presets now describe only body positions. Kept camera direction in CameraCatalog and resolved its optional framing to a single full-body composition, with hands and feet in frame.
+- Updated prompt-assistant system guidance to avoid ambiguous either/or choices and conflicting pose/camera descriptions. Added anatomy guidance to discourage extra, missing, fused, malformed or unintentionally cropped limbs and fingers.
+- PromptComposer now adds one managed anatomy-quality block when composing outfits, poses or camera presets; repeated edits replace rather than duplicate the block. Existing user-authored free text is preserved.
+- Updated focused ChatRulesTest, PromptComposerTest and PosePromptsTest to cover guidance, deduplication and pose/camera separation.
+- Version 0.9.25 / versionCode 37; synchronized manual workflow version default. No APK build requested or triggered. Unit tests and device/image-model behavior remain unverified. Prompt instructions reduce risk but cannot guarantee anatomy accuracy.
