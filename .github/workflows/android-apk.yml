@@ -1,5 +1,5 @@
 name: Android APK
-run-name: PhotoEdit v${{ inputs.app_version }} · ${{ inputs.build_mode }} APK
+run-name: PhotoEdit ${{ inputs.app_version && format('v{0} · {1} APK', inputs.app_version, inputs.build_mode) || 'APK · 自动构建' }}
 
 on:
   push:
