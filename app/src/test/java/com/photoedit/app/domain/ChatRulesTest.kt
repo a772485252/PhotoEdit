@@ -20,6 +20,11 @@ class ChatRulesTest {
         assertTrue(system.contains("明确且唯一"))
         assertTrue(system.contains("缺失"))
     }
+    @Test fun closeFullBodyInstructionIsPresent() {
+        val text = ChatRules.messages(emptyList(), "portrait", true).first().text
+        assertTrue(text.contains("近距离全身构图"))
+        assertTrue(text.contains("不输出方案列表"))
+    }
     @Test fun modeChoosesDifferentInstructions() {
         assertNotEquals(ChatRules.messages(emptyList(), "hello", true).first(), ChatRules.messages(emptyList(), "hello", false).first())
     }
