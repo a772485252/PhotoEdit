@@ -127,6 +127,19 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
         }
     }
+    fun regenerateLast() {
+        val state = _state.value
+        if (state.busy || state.messages.lastOrNull()?.role != "assistant") return
+        val lastUserIndex = state.messages.indexOfLast { it.role == "user" }
+        if (lastUserIndex < 0) return
+        val lastUserText = state.messages[lastUserIndex].text
+        val previousMessages = state.messages.take(lastUserIndex)
+        perform {
+            val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode)
+            val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
+            _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+        }
+    }
     private fun perform(block: suspend () -> Unit) {
         _state.value = _state.value.copy(busy = true, notice = null)
         viewModelScope.launch {
