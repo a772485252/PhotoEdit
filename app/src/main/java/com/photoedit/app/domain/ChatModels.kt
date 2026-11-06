@@ -20,7 +20,10 @@ object ChatModels {
             ChatModel("openai/gpt-oss-120b", "GPT-OSS 120B")
         ),
         ChatProvider.CLOUDFLARE -> listOf(
-            ChatModel(provider.defaultModel, "GLM-4.7-Flash · 免费额度")
+            ChatModel(provider.defaultModel, "GLM-4.7-Flash · Workers AI")
+        )
+        ChatProvider.VENICE -> listOf(
+            ChatModel(provider.defaultModel, "Venice Uncensored 1.2")
         )
     }
 
