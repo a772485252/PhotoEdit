@@ -183,3 +183,9 @@ A free native Android application for preparing images and short-form video mate
 - Prompt-assistant system guidance asks for one definite selection per visual dimension, avoiding alternatives or ambiguous phrasing while respecting explicitly selected outfit, pose and camera.
 - PromptComposer adds one managed anatomy-quality block to generated composed prompts: natural limb proportions, correct counts, complete hands/feet/fingers, and no duplicated, missing, fused or unintentionally cropped limbs. This is a quality instruction, not a guarantee of image model output.
 - Source version 0.9.25 / versionCode 37; the manually dispatched APK workflow default version is 0.9.25. No automatic APK build.
+
+
+## Prompt assistant close full-body default (current)
+- In the Prompt Assistant's Generate Prompt mode (including APIPod Grok 4.5), the system instruction defaults to close full-body framing: subject fills most of the frame while head, hands, and feet remain fully visible with a small safe margin.
+- The assistant must pick a single definite pose/camera direction when unspecified, respect user-specified composition, avoid mutually exclusive alternatives, and return one directly usable prompt rather than options or explanations.
+- Anatomy-quality guidance applies to this chat-generated text too; no guarantee of image-model compliance. This changes chat prompt generation guidance, not image generation or API routing.
