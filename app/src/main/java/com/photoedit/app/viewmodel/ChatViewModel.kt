@@ -28,7 +28,8 @@ data class ChatUiState(
     val allowPaid: Boolean = false,
     val token: String = "", val input: String = "", val promptMode: Boolean = true,
     val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null,
-    val balanceInfo: String? = null, val balanceLoading: Boolean = false
+    val balanceInfo: String? = null, val balanceLoading: Boolean = false,
+    val promptRules: String = ChatRules.SYSTEM_PROMPT
 )
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
@@ -42,6 +43,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     init {
         perform {
             val provider = withContext(Dispatchers.IO) { settings.provider() }
+            val rules = withContext(Dispatchers.IO) { settings.promptRules() }
+            _state.value = _state.value.copy(promptRules = rules)
             _state.value = _state.value.copy(provider = provider, model = provider.defaultModel,
                 models = ChatModels.presets(provider))
             val loaded = withContext(Dispatchers.IO) { settings.load(provider) }
@@ -149,11 +152,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 notice = "已清除 ${state.provider.label} Key；其他平台设置不受影响")
         }
     }
+    fun savePromptRules(value: String) {
+        if (_state.value.busy) return
+        perform {
+            withContext(Dispatchers.IO) { settings.savePromptRules(value) }
+            _state.value = _state.value.copy(promptRules = value, messages = emptyList(), notice = "扩写规则已保存，新对话开始生效")
+        }
+    }
+    fun resetPromptRules() {
+        if (_state.value.busy) return
+        perform {
+            withContext(Dispatchers.IO) { settings.resetPromptRules() }
+            _state.value = _state.value.copy(promptRules = ChatRules.SYSTEM_PROMPT, messages = emptyList(), notice = "已恢复默认扩写规则")
+        }
+    }
     fun send() {
         val state = _state.value
         if (state.busy) return
         perform {
-            val request = ChatRules.messages(state.messages, state.input, state.promptMode)
+            val request = ChatRules.messages(state.messages, state.input, state.promptMode, state.promptRules)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(input = "",
                 messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
@@ -168,7 +185,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val lastUserText = state.messages[lastUserIndex].text
         val previousMessages = state.messages.take(lastUserIndex)
         perform {
-            val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode)
+            val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode, state.promptRules)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
             if (state.provider == ChatProvider.VENICE) refreshBalance()
