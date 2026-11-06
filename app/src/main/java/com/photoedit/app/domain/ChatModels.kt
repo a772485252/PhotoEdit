@@ -18,7 +18,7 @@ object ChatModels {
         ChatProvider.GROQ -> listOf(
             ChatModel(provider.defaultModel, "GPT-OSS 20B"),
             ChatModel("openai/gpt-oss-120b", "GPT-OSS 120B")
-        ),
+        )
         ChatProvider.CLOUDFLARE -> listOf(
             ChatModel(provider.defaultModel, "GLM-4.7-Flash · Workers AI")
         )
