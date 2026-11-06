@@ -392,3 +392,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Saving/restoring clears transient conversation context; no local chat history is saved and editing rules does not call a paid API. Rules persist across app restarts.
 - Updated ChatScreen.kt, MainActivity.kt, ChatViewModel.kt, ChatSettingsStore.kt, ChatRules.kt, Gradle version and workflow default. Source version 0.9.26 / code 38.
 - UI reviewed for scrollable editor, keyboard entry, reachable dialog buttons and mode visibility; compilation, unit tests, narrow-screen device check and provider integration remain unverified. No APK build triggered.
+
+
+## V0.9.27 prompt framing refinement (2026-11-06)
+- Replaced conflicting near-camera language in ChatRules.SYSTEM_PROMPT with explicit full-body visibility, minimal safe margins, large subject framing, minimal background, and natural proportions/perspective. Existing local custom rules remain unchanged until Restore Default.
+- Updated app/build.gradle.kts to 0.9.27 (versionCode 39) and synchronized manual workflow input default.
+- Source change committed; APK build requested but not yet verified. No build success claimed.
