@@ -21,10 +21,10 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 data class ChatUiState(
-    val provider: ChatProvider = ChatProvider.OPENROUTER,
-    val model: String = ChatProvider.OPENROUTER.defaultModel,
+    val provider: ChatProvider = ChatProvider.CLOUDFLARE,
+    val model: String = ChatProvider.CLOUDFLARE.defaultModel,
     val modelDraft: String = "",
-    val models: List<ChatModel> = ChatModels.presets(ChatProvider.OPENROUTER),
+    val models: List<ChatModel> = ChatModels.presets(ChatProvider.CLOUDFLARE),
     val allowPaid: Boolean = false,
     val token: String = "", val input: String = "", val promptMode: Boolean = true,
     val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null
@@ -40,7 +40,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         perform {
-            val provider = withContext(Dispatchers.IO) { settings.provider() }
+            val provider = ChatProvider.CLOUDFLARE
             _state.value = _state.value.copy(provider = provider, model = provider.defaultModel,
                 models = ChatModels.presets(provider))
             val loaded = withContext(Dispatchers.IO) { settings.load(provider) }
