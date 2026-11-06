@@ -120,3 +120,13 @@ A free native Android application for preparing images and short-form video mate
 
 ## V0.9.1 pose catalog
 - 29 selected full_sexy IDs and detailed original Chinese pose prompts; generic original vector category illustrations, no upstream image assets. See docs/POSES.md.
+
+
+## Testing strategy — lightweight and mandatory
+- Keep the existing JUnit unit-test module; do not remove it to avoid a stale or failing assertion.
+- Test only critical, deterministic domain logic: provider/model ID validation, API key and prompt validation, price/model routing, image/reference dimension constraints, and important error classification.
+- Avoid unnecessary UI tests, snapshot suites, broad network mocks, and test-only architecture. Add such tests only when a concrete risk justifies the maintenance cost.
+- When a model ID, default, price, routing rule, or validation behavior changes, update its focused test in the same change.
+- Diagnose failures before changing tests. Fix production code when behavior is wrong; update assertions only when the intended behavior has deliberately changed. Never delete a valid test merely to make CI pass.
+- Unit tests run in CI before APK publishing and are not packaged into the APK, so retaining JUnit does not increase installed APK size.
+- Current approach: small focused tests, build/lint/test gate, then real-device/API verification for behavior that unit tests cannot prove.
