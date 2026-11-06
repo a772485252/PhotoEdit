@@ -321,3 +321,5 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Project documentation is restricted to non-sensitive project-level technical facts and non-sensitive validation outcomes. Account identifiers, API keys/tokens/passwords, signing material/fingerprints, private request/task IDs, personal contact/location details, personal photos/metadata, exact account balances/usage, and other private user data are prohibited.
 - Audited and redacted historical progress entries containing a personal account identifier, signing password/fingerprint, and temporary generation task IDs. No credentials or personal identifiers are retained in this entry.
 - This is a documentation/rules-only change. No app code, model routing, API credentials, or APK artifact changed. APK build not run.
+
+- Final privacy audit also removed the remaining personal account-identifier reference from PROJECT.md. Historical CI run/commit/artifact references are public repository build metadata; no user credentials or personal identifiers are included.
