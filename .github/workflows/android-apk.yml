@@ -1,7 +1,14 @@
 name: Android APK
+run-name: PhotoEdit v${{ inputs.app_version }} · Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      app_version:
+        description: "App version to display (must match app/build.gradle.kts)"
+        required: true
+        default: "0.9.24"
+        type: string
 
 concurrency:
   group: photoedit-apk-publish-main
@@ -14,6 +21,16 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Validate displayed version
+        env:
+          REQUESTED_VERSION: ${{ inputs.app_version }}
+        run: |
+          set -euo pipefail
+          ACTUAL_VERSION=$(sed -n 's/^[[:space:]]*versionName = "\(.*\)"/\1/p' app/build.gradle.kts | head -n 1)
+          if [ -z "$ACTUAL_VERSION" ] || [ "$REQUESTED_VERSION" != "$ACTUAL_VERSION" ]; then
+            echo "::error::Requested run-name version '$REQUESTED_VERSION' does not match app/build.gradle.kts versionName '$ACTUAL_VERSION'. Update the workflow_dispatch default or enter the correct version."
+            exit 1
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
