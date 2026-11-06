@@ -20,10 +20,10 @@ class ChatClient {
         messages: List<ChatMessage>, allowPaid: Boolean = false): String = withContext(Dispatchers.IO) {
         AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
         ChatModels.validate(provider, model, allowPaid)
-        val body = JSONObject().put("model", model).put("stream", false)
-            .put("messages", JSONArray().apply { messages.forEach {
-                put(JSONObject().put("role", it.role).put("content", it.text))
-            } })
+        val body = JSONObject().put("messages", JSONArray().apply { messages.forEach {
+            put(JSONObject().put("role", it.role).put("content", it.text))
+        } })
+        if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
         if (provider == ChatProvider.GROQ) {
             body.put("max_completion_tokens", 2048)
             if (model.startsWith("openai/gpt-oss-")) body.put("reasoning_effort", "low")
@@ -32,7 +32,9 @@ class ChatClient {
             if (!allowPaid) body.put("provider", JSONObject().put("max_price",
                 JSONObject().put("prompt", 0).put("completion", 0).put("request", 0)))
         }
-        val result = request(provider, token, "/chat/completions", body.toString().toByteArray(Charsets.UTF_8))
+        val endpoint = if (provider == ChatProvider.CLOUDFLARE) "/ai/run/$model" else "/chat/completions"
+        if (provider == ChatProvider.CLOUDFLARE) body.put("max_tokens", 2048)
+        val result = request(provider, token, endpoint, body.toString().toByteArray(Charsets.UTF_8))
         if (provider == ChatProvider.CLOUDFLARE) {
             val answer = result.optJSONObject("result")?.optString("response").orEmpty().trim()
             if (answer.isBlank()) throw IOException("Cloudflare Workers AI 没有返回正文，请检查模型权限和额度")
@@ -78,7 +80,7 @@ class ChatClient {
         val base = when (provider) {
             ChatProvider.GROQ -> "https://api.groq.com/openai/v1"
             ChatProvider.OPENROUTER -> "https://openrouter.ai/api/v1"
-            ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}/ai/run/${model}"
+            ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
         }
         val connection = URL(base + path).openConnection() as HttpURLConnection
         try {
@@ -116,7 +118,10 @@ class ChatClient {
                 output.toByteArray()
             }
             val result = JSONObject(bytes.toString(Charsets.UTF_8))
-            if (result.has("error")) throw IOException("${provider.label} 返回错误，请检查模型、额度或访问设置")
+            if (result.has("error") || result.optBoolean("success", true).not()) {
+                val detail = result.optJSONArray("errors")?.optJSONObject(0)?.optString("message").orEmpty()
+                throw IOException(if (provider == ChatProvider.CLOUDFLARE) "Cloudflare Workers AI 返回错误：${detail.take(180)}" else "${provider.label} 返回错误，请检查模型、额度或访问设置")
+            }
             return result
         } finally { connection.disconnect() }
     }
