@@ -89,7 +89,8 @@ class MainActivity : ComponentActivity() {
                                         tab = 1
                                     }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
                                     onModelDraft = chatViewModel::modelDraft, onRefreshModels = chatViewModel::refreshModels,
-                                    onAllowPaid = chatViewModel::allowPaid, onRefreshBalance = chatViewModel::refreshBalance)
+                                    onAllowPaid = chatViewModel::allowPaid, onRefreshBalance = chatViewModel::refreshBalance,
+                                    onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules)
                         }
                     }
                 }
