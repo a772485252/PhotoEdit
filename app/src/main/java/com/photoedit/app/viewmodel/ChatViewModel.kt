@@ -128,7 +128,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         perform {
             withContext(Dispatchers.IO) { settings.clearKey(state.provider) }
             drafts.remove(state.provider)
-            _state.value = _state.value.copy(token = "", notice = "已清除 ${state.provider.label} Key；其他平台设置不受影响")
+            _state.value = _state.value.copy(token = "", balanceInfo = null, notice = "已清除 ${state.provider.label} Key；其他平台设置不受影响")
         }
     }
     fun send() {
