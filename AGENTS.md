@@ -33,14 +33,18 @@ Build a genuine native Android application for photo processing and short-form v
 
 
 ## UI design and review (mandatory)
-- Before any UI change, inspect the target screen, its parent navigation/container, shared components, and existing theme. Read the current UI guidance in PROJECT.md; do not make an isolated visual patch without understanding surrounding layout.
-- Preserve a consistent product design system: typography hierarchy, spacing scale, component shapes, colors, interaction states, and information density. Prefer existing Material 3 components and shared components over one-off styling.
-- Design for real phone widths first. Check narrow and typical Android widths, portrait layout, system bars, keyboard/IME, scrolling, dialogs, long localized labels, and accessibility/font scaling where relevant.
-- Never rely on a horizontal row of multiple long chips/buttons if they can be clipped or pushed off-screen. Use adaptive wrapping, FlowRow, Lazy layouts, or deliberate grouping; ensure every action remains discoverable and reachable.
-- Keep primary actions visible and visually prioritized. Avoid accidental scroll traps, oversized headers, excessive nested cards, crowded settings dialogs, and controls that require horizontal scrolling unless the pattern is intentional.
-- Before finishing, review the full screen hierarchy and state variants (loading, empty, error, selected, disabled, long text). If a UI preview/test infrastructure exists, use it; otherwise perform a reasoned layout review and explicitly mark device verification as pending.
-- When a UI change affects the design system or reusable patterns, update the UI guidance in PROJECT.md. Record every UI change and its validation limits in PROGRESS.md in the same session.
-- If a dedicated UI/product-design skill or repository design-system document is available, read and follow it before editing. If none is available, say so and apply these rules; never claim a skill was consulted when it was not.
+- Before any UI change, read UI_DESIGN.md and inspect the target screen, parent navigation/container, shared components, theme, and related business/domain/ViewModel logic. Do not make isolated visual patches without understanding the full task flow.
+- UI must prioritize user feel: predictable familiar interactions, one-hand reachability, clear next steps, low friction, responsive feedback, safe error recovery, and no unnecessary confirmations or hidden controls.
+- UI must reflect actual business logic. Map user goals, inputs, constraints, side effects, costs, permissions, and success/failure states before designing controls. Never promise an operation or expose a choice the implementation cannot honor.
+- Design for phone widths first: narrow and typical screens, portrait, system bars/insets, keyboard/IME, scrolling, dialogs, long labels/model IDs, and font scaling.
+- Never rely on a horizontal row of long chips/buttons that can clip or hide choices. Use adaptive wrapping, FlowRow, deliberate grouping, or vertical layouts. Keep primary actions visible and reachable with comfortable touch targets.
+- Reuse Material 3 theme and shared components. Maintain consistent typography, spacing, shapes, color semantics, and selected/loading/disabled/error states.
+- For API/paid/network operations, show the active provider/model and meaningful verified pricing/limits where available; distinguish estimates from actual charges and never invent balance, quota, progress, or success.
+- Review empty, loading, success, error, selected, disabled, keyboard-visible, and long-content states. Preserve safe drafts/selections on failure. Avoid automatic retries that could duplicate paid or destructive operations.
+- Check accessibility: touch targets, font scaling, contrast, semantics, and focus order.
+- If previews/tests exist, use them. Otherwise document the reasoned review and mark device verification pending.
+- Update UI_DESIGN.md when reusable design/interaction standards change. Record each meaningful UI change and its validation limits in PROGRESS.md; update PROJECT.md when product-wide behavior or constraints change.
+- If a dedicated UI/product-design skill exists, read it before editing. If none exists, follow UI_DESIGN.md and never claim a skill was consulted.
 
 ## UI and business separation (mandatory)
 - Use a lightweight single-app-module MVVM structure: ui/screens, ui/components, ui/theme, viewmodel, domain, and processing.
