@@ -2,6 +2,9 @@ name: Android APK
 run-name: PhotoEdit v${{ inputs.app_version }} · ${{ inputs.build_mode }} APK
 
 on:
+  push:
+    paths:
+      - "build-trigger.txt"
   workflow_dispatch:
     inputs:
       build_mode:
