@@ -150,3 +150,9 @@ A free native Android application for preparing images and short-form video mate
 - Never put API keys/tokens/passwords, signing material or fingerprints, personal/account identifiers, private request/task IDs, emails/phone numbers, precise locations, personal photos/metadata, exact account balances/usage, or other private user information in project documentation, commit messages, tests, or logs.
 - Keep documentation limited to project-level technical facts, public API contracts, and non-sensitive test/build outcomes. Audit diffs for accidental disclosure before committing.
 - Current source version: 0.9.22 / versionCode 34. APK workflow remains manual-only; do not build unless the user explicitly requests an APK.
+
+
+## Prompt Assistant provider selector (current, 2026-11-06)
+- “模型与 API 设置” dialog offers Cloudflare · GLM, Venice · Uncensored, and APIPod · Grok 4.5. APIPod's chat model ID is `grok-4.5`; it reuses the encrypted APIPod key shared with image generation.
+- Provider choices use a two-row layout so APIPod remains visible on narrow devices. This provider selector is for text chat/prompt expansion; it is distinct from image-generation model selection.
+- Current source version: 0.9.24 / versionCode 36. APK workflow remains manual-only.
