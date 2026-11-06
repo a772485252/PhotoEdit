@@ -252,3 +252,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 ## V0.9.16 Cloudflare prompt-only credential clarification (2026-11-06)
 - Clarified in chat settings that the existing Cloudflare credential is reused from local encrypted app storage if previously configured, but Cloudflare is now only exposed as a prompt-assistant provider. It is no longer an image-generation provider; clearing its credential from chat settings only clears the stored Cloudflare credential used by prompt assistance.
 - Version 0.9.16 / versionCode 28. Build verification pending.
+
+
+## V0.9.17 Cloudflare-only prompt assistant (2026-11-06)
+- Removed OpenRouter and Groq from the Prompt Assistant provider picker and settings UI. Prompt assistant now defaults to and loads only Cloudflare Workers AI.
+- Existing legacy OpenRouter/Groq credential namespaces and code paths are retained internally for compatibility; they are no longer selectable or used by the current UI. Existing stored keys are not deleted.
+- Cloudflare Token remains encrypted in the existing shared credential store used by the prompt assistant; image generation provider choices remain APIPod and Venice only.
+- Version 0.9.17 / versionCode 29. APK build and device validation pending.
