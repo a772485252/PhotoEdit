@@ -57,7 +57,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             withContext(Dispatchers.IO) { settings.select(value, loaded.model) }
             _state.value = _state.value.copy(provider = value, token = loaded.token, model = loaded.model,
                 modelDraft = "", models = catalogs[value] ?: ChatModels.presets(value), allowPaid = false,
-                messages = emptyList(), notice = "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
+                messages = emptyList(), notice = if (value == ChatProvider.APIPOD) "已读取图片生成设置中的 APIPod Key；聊天与图片共用同一个 Key" else "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
         }
     }
 
