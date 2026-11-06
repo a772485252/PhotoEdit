@@ -259,3 +259,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Existing legacy OpenRouter/Groq credential namespaces and code paths are retained internally for compatibility; they are no longer selectable or used by the current UI. Existing stored keys are not deleted.
 - Cloudflare Token remains encrypted in the existing shared credential store used by the prompt assistant; image generation provider choices remain APIPod and Venice only.
 - Version 0.9.17 / versionCode 29. APK build and device validation pending.
+
+
+## V0.9.18 Venice chat provider (2026-11-06)
+- Added Venice AI as a second selectable provider in Prompt Assistant alongside Cloudflare Workers AI. OpenRouter and Groq remain absent from the UI.
+- Venice uses the official OpenAI-compatible endpoint https://api.venice.ai/api/v1/chat/completions and independent encrypted local Key namespace; it does not reuse or alter the Venice image-generation credential.
+- Default model ID: venice-uncensored-1-2 (Venice Uncensored 1.2). Venice API requests use normal chat-completions messages and response parsing; max_tokens capped at 2048. No silent provider/model fallback.
+- ChatSettingsStore persists Cloudflare/Venice selection and separate model IDs; app startup restores last selected supported provider. Cloudflare still reuses its existing Cloudflare credential.
+- Settings UI now offers Cloudflare · GLM and Venice · Uncensored, with provider-specific billing/key guidance. Venice API billing is separate from Venice web free prompt quota.
+- Version 0.9.18 / versionCode 30. CI build and authenticated live Venice API/device validation pending; user must register and provide Venice API Key.
