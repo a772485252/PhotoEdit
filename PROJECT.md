@@ -67,7 +67,7 @@ A free native Android application for preparing images and short-form video mate
 - History stays only in ViewModel memory; no disk or Bundle persistence. Failed sends retain input and successful prior history.
 - Official references: https://console.groq.com/docs/rate-limits and https://console.groq.com/docs/api-reference .
 
-## V0.5 selectable chat platforms and models (current)
+## V0.5 selectable chat platforms and models (historical milestone)
 - Retain Groq and add OpenRouter; enum-based fixed endpoints and shared HTTP transport. No added SDK or Gradle dependency.
 - Default first-run platform is OpenRouter; save last platform and per-platform model IDs locally.
 - Groq retains groq_chat_private preferences/Keystore identity; OpenRouter uses openrouter_chat_private. Never migrate or reuse tokens across platforms. Cloudflare remains unchanged.
@@ -77,7 +77,7 @@ A free native Android application for preparing images and short-form video mate
 - No automatic catalog fetch at startup, retry, cross-platform failover or paid-model fallback. OpenRouter may route the selected model among its own providers; manual openrouter/free may select different free models.
 - Existing bounded text context, prompt transfer and encrypted user-key storage retained. Changing platform/model/mode starts a new conversation and keeps the current input draft.
 - New ChatModels rules/tests cover custom model validation, paid gating, unknown prices and preserved Groq storage identity. CI runs unit checks, lint and APK build; actual API/device validation still requires on-device keys.
-- Current version: 0.9.1 / versionCode 13.
+- Historical milestone version: 0.9.1 / versionCode 13.
 - Official contracts: https://openrouter.ai/docs/api_reference/overview , https://openrouter.ai/docs/api-reference/models/get-models , https://openrouter.ai/docs/guides/routing/provider-selection .
 
 ## Personal persistent debug signing
@@ -139,3 +139,11 @@ A free native Android application for preparing images and short-form video mate
 - Chat header displays provider, selected model display name, and exact model ID. It labels each provider's billing method but intentionally does not invent per-character prices.
 - Live balance lookup is not yet implemented/verified for these providers. To show approximate cost per 10,000 Chinese characters, obtain verified input/output prices for the exact provider/model route and state the approximation assumptions. Actual charges should use returned token usage/settlement data where available.
 - Current code version: 0.9.22 / versionCode 34. Latest prompt-assistant first-use UI refinement and model identity display are committed; APK build remains manual-only and requires explicit user request.
+
+
+## Documentation and privacy requirements (current, 2026-11-06)
+- Every meaningful code/config/UI/model/API/build-rule change must be documented in PROGRESS.md in the same work session. Update this PROJECT.md at the same time when current architecture, active providers/models, user-visible behavior, constraints, or operating rules change.
+- At the start of each new session, read AGENTS.md, PROJECT.md, and the latest end of PROGRESS.md. Source code is authoritative if a discrepancy is found; reconcile documentation before continuing.
+- Never put API keys/tokens/passwords, signing material or fingerprints, personal/account identifiers, private request/task IDs, emails/phone numbers, precise locations, personal photos/metadata, exact account balances/usage, or other private user information in project documentation, commit messages, tests, or logs.
+- Keep documentation limited to project-level technical facts, public API contracts, and non-sensitive test/build outcomes. Audit diffs for accidental disclosure before committing.
+- Current source version: 0.9.22 / versionCode 34. APK workflow remains manual-only; do not build unless the user explicitly requests an APK.
