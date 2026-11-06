@@ -24,7 +24,7 @@ object ChatModels {
     }
 
     fun validate(provider: ChatProvider, model: String, allowPaid: Boolean) {
-        require(model.length in 1..200 && model.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:/-]*"))) {
+        require(model.length in 1..200 && model.matches(Regex("@?[A-Za-z0-9][A-Za-z0-9._:/-]*"))) {
             "请填写有效的模型 ID（不是网址），不能包含空格"
         }
         if (provider == ChatProvider.CLOUDFLARE) {
