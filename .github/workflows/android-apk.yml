@@ -38,6 +38,8 @@ jobs:
         run: |
           set -euo pipefail
           ACTUAL_VERSION=$(sed -n 's/^[[:space:]]*versionName = "\(.*\)"/\1/p' app/build.gradle.kts | head -n 1)
+          # Push-triggered builds have no workflow_dispatch inputs; use the app version.
+          REQUESTED_VERSION="${REQUESTED_VERSION:-$ACTUAL_VERSION}"
           if [ -z "$ACTUAL_VERSION" ] || [ "$REQUESTED_VERSION" != "$ACTUAL_VERSION" ]; then
             echo "::error::Requested run-name version '$REQUESTED_VERSION' does not match app/build.gradle.kts versionName '$ACTUAL_VERSION'. Update the workflow_dispatch default or enter the correct version."
             exit 1
