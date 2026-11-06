@@ -268,3 +268,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - ChatSettingsStore persists Cloudflare/Venice selection and separate model IDs; app startup restores last selected supported provider. Cloudflare still reuses its existing Cloudflare credential.
 - Settings UI now offers Cloudflare · GLM and Venice · Uncensored, with provider-specific billing/key guidance. Venice API billing is separate from Venice web free prompt quota.
 - Version 0.9.18 / versionCode 30. CI build and authenticated live Venice API/device validation pending; user must register and provide Venice API Key.
+
+
+## V0.9.19 Venice Lustify v8 image model and shared API key (2026-11-06)
+- Venice text-to-image default model changed from Z-Image Turbo to Lustify v8 (model ID lustify-v8), a photorealistic character-focused SDXL checkpoint. Official Venice model listing describes it as uncensored and lists $0.01 per image.
+- Existing Venice reference-image edit model remains FireRed Image Edit at the existing estimated $0.04 per request; Lustify v8 is used for text-to-image only.
+- Disabled Venice safe_mode in the native image generation/edit request to avoid enabling optional safe-mode blur. Provider/model refusals and platform/legal restrictions may still apply; no promise of unlimited content.
+- ChatSettingsStore Venice namespace now points to the same encrypted venice_private store used by AiViewModel image generation. One Venice API Key serves both chat and image generation; saving/clearing from either feature updates the same credential. UI copy warns clearing affects both.
+- Version 0.9.19 / versionCode 31. Build and live API/device test pending.
