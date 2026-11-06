@@ -4,7 +4,7 @@ import android.content.Context
 import com.photoedit.app.domain.AiRules
 import com.photoedit.app.domain.ChatProvider
 
-data class ChatSettings(val token: String, val model: String)
+data class ChatSettings(val token: String, val model: String, val account: String = AiRules.DEFAULT_ACCOUNT)
 
 /** Provider keys retain separate Keystore aliases; the existing Groq namespace is unchanged. */
 class ChatSettingsStore(context: Context) {
@@ -15,18 +15,20 @@ class ChatSettingsStore(context: Context) {
         it.name == prefs.getString("provider", null)
     } ?: ChatProvider.OPENROUTER
 
-    fun load(provider: ChatProvider): ChatSettings = ChatSettings(
-        stores.getValue(provider).load().second,
-        prefs.getString("model_${provider.name}", provider.defaultModel) ?: provider.defaultModel
-    )
+    fun load(provider: ChatProvider): ChatSettings {
+        val (account, token) = stores.getValue(provider).load()
+        return ChatSettings(token, prefs.getString("model_${provider.name}", provider.defaultModel) ?: provider.defaultModel, account)
+    }
 
     fun select(provider: ChatProvider, model: String) {
         check(prefs.edit().putString("provider", provider.name)
             .putString("model_${provider.name}", model).commit()) { "模型设置保存失败" }
     }
 
-    fun saveKey(provider: ChatProvider, token: String) =
-        stores.getValue(provider).save(AiRules.DEFAULT_ACCOUNT, token)
+    fun saveKey(provider: ChatProvider, token: String) {
+        val account = if (provider == ChatProvider.CLOUDFLARE) stores.getValue(provider).load().first else AiRules.DEFAULT_ACCOUNT
+        stores.getValue(provider).save(account, token)
+    }
 
     fun clearKey(provider: ChatProvider) = stores.getValue(provider).clear()
 }
