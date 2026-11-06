@@ -27,7 +27,7 @@ class ChatClient {
         if (provider == ChatProvider.GROQ) {
             body.put("max_completion_tokens", 2048)
             if (model.startsWith("openai/gpt-oss-")) body.put("reasoning_effort", "low")
-        } else {
+        } else if (provider == ChatProvider.OPENROUTER) {
             body.put("max_tokens", 2048)
             if (!allowPaid) body.put("provider", JSONObject().put("max_price",
                 JSONObject().put("prompt", 0).put("completion", 0).put("request", 0)))
