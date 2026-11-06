@@ -156,3 +156,11 @@ A free native Android application for preparing images and short-form video mate
 - “模型与 API 设置” dialog offers Cloudflare · GLM, Venice · Uncensored, and APIPod · Grok 4.5. APIPod's chat model ID is `grok-4.5`; it reuses the encrypted APIPod key shared with image generation.
 - Provider choices use a two-row layout so APIPod remains visible on narrow devices. This provider selector is for text chat/prompt expansion; it is distinct from image-generation model selection.
 - Current source version: 0.9.24 / versionCode 36. APK workflow remains manual-only.
+
+
+## UI design system and implementation guidance (current)
+- UI framework: Jetpack Compose + Material 3. Reuse the existing theme and shared components in `ui/theme` and `ui/components`; avoid one-off styling where a shared pattern exists.
+- Layout principles: phone-first, adaptive width, clear hierarchy, consistent spacing/typography/shapes, reachable primary actions, and readable localized labels. Prefer wrapping or grouped rows over clipped horizontal control rows.
+- Review all relevant states: empty, loading, error, selected, disabled, long text, keyboard visible, and scroll behavior. Consider narrow Android phone widths, system bars, dialogs, and font scaling.
+- Before editing a screen, inspect the whole screen and its parent container rather than changing a single control in isolation. Use Material 3 conventions and preserve visual consistency across screens.
+- No dedicated Android UI/Product Design skill or standalone design-system document is currently present in the repository or installed skill catalog. Follow AGENTS.md UI design and review rules until one is added.
