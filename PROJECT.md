@@ -201,3 +201,11 @@ A free native Android application for preparing images and short-form video mate
 ## V0.9.27 prompt framing refinement
 - Default prompt assistant instructions prioritize fully visible head, hands and feet with narrow safe margins before maximizing subject size. Minimize unnecessary background space and perspective distortion. Existing locally saved custom instructions are preserved until the user selects Restore Default.
 - Manual APK workflow version updated to 0.9.27 / versionCode 39.
+
+
+## APK build modes and performance (current)
+- Manual-only GitHub Actions workflow offers Quick (default) and Full modes; run title includes app version and selected mode.
+- Quick: `gradle --build-cache --parallel assembleDebug`. It compiles and packages the APK, then performs the same fixed-keystore signature verification and publication steps. It skips unit tests and Android Lint; therefore it does not establish behavioral correctness or lint cleanliness.
+- Full: `gradle --build-cache --parallel testDebugUnitTest lintDebug assembleDebug`, followed by identical signature verification and publication.
+- Gradle setup-gradle action caches Gradle user-home dependencies/state. Neither mode runs `clean` or disables build cache, allowing incremental/cache reuse on compatible runners.
+- Use Quick for routine UI/text-only changes. Use Full for domain/business rules, API/provider, storage, image-processing, dependency changes, and important milestone releases.
