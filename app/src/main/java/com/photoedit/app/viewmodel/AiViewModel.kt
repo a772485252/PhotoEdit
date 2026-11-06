@@ -39,7 +39,7 @@ data class AiUiState(
     val account: String = AiRules.DEFAULT_ACCOUNT,
     val token: String = "",
     val runwareKey: String = "",
-    val provider: String = "horde",
+    val provider: String = "apipod",
     val apiPodKey: String = "",
     val apiPodPro: Boolean = false,
     val apiPodPending: Boolean = false,
@@ -89,8 +89,8 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
             val (_, hordeKey) = withContext(Dispatchers.IO) { hordeSettings.load() }
             val (_, apiPodKey) = withContext(Dispatchers.IO) { apiPodSettings.load() }
             val (_, veniceKey) = withContext(Dispatchers.IO) { veniceSettings.load() }
-            val provider = imagePreferences.getString("provider", "horde").orEmpty()
-                .takeIf { it in listOf("cloudflare", "runware", "horde", "apipod", "venice") } ?: "horde"
+            val provider = imagePreferences.getString("provider", "apipod").orEmpty()
+                .takeIf { it in listOf("apipod", "venice") } ?: "apipod"
             val hordeModel = HordeRules.migrateModel(imagePreferences.getString("horde_model", null),
                 imagePreferences.getBoolean("portrait_profile_migrated", false))
             imagePreferences.edit().putString("horde_model", hordeModel).putBoolean("portrait_profile_migrated", true).apply()
@@ -105,7 +105,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     fun account(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(account = value.trim()) }
     fun token(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim()) }
     fun provider(value: String) {
-        if (_state.value.busy || value !in listOf("cloudflare", "runware", "horde", "apipod", "venice") || value == _state.value.provider) return
+        if (_state.value.busy || value !in listOf("apipod", "venice") || value == _state.value.provider) return
         if (hasPending()) { _state.value = _state.value.copy(message = "请先处理当前平台的原任务"); return }
         // Keep draft/reference when changing transport; only the provider's result history resets.
         _state.value = _state.value.copy(provider = value, result = null, turns = emptyList(), continueEditing = false)
