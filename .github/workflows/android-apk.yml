@@ -84,10 +84,39 @@ jobs:
       - name: Verify APK signature
         run: |
           set -euo pipefail
+          APK_DIR="app/build/outputs/apk/debug"
+          if [ ! -d "$APK_DIR" ]; then
+            echo "::error::Debug APK output directory was not created. Build task may not have produced an APK."
+            echo "Available APK output files:"
+            find app/build/outputs -maxdepth 5 -type f -print 2>/dev/null || true
+            exit 1
+          fi
+
+          mapfile -t APK_FILES < <(find "$APK_DIR" -maxdepth 1 -type f -name '*.apk' -print | sort)
+          if [ "${#APK_FILES[@]}" -eq 0 ]; then
+            echo "::error::No debug APK was produced in $APK_DIR."
+            echo "Available APK output files:"
+            find app/build/outputs -maxdepth 5 -type f -print 2>/dev/null || true
+            exit 1
+          fi
+          if [ "${#APK_FILES[@]}" -gt 1 ]; then
+            echo "::error::Expected one debug APK but found ${#APK_FILES[@]}:"
+            printf ' - %s\n' "${APK_FILES[@]}"
+            exit 1
+          fi
+
+          APK_PATH="${APK_FILES[0]}"
+          echo "Verifying APK: $APK_PATH"
+          echo "PHOTOEDIT_APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
+
           EXPECTED=$(keytool -exportcert -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey | sha256sum | cut -d ' ' -f 1)
-          SIGNATURE=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk)
+          SIGNATURE=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK_PATH")
           printf '%s\n' "$SIGNATURE"
           ACTUAL=$(printf '%s\n' "$SIGNATURE" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          if [ -z "$ACTUAL" ]; then
+            echo "::error::Could not read the APK signer certificate digest."
+            exit 1
+          fi
           test "$EXPECTED" = "$ACTUAL" || { echo "::error::APK signing certificate does not match the fixed keystore"; exit 1; }
       - name: Remove runner signing key
         if: always()
@@ -104,7 +133,16 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           mkdir -p latest-apk
-          cp app/build/outputs/apk/debug/app-debug.apk latest-apk/PhotoEdit-debug.apk
+          APK_PATH="${PHOTOEDIT_APK_PATH:-}"
+          if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
+            APK_PATH=$(find app/build/outputs/apk/debug -maxdepth 1 -type f -name '*.apk' -print -quit)
+          fi
+          if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
+            echo "::error::Verified debug APK is missing; refusing to publish an empty or stale package."
+            find app/build/outputs -maxdepth 5 -type f -print 2>/dev/null || true
+            exit 1
+          fi
+          cp "$APK_PATH" latest-apk/PhotoEdit-debug.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f latest-apk/PhotoEdit-debug.apk
