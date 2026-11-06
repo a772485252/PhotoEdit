@@ -3,3 +3,4 @@ Build PhotoEdit v0.9.29 (versionCode 41). Update this file only when a build is 
 Retry build after fixing push event version validation.
 
 Retry: execute quick build on push events.
+APK path fix verification trigger: 2026-11-06
