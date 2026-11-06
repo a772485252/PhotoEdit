@@ -281,3 +281,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 ## V0.9.20 Fix stale Venice model unit test (2026-11-06)
 - Updated VeniceRulesTest.referenceSwitchesBothEndpointModelAndDisplayedPrice expected text-to-image model ID from z-image-turbo to lustify-v8. Production rule already correctly selected Lustify v8; the failure was a stale assertion left from the previous default model.
 - Version 0.9.20 / versionCode 32. CI build and test rerun pending.
+
+
+## V0.9.21 Lean unit test suite (2026-11-06)
+- Kept the JUnit test dependency and unit-test task; unit tests are not packaged into the APK and do not increase installed APK size.
+- Trimmed ChatModelsTest to active Cloudflare and Venice model ID validation plus malformed ID and zero-price validation. Removed obsolete OpenRouter/Groq-specific test coverage from the active prompt-assistant test suite.
+- Retained focused VeniceRules tests for model/price selection, uncertain billing outcomes, API key header-injection validation, reference dimension limits, and prompt length validation.
+- Retained focused AiRules tests for Cloudflare credential/prompt validation and quota/auth error classification.
+- No broad UI or network-mocking test infrastructure added. CI should continue requiring testDebugUnitTest to pass before APK build.
+- Version 0.9.21 / versionCode 33. CI verification pending.
