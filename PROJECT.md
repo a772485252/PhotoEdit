@@ -176,3 +176,10 @@ A free native Android application for preparing images and short-form video mate
 ## APK workflow run naming (current)
 - GitHub Actions manual APK runs display `PhotoEdit v<versionName> · Android APK` in the Actions run list.
 - The `workflow_dispatch` input `app_version` defaults to the current app version and is validated against `app/build.gradle.kts` before any build starts. If the app version changes, update the default; mismatches fail early instead of producing a misleading run title.
+
+
+## Prompt determinism and anatomy integrity (current)
+- Pose presets describe body position only; camera presets independently determine direction, height and full-body framing. Do not embed competing camera directions inside pose descriptions.
+- Prompt-assistant system guidance asks for one definite selection per visual dimension, avoiding alternatives or ambiguous phrasing while respecting explicitly selected outfit, pose and camera.
+- PromptComposer adds one managed anatomy-quality block to generated composed prompts: natural limb proportions, correct counts, complete hands/feet/fingers, and no duplicated, missing, fused or unintentionally cropped limbs. This is a quality instruction, not a guarantee of image model output.
+- Source version 0.9.25 / versionCode 37; the manually dispatched APK workflow default version is 0.9.25. No automatic APK build.
