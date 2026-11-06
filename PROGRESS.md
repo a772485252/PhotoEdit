@@ -231,3 +231,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Kept conversation memory session-only; no local chat history or image/reference upload. Prompt transfer still only populates the AI image prompt and does not submit a generation request.
 - Added explicit regenerate-last-answer action using the same last user turn and existing bounded context rules. Copy and prompt transfer remain available on assistant messages.
 - No new dependencies or API endpoint changes. Version 0.9.13 / versionCode 25. GitHub Actions build and physical-device layout/keyboard checks pending.
+
+
+## V0.9.14 Cloudflare Workers AI chat provider (2026-11-06)
+- Added a third independent chat provider, Cloudflare Workers AI, using the existing project Account ID and a separately encrypted API Token namespace; existing image-generation Cloudflare credentials are not overwritten.
+- Default model: @cf/zai-org/glm-4.7-flash, listed by Cloudflare as available on Workers Free. Daily free allocation is 10,000 Neurons; quota exhaustion is surfaced and never silently switches to paid providers.
+- Uses Cloudflare REST endpoint /accounts/{account}/ai/run/{model}, messages payload, and result.response envelope. Existing OpenRouter/Groq API paths and credentials remain unchanged.
+- UI includes setup guidance: token needs Workers AI Read and Workers AI Edit. Model IDs are restricted to @cf namespace. Unit test added for provider/model validation.
+- Version 0.9.14 / versionCode 26. CI build and live account/token/device test pending; user must supply a suitable Cloudflare token before use.
