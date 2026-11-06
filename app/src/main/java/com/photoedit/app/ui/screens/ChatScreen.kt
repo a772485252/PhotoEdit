@@ -41,9 +41,13 @@ fun ChatScreen(
     onModelDraft: (String) -> Unit,
     onRefreshModels: () -> Unit,
     onAllowPaid: (Boolean) -> Unit,
-    onRefreshBalance: () -> Unit
+    onRefreshBalance: () -> Unit,
+    onSavePromptRules: (String) -> Unit,
+    onResetPromptRules: () -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
+    var rulesOpen by remember { mutableStateOf(false) }
+    var rulesDraft by remember(state.promptRules, rulesOpen) { mutableStateOf(state.promptRules) }
     val listState = rememberLazyListState()
     val clipboard = LocalClipboardManager.current
 
@@ -237,6 +241,7 @@ fun ChatScreen(
                         enabled = !state.busy
                     )
                     Spacer(Modifier.weight(1f))
+                    if (state.promptMode) TextButton(onClick = { rulesOpen = true }, enabled = !state.busy) { Text("扩写规则") }
                     TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("模型设置") }
                 }
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -266,6 +271,32 @@ fun ChatScreen(
                 )
             }
         }
+    }
+
+    if (rulesOpen) {
+        AlertDialog(
+            onDismissRequest = { rulesOpen = false },
+            title = { Text("自定义扩写规则") },
+            text = {
+                Column(Modifier.fillMaxWidth().heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
+                    Text("修改后保存到本机，下一次生成提示词时生效；不影响普通聊天。", style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(value = rulesDraft, onValueChange = { rulesDraft = it.take(8000) },
+                        modifier = Modifier.fillMaxWidth(), minLines = 7, maxLines = 16,
+                        label = { Text("扩写规则") }, supportingText = { Text("${rulesDraft.length}/8000 字符") })
+                }
+            },
+            dismissButton = { TextButton(onClick = { rulesOpen = false }) { Text("取消") } },
+            confirmButton = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { onResetPromptRules(); rulesOpen = false }, enabled = !state.busy) { Text("恢复默认") }
+                    TextButton(onClick = { onSavePromptRules(rulesDraft); rulesOpen = false },
+                        enabled = !state.busy && rulesDraft.isNotBlank()) { Text("保存") }
+                }
+            },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier.fillMaxWidth(0.94f)
+        )
     }
 
     if (settingsOpen) {
