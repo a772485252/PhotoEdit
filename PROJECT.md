@@ -171,3 +171,8 @@ A free native Android application for preparing images and short-form video mate
 - UI decisions must account for user feel, mobile ergonomics, one-hand reachability, screen insets/keyboard/scrolling, accessibility, and all relevant UI states.
 - UI must be designed around real business logic: user goals, validation, constraints, side effects, permissions, costs, API availability, and error recovery. Do not create controls or promises unsupported by implementation.
 - UI_DESIGN.md is the source of truth for reusable interaction and visual rules; AGENTS.md makes following it mandatory.
+
+
+## APK workflow run naming (current)
+- GitHub Actions manual APK runs display `PhotoEdit v<versionName> · Android APK` in the Actions run list.
+- The `workflow_dispatch` input `app_version` defaults to the current app version and is validated against `app/build.gradle.kts` before any build starts. If the app version changes, update the default; mismatches fail early instead of producing a misleading run title.
