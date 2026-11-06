@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ChatProvider
+import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.viewmodel.ChatUiState
 
 @Composable
@@ -39,7 +40,8 @@ fun ChatScreen(
     onModel: (String) -> Unit,
     onModelDraft: (String) -> Unit,
     onRefreshModels: () -> Unit,
-    onAllowPaid: (Boolean) -> Unit
+    onAllowPaid: (Boolean) -> Unit,
+    onRefreshBalance: () -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -58,11 +60,41 @@ fun ChatScreen(
             Column(Modifier.weight(1f)) {
                 Text("提示词助手", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Text(
-                    text = "${state.provider.label} · ${state.model.substringAfterLast('/')}",
+                    text = "${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                Text(
+                    text = "模型 ID：${state.model}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
+                Text(
+                    text = "每万汉字估算：${ChatModels.estimatePerTenThousandChars(state.provider, state.model)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = when (state.provider) {
+                            ChatProvider.VENICE -> state.balanceInfo ?: if (state.token.isBlank()) "余额：请先设置 Venice Key" else "余额：尚未读取"
+                            ChatProvider.CLOUDFLARE -> "额度：Workers AI Neurons，请查看 Cloudflare 控制台"
+                            ChatProvider.APIPOD -> "余额：请查看 APIPod 控制台"
+                            else -> "余额：请查看服务商控制台"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (state.provider == ChatProvider.VENICE) {
+                        TextButton(onClick = onRefreshBalance, enabled = !state.busy && state.token.isNotBlank()) {
+                            Text("刷新")
+                        }
+                    }
+                }
             }
             TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
             TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
