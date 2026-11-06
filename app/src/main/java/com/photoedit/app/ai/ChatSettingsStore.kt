@@ -11,7 +11,11 @@ class ChatSettingsStore(context: Context) {
     private val stores = ChatProvider.entries.associateWith { if (it == ChatProvider.CLOUDFLARE) AiSettingsStore(context) else AiSettingsStore(context, it.namespace) }
     private val prefs = context.getSharedPreferences("chat_selection", Context.MODE_PRIVATE)
 
-    fun provider(): ChatProvider = ChatProvider.CLOUDFLARE
+    fun provider(): ChatProvider =
+        prefs.getString("provider", ChatProvider.CLOUDFLARE.name)
+            ?.let { runCatching { ChatProvider.valueOf(it) }.getOrNull() }
+            ?.takeIf { it == ChatProvider.CLOUDFLARE || it == ChatProvider.VENICE }
+            ?: ChatProvider.CLOUDFLARE
 
     fun load(provider: ChatProvider): ChatSettings {
         val (account, token) = stores.getValue(provider).load()
@@ -19,6 +23,7 @@ class ChatSettingsStore(context: Context) {
     }
 
     fun select(provider: ChatProvider, model: String) {
+        require(provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.VENICE)
         check(prefs.edit().putString("provider", provider.name)
             .putString("model_${provider.name}", model).commit()) { "模型设置保存失败" }
     }
