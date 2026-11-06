@@ -164,3 +164,10 @@ A free native Android application for preparing images and short-form video mate
 - Review all relevant states: empty, loading, error, selected, disabled, long text, keyboard visible, and scroll behavior. Consider narrow Android phone widths, system bars, dialogs, and font scaling.
 - Before editing a screen, inspect the whole screen and its parent container rather than changing a single control in isolation. Use Material 3 conventions and preserve visual consistency across screens.
 - No dedicated Android UI/Product Design skill or standalone design-system document is currently present in the repository or installed skill catalog. Follow AGENTS.md UI design and review rules until one is added.
+
+
+## UI design standard (mandatory)
+- The project-wide UI and interaction design standard is maintained in `UI_DESIGN.md`. Read it before every UI change.
+- UI decisions must account for user feel, mobile ergonomics, one-hand reachability, screen insets/keyboard/scrolling, accessibility, and all relevant UI states.
+- UI must be designed around real business logic: user goals, validation, constraints, side effects, permissions, costs, API availability, and error recovery. Do not create controls or promises unsupported by implementation.
+- UI_DESIGN.md is the source of truth for reusable interaction and visual rules; AGENTS.md makes following it mandatory.
