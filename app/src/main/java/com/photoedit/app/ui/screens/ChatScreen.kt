@@ -251,7 +251,7 @@ fun ChatScreen(
                     Text(
                         if (state.provider == ChatProvider.OPENROUTER)
                             "OpenRouter 免费模型有每日和速率限制；不会自动切换到付费模型。"
-                        else "Groq 额度按账号套餐执行；请使用独立的 Groq API Key。",
+                        else if (state.provider == ChatProvider.GROQ) "Groq 额度按账号套餐执行；请使用独立的 Groq API Key。" else "使用 PhotoEdit 已配置的 Cloudflare Account ID。请创建包含 Workers AI Read 和 Workers AI Edit 权限的 API Token；GLM-4.7-Flash 使用每日免费 Neurons 额度。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -273,7 +273,7 @@ fun ChatScreen(
                     Text("模型选择", style = MaterialTheme.typography.titleSmall)
                     ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
                     Text(
-                        "Key 会加密保存在本机。OpenRouter 与 Groq 使用各自独立的 Key；切换模型会开始新对话。",
+                        "Key 会加密保存在本机。OpenRouter、Groq 和 Cloudflare 使用各自独立的 Key；切换模型会开始新对话。Cloudflare 使用项目中已配置的 Account ID。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -342,7 +342,7 @@ private fun ModelSelector(
                             Text(
                                 model.name + "\n" + model.id + if (router) {
                                     if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
-                                } else " · 额度按 Groq 账号套餐"
+                                } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else " · Cloudflare Workers AI"
                             )
                         },
                         onClick = { expanded = false; onModel(model.id) }
