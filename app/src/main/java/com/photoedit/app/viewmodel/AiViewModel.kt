@@ -1,6 +1,7 @@
 package com.photoedit.app.viewmodel
 
 import android.app.Application
+import com.photoedit.app.processing.GenerationForegroundService
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -271,7 +272,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     fun generate() {
         if (_state.value.busy || _state.value.veniceOutcomeUnknown) return
         val state = _state.value
-        perform {
+        perform(foreground = true) {
             val selected = if (state.continueEditing && state.result != null) state.result else state.reference
             var prompt = state.prompt.trim()
             var referenceUsed = selected != null
@@ -355,7 +356,14 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun permissionDenied() { _state.value = _state.value.copy(message = "保存需要存储权限，请允许后重试") }
-    private fun perform(action: suspend () -> Unit) {
+    private fun perform(foreground: Boolean = false, action: suspend () -> Unit) {
+        if (foreground) {
+            try { GenerationForegroundService.start(getApplication()) }
+            catch (_: Exception) {
+                _state.value = _state.value.copy(busy = false, message = "无法启动后台生成服务，请保持应用在前台后重试")
+                return
+            }
+        }
         _state.value = _state.value.copy(busy = true, message = null)
         operation = viewModelScope.launch {
             try { action() }
@@ -371,6 +379,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = _state.value.copy(message = "AI Horde 提交未取得任务 ID，是否受理未知；请先在平台核对，勿反复提交。")
                 }
                 _state.value = _state.value.copy(busy = false)
+                if (foreground) GenerationForegroundService.stop(getApplication())
             }
         }
     }
