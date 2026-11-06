@@ -133,13 +133,16 @@ A free native Android application for preparing images and short-form video mate
 
 
 ## Current Prompt Assistant providers and billing visibility (2026-11-06)
-- Active selectable chat providers in current source/UI: Cloudflare Workers AI (default GLM-4.7-Flash), Venice AI (Venice Uncensored 1.2), and APIPod (Grok 4.5).
-- APIPod Grok 4.5 uses the APIPod provider and the same encrypted APIPod Key as APIPod image generation. It is not an xAI direct API connection; do not use xAI direct prices as a proxy for APIPod routing prices.
-- Venice chat and Venice image generation use the same encrypted Venice Key namespace. This is a separate Venice API integration; the presence of code does not mean a key has been configured or that live authenticated API calls have been validated.
-- Chat header displays provider, selected model display name, and exact model ID. It labels each provider's billing method but intentionally does not invent per-character prices.
-- Live balance lookup is not yet implemented/verified for these providers. To show approximate cost per 10,000 Chinese characters, obtain verified input/output prices for the exact provider/model route and state the approximation assumptions. Actual charges should use returned token usage/settlement data where available.
-- Current code version: 0.9.22 / versionCode 34. Latest prompt-assistant first-use UI refinement and model identity display are committed; APK build remains manual-only and requires explicit user request.
-
+- Active selectable chat providers in current source/UI: Cloudflare Workers AI (default GLM-4.7-Flash), Venice AI (Venice Uncensored 1.2), and APIPod (Grok 4.5). APIPod Grok 4.5 uses the APIPod provider and the shared encrypted APIPod key; it is not a direct xAI account integration.
+- Chat header displays the selected model name and model ID, plus a per-10,000-Chinese-character price guide for known models. Estimate assumes approximately one token per Chinese character; actual tokenization and usage vary.
+- Public price references used for the estimates:
+  - Cloudflare GLM-4.7-Flash: $0.0605/M input tokens and $0.40/M output tokens; approximately 55 input / 364 output Neurons per 10,000 assumed tokens. Workers AI free allocation is 10,000 Neurons/day; the app does not query remaining account Neurons.
+  - Venice Uncensored 1.2: $0.20/M input and $0.90/M output tokens. The app can query the documented API key rate-limits/balances endpoint and display USD, DIEM, and bundled credits when returned.
+  - APIPod Grok 4.5: published xAI-default route is $1.40/M input and $4.20/M output tokens; Grok Lite is $0.20/M and $0.60/M. Because APIPod channel routing can vary, the app displays a reference range rather than claiming a fixed per-request charge.
+- APIPod API-key balance is not currently queried inside the app; the UI directs users to the APIPod console. Do not invent or call undocumented balance endpoints. Cloudflare remaining Neurons are also not queried in-app.
+- Actual tokenization, context length, model routing/channel, cache usage, and provider price changes affect final charges. The per-character figures are estimates only, not a billing guarantee.
+- Public references: https://developers.cloudflare.com/workers-ai/models/glm-4.7-flash/ ; https://developers.cloudflare.com/workers-ai/platform/pricing/ ; https://docs.venice.ai/api-reference/endpoint/api_keys/rate_limits ; https://www.apipod.ai/llm/xai/grok-4.5 .
+- Current source version: 0.9.23 / versionCode 35. APK workflow remains manual-only; do not build unless the user explicitly requests an APK.
 
 ## Documentation and privacy requirements (current, 2026-11-06)
 - Every meaningful code/config/UI/model/API/build-rule change must be documented in PROGRESS.md in the same work session. Update this PROJECT.md at the same time when current architecture, active providers/models, user-visible behavior, constraints, or operating rules change.
