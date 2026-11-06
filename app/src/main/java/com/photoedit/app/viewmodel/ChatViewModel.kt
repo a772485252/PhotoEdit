@@ -40,7 +40,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         perform {
-            val provider = ChatProvider.CLOUDFLARE
+            val provider = withContext(Dispatchers.IO) { settings.provider() }
             _state.value = _state.value.copy(provider = provider, model = provider.defaultModel,
                 models = ChatModels.presets(provider))
             val loaded = withContext(Dispatchers.IO) { settings.load(provider) }
