@@ -33,6 +33,11 @@ class ChatClient {
                 JSONObject().put("prompt", 0).put("completion", 0).put("request", 0)))
         }
         val result = request(provider, token, "/chat/completions", body.toString().toByteArray(Charsets.UTF_8))
+        if (provider == ChatProvider.CLOUDFLARE) {
+            val answer = result.optJSONObject("result")?.optString("response").orEmpty().trim()
+            if (answer.isBlank()) throw IOException("Cloudflare Workers AI 没有返回正文，请检查模型权限和额度")
+            return@withContext answer.take(8000)
+        }
         val choice = result.optJSONArray("choices")?.optJSONObject(0)
         val answer = choice?.optJSONObject("message")?.optString("content").orEmpty().trim()
         if (answer.isBlank()) throw IOException("${provider.label} 没有返回正文，请缩短需求或手动更换模型")
@@ -73,6 +78,7 @@ class ChatClient {
         val base = when (provider) {
             ChatProvider.GROQ -> "https://api.groq.com/openai/v1"
             ChatProvider.OPENROUTER -> "https://openrouter.ai/api/v1"
+            ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}/ai/run/${model}"
         }
         val connection = URL(base + path).openConnection() as HttpURLConnection
         try {
@@ -86,7 +92,11 @@ class ChatClient {
             }
             if (body != null) connection.outputStream.use { it.write(body) }
             val status = connection.responseCode
-            if (status !in 200..299) throw IOException(when (status) {
+            if (status !in 200..299) throw IOException(if (provider == ChatProvider.CLOUDFLARE) when (status) {
+                401, 403 -> "Cloudflare API Token 无效或缺少 Workers AI 权限（需要 Workers AI Read 和 Edit）"
+                429 -> "Cloudflare Workers AI 请求受限或免费额度已用完，请查看 AI 控制台"
+                else -> "Cloudflare Workers AI 请求失败（HTTP $status），请检查 Account ID、Token 权限和模型可用性"
+            } else when (status) {
                 401 -> "${provider.label} Key 无效或已过期，请检查当前平台的 Key"
                 402 -> "${provider.label} 余额或消费上限不足；可手动选择免费模型"
                 403 -> "${provider.label} 拒绝访问，请检查账号、地区、隐私设置及内容要求"
