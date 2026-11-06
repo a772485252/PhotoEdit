@@ -347,3 +347,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Fixed the provider selector layout in the “模型与 API 设置” dialog: Cloudflare and Venice remain on the first row, while APIPod · Grok 4.5 is placed on a dedicated second row so it cannot be clipped off narrow phone screens.
 - No provider routing, API endpoint, credential storage, pricing, or image-generation model settings changed.
 - Version 0.9.24 / versionCode 36. Source change committed; build, unit tests, and device visibility still require validation. APK build not triggered.
+
+
+## UI design process rules (2026-11-06)
+- Added mandatory UI design review guidance to AGENTS.md and PROJECT.md.
+- Future UI edits must inspect the full screen hierarchy, theme/shared components, narrow-device behavior, dialogs, keyboard, scroll, long labels, accessibility/font scaling, and all relevant UI states before completion.
+- Explicitly record whether a dedicated UI skill/design document exists; do not claim it was consulted if unavailable. Current repository and installed skill catalog do not contain a dedicated Android UI/Product Design skill.
+- Documentation-only change; no app source, version, or APK changed. Build not run.
