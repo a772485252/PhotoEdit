@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                                 onVeniceKey = aiViewModel::veniceKey, onSaveVeniceKey = aiViewModel::saveVeniceKey,
                                 onClearVeniceKey = aiViewModel::clearVeniceKey,
                                 onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
-                                    chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat,
+                                    chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
                                     canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
                                         tab = 1
