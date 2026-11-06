@@ -354,3 +354,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Future UI edits must inspect the full screen hierarchy, theme/shared components, narrow-device behavior, dialogs, keyboard, scroll, long labels, accessibility/font scaling, and all relevant UI states before completion.
 - Explicitly record whether a dedicated UI skill/design document exists; do not claim it was consulted if unavailable. Current repository and installed skill catalog do not contain a dedicated Android UI/Product Design skill.
 - Documentation-only change; no app source, version, or APK changed. Build not run.
+
+
+## UI_DESIGN.md established (2026-11-06)
+- Added `UI_DESIGN.md` as the project-wide source of truth for visual consistency, mobile-first layout, interaction feel, accessibility, and screen review.
+- Explicitly requires UI to reflect business logic: task flow, validation, constraints, API behavior, costs, permissions, side effects, and failure recovery must be understood before designing controls.
+- Added user-experience requirements: predictable familiar interaction, one-hand reachability, low friction, immediate feedback, preservation of safe drafts/selections, clear errors, and no misleading controls.
+- Updated AGENTS.md to require reading UI_DESIGN.md and reviewing related domain/ViewModel logic before every UI change. Updated PROJECT.md to link the standard.
+- Documentation-only change. No app source/version/APK changed; build not run.
