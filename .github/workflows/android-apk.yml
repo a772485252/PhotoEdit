@@ -1,11 +1,6 @@
 name: Android APK
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - 'latest-apk/**'
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -38,7 +33,6 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Restore fixed personal debug signing
-        if: github.event_name != 'pull_request'
         env:
           KEYSTORE_BASE64: ${{ secrets.PHOTOEDIT_DEBUG_KEYSTORE_BASE64 }}
         run: |
@@ -54,7 +48,6 @@ jobs:
       - name: Build debug APK
         run: gradle --no-daemon --no-build-cache clean testDebugUnitTest lintDebug assembleDebug
       - name: Verify APK signature
-        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           EXPECTED=$(keytool -exportcert -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey | sha256sum | cut -d ' ' -f 1)
@@ -71,12 +64,9 @@ jobs:
           name: PhotoEdit-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
       - name: Publish latest APK to repository
-        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          # Refresh the working tree before staging the binary: never rebase an APK commit.
           git fetch origin main
           git reset --hard origin/main
           mkdir -p latest-apk
