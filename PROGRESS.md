@@ -247,3 +247,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Image provider selector now exposes only APIPod and Venice. Cloudflare, AI Horde and Runware have been removed from the image provider selection; legacy stored selections migrate to APIPod. Their old encrypted credentials/data are not automatically deleted.
 - Image generation provider switching now accepts only APIPod and Venice. Existing APIPod/Venice clients and settings are retained. Chat Cloudflare remains available as a text provider and reuses the image Cloudflare credential.
 - Version 0.9.15 / versionCode 27. CI build and device test pending.
+
+
+## V0.9.16 Cloudflare prompt-only credential clarification (2026-11-06)
+- Clarified in chat settings that the existing Cloudflare credential is reused from local encrypted app storage if previously configured, but Cloudflare is now only exposed as a prompt-assistant provider. It is no longer an image-generation provider; clearing its credential from chat settings only clears the stored Cloudflare credential used by prompt assistance.
+- Version 0.9.16 / versionCode 28. Build verification pending.
