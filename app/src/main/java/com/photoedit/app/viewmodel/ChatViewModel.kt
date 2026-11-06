@@ -11,6 +11,7 @@ import com.photoedit.app.domain.ChatModel
 import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.domain.ChatProvider
 import com.photoedit.app.domain.ChatRules
+import com.photoedit.app.processing.PromptGenerationForegroundService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -169,7 +170,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun send() {
         val state = _state.value
         if (state.busy) return
-        perform {
+        perform(foreground = true) {
             val request = ChatRules.messages(state.messages, state.input, state.promptMode, state.promptRules)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(input = "",
@@ -184,14 +185,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (lastUserIndex < 0) return
         val lastUserText = state.messages[lastUserIndex].text
         val previousMessages = state.messages.take(lastUserIndex)
-        perform {
+        perform(foreground = true) {
             val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode, state.promptRules)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
             if (state.provider == ChatProvider.VENICE) refreshBalance()
         }
     }
-    private fun perform(block: suspend () -> Unit) {
+    private fun perform(foreground: Boolean = false, block: suspend () -> Unit) {
+        if (foreground) {
+            try { PromptGenerationForegroundService.start(getApplication()) }
+            catch (_: Exception) {
+                _state.value = _state.value.copy(busy = false, notice = "无法启动后台生成服务，请保持应用在前台后重试")
+                return
+            }
+        }
         _state.value = _state.value.copy(busy = true, notice = null)
         viewModelScope.launch {
             try { block() }
@@ -200,7 +208,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             catch (_: UnknownHostException) { _state.value = _state.value.copy(notice = "无法连接 ${_state.value.provider.label}，请检查网络；输入已保留") }
             catch (e: Exception) { _state.value = _state.value.copy(notice =
                 if (e is IllegalArgumentException || e is java.io.IOException) e.message else "聊天操作失败，请检查设置后重试") }
-            finally { _state.value = _state.value.copy(busy = false) }
+            finally {
+                _state.value = _state.value.copy(busy = false)
+                if (foreground) PromptGenerationForegroundService.stop(getApplication())
+            }
         }
     }
 }
