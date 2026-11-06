@@ -8,13 +8,13 @@ data class ChatSettings(val token: String, val model: String, val account: Strin
 
 /** Provider keys retain separate Keystore aliases; the existing Groq namespace is unchanged. */
 class ChatSettingsStore(context: Context) {
-    private val stores = ChatProvider.entries.associateWith { when (it) { ChatProvider.CLOUDFLARE -> AiSettingsStore(context); ChatProvider.VENICE -> AiSettingsStore(context, "venice_private"); else -> AiSettingsStore(context, it.namespace) } }
+    private val stores = ChatProvider.entries.associateWith { when (it) { ChatProvider.CLOUDFLARE -> AiSettingsStore(context); ChatProvider.VENICE -> AiSettingsStore(context, "venice_private"); ChatProvider.APIPOD -> AiSettingsStore(context, "apipod_private"); else -> AiSettingsStore(context, it.namespace) } }
     private val prefs = context.getSharedPreferences("chat_selection", Context.MODE_PRIVATE)
 
     fun provider(): ChatProvider =
         prefs.getString("provider", ChatProvider.CLOUDFLARE.name)
             ?.let { runCatching { ChatProvider.valueOf(it) }.getOrNull() }
-            ?.takeIf { it == ChatProvider.CLOUDFLARE || it == ChatProvider.VENICE }
+            ?.takeIf { it == ChatProvider.CLOUDFLARE || it == ChatProvider.VENICE || it == ChatProvider.APIPOD }
             ?: ChatProvider.CLOUDFLARE
 
     fun load(provider: ChatProvider): ChatSettings {
@@ -23,7 +23,7 @@ class ChatSettingsStore(context: Context) {
     }
 
     fun select(provider: ChatProvider, model: String) {
-        require(provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.VENICE)
+        require(provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.VENICE || provider == ChatProvider.APIPOD)
         check(prefs.edit().putString("provider", provider.name)
             .putString("model_${provider.name}", model).commit()) { "模型设置保存失败" }
     }
