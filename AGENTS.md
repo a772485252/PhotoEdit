@@ -24,7 +24,7 @@ Build a genuine native Android application for photo processing and short-form v
 7. After each meaningful change, update PROGRESS.md and keep PROJECT.md consistent with decisions.
 8. If a new session starts, read AGENTS.md, PROJECT.md and PROGRESS.md first.
 9. Do not force-push, delete files, or rewrite history without explicit approval.
-10. Prefer GitHub Actions for builds; test generated APKs on a real Android device.
+10. APK build policy (user-requested only): ordinary code edits and commits must NOT trigger GitHub Actions APK builds. The Android APK workflow must remain manual-only (`workflow_dispatch`). Accumulate related code changes and commits without building. Only trigger a build when the user explicitly asks for an APK/download link (e.g. “生成最新 APK 下载链接”). Then verify tests, lint, build, signing, and that `latest-apk/PhotoEdit-debug.apk` was updated before sharing a link. Do not manually start a build just to validate each small code change.
 11. Keep a lightweight unit-test suite for critical domain rules; do not remove the test module merely to avoid occasional stale assertions.
 12. Prioritize tests for model/provider validation, API credential and prompt validation, billing/price selection, image/reference constraints, and error classification.
 13. Do not add UI snapshot tests, broad network mocks, or test-only architecture unless a concrete regression risk justifies them.
