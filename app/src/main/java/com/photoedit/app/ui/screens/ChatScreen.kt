@@ -251,7 +251,7 @@ fun ChatScreen(
                     Text(
                         if (state.provider == ChatProvider.OPENROUTER)
                             "OpenRouter 免费模型有每日和速率限制；不会自动切换到付费模型。"
-                        else if (state.provider == ChatProvider.GROQ) "Groq 额度按账号套餐执行；请使用独立的 Groq API Key。" else "使用 PhotoEdit 已配置的 Cloudflare Account ID。请创建包含 Workers AI Read 和 Workers AI Edit 权限的 API Token；GLM-4.7-Flash 使用每日免费 Neurons 额度。",
+                        else if (state.provider == ChatProvider.GROQ) "Groq 额度按账号套餐执行；请使用独立的 Groq API Key。" else "Cloudflare 聊天直接复用 AI 图片页面已保存的 Cloudflare Token 和 Account ID，无需重复填写。该 Token 需要具备 Workers AI 调用权限；GLM-4.7-Flash 使用每日免费 Neurons 额度。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -273,7 +273,7 @@ fun ChatScreen(
                     Text("模型选择", style = MaterialTheme.typography.titleSmall)
                     ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
                     Text(
-                        "Key 会加密保存在本机。OpenRouter、Groq 和 Cloudflare 使用各自独立的 Key；切换模型会开始新对话。Cloudflare 使用项目中已配置的 Account ID。",
+                        "Key 会加密保存在本机。OpenRouter、Groq 使用独立 Key；Cloudflare 与 AI 图片功能共用同一个 Token 和 Account ID，在任一页面清除都会同时影响另一功能。切换模型会开始新对话。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
