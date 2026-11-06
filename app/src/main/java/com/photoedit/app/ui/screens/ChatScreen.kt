@@ -71,40 +71,44 @@ fun ChatScreen(
 
         if (state.messages.isEmpty()) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 22.dp),
+                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 28.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("✦", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
-                }
-                Spacer(Modifier.height(18.dp))
                 Text(
-                    if (state.promptMode) "想生成什么样的图片？" else "有什么想聊的？",
+                    if (state.promptMode) "提示词扩写与优化" else "开始新对话",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
-                    if (state.promptMode) "描述你的创意，我帮你整理成清晰、完整的图片提示词。" else "可以连续提问，也可以随时切换到提示词创作。",
+                    if (state.promptMode)
+                        "输入一段简单想法，我会将它整理、扩写成完整且可直接复制使用的图片提示词。这里只生成文字，不会生成图片。"
+                    else
+                        "可以直接提问，或切换到“生成提示词”模式，让我帮你整理图片创意。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(22.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Suggestion("人物写真") { onInput("帮我设计一组写实人物写真提示词") }
-                    Suggestion("场景构图") { onInput("帮我设计有电影感的场景和摄影构图") }
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Suggestion("服装灵感") { onInput("帮我设计一套有辨识度的时尚服装造型") }
-                    Suggestion("优化提示词") { onInput("请帮我优化下面这段图片提示词：") }
+                if (state.busy) {
+                    Spacer(Modifier.height(22.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Text(
+                            if (state.input.isNotBlank()) "正在生成提示词，请稍候…" else "正在准备聊天服务…",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else if (state.promptMode) {
+                    Spacer(Modifier.height(18.dp))
+                    Text(
+                        "例如：描述人物、服饰、动作、场景，或粘贴一段已有提示词让我优化。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         } else {
@@ -216,7 +220,7 @@ fun ChatScreen(
                         modifier = Modifier.height(54.dp),
                         contentPadding = PaddingValues(horizontal = 18.dp),
                         shape = RoundedCornerShape(18.dp)
-                    ) { Text("发送") }
+                    ) { Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送") }
                 }
                 Text(
                     "聊天仅发送文字和最近对话，不会上传参考图；带入生图页也不会自动生成图片。",
@@ -301,13 +305,6 @@ fun ChatScreen(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             modifier = Modifier.fillMaxWidth(0.94f)
         )
-    }
-}
-
-@Composable
-private fun Suggestion(label: String, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-        Text(label, style = MaterialTheme.typography.labelMedium)
     }
 }
 
