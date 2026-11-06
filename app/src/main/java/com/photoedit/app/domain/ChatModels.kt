@@ -2,7 +2,8 @@ package com.photoedit.app.domain
 
 enum class ChatProvider(val label: String, val namespace: String, val defaultModel: String) {
     OPENROUTER("OpenRouter", "openrouter_chat_private", "nvidia/nemotron-3.5-super-vl:free"),
-    GROQ("Groq", "groq_chat_private", "openai/gpt-oss-20b")
+    GROQ("Groq", "groq_chat_private", "openai/gpt-oss-20b"),
+    CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash")
 }
 
 data class ChatModel(val id: String, val name: String, val free: Boolean? = null)
@@ -16,12 +17,18 @@ object ChatModels {
         ChatProvider.GROQ -> listOf(
             ChatModel(provider.defaultModel, "GPT-OSS 20B"),
             ChatModel("openai/gpt-oss-120b", "GPT-OSS 120B")
+        ),
+        ChatProvider.CLOUDFLARE -> listOf(
+            ChatModel(provider.defaultModel, "GLM-4.7-Flash · 免费额度")
         )
     }
 
     fun validate(provider: ChatProvider, model: String, allowPaid: Boolean) {
         require(model.length in 1..200 && model.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:/-]*"))) {
             "请填写有效的模型 ID（不是网址），不能包含空格"
+        }
+        if (provider == ChatProvider.CLOUDFLARE) {
+            require(model.startsWith("@cf/") && model.count { it == '/' } >= 2) { "Cloudflare 模型 ID 必须来自 Workers AI 模型目录" }
         }
         if (provider == ChatProvider.OPENROUTER && !allowPaid) {
             require(model.endsWith(":free") || model == "openrouter/free") {
