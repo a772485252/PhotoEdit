@@ -377,3 +377,10 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - PromptComposer now adds one managed anatomy-quality block when composing outfits, poses or camera presets; repeated edits replace rather than duplicate the block. Existing user-authored free text is preserved.
 - Updated focused ChatRulesTest, PromptComposerTest and PosePromptsTest to cover guidance, deduplication and pose/camera separation.
 - Version 0.9.25 / versionCode 37; synchronized manual workflow version default. No APK build requested or triggered. Unit tests and device/image-model behavior remain unverified. Prompt instructions reduce risk but cannot guarantee anatomy accuracy.
+
+
+## Prompt Assistant close full-body composition (2026-11-06)
+- Clarified that the requested fix applies specifically to the Prompt Assistant Generate Prompt action and its chat system instruction, including the APIPod Grok 4.5 route, rather than only the AI image screen's preset composer.
+- Updated ChatRules.SYSTEM_PROMPT to default to close full-body framing with head, hands, and feet completely in frame and a small safety margin, choose one camera angle/pose when unspecified, honor explicit user framing, and output one finished prompt without alternatives or commentary.
+- Added a focused ChatRulesTest assertion for the new instruction. Existing anatomy completeness guidance remains in place.
+- Files: ChatRules.kt, ChatRulesTest.kt, PROJECT.md, PROGRESS.md. No API changes or UI layout changes. Version remains 0.9.25 / code 37; no APK build triggered. Tests and real-model compliance are unverified.
