@@ -223,3 +223,11 @@ A free native Android application for preparing images and short-form video mate
 - The updated instruction is used on the next prompt-mode request. Existing conversation turns remain available as context; users can explicitly start a new chat when they want a clean context.
 - Updated the rule-editor explanation to state that the current conversation and input draft are retained. Added a focused ChatRules test proving a custom system instruction can be applied while previous conversation turns remain in the request context.
 - Source version 0.9.30 / versionCode 42. APK workflow remains manual-only; this release is built only on explicit user request.
+
+
+## V0.9.31 Prompt Assistant background generation (2026-11-06)
+- Added a dedicated foreground service for Prompt Assistant send and regenerate actions. It starts only after the user explicitly taps Generate/Regenerate, shows an ongoing notification, and holds a bounded 30-minute partial wake lock while the existing ViewModel request runs.
+- The chat request remains in ChatViewModel and uses the existing provider/model/key and billing path; no duplicate request, automatic retry, new API, or dependency was introduced. The service improves process priority and screen-off CPU availability but does not make the request durable if Android kills the app process or the user force-stops it.
+- Added a separate notification channel and service declaration. Chat UI now explains that the user can switch apps during generation and that notification visibility depends on Android notification permission/settings.
+- The generated text remains in the existing in-memory chat state. No automatic file/gallery write or chat-history persistence was added.
+- Source version 0.9.31 / versionCode 43. APK workflow remains manual-only.
