@@ -233,7 +233,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     }
                     Text("切换平台保留草稿和参考图，清空当前平台的结果记录。", style = MaterialTheme.typography.bodySmall)
                     if (venice) {
-                        Text("按次付费：文字生图 Z-Image Turbo 约 $0.01/张；单张参考图编辑 FireRed 约 $0.04/次，以平台结算为准。", style = MaterialTheme.typography.bodySmall)
+                        Text("按次付费：文字生图 Lustify v8 约 $0.01/张；单张参考图编辑仍使用 FireRed，约 $0.04/次，以平台结算为准。", style = MaterialTheme.typography.bodySmall)
                         OutlinedTextField(state.veniceKey, onVeniceKey, label = { Text("Venice API Key") }, singleLine = true,
                             enabled = editingEnabled, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
                         Row {
