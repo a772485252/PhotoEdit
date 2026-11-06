@@ -40,8 +40,7 @@ fun ChatScreen(
     onModel: (String) -> Unit,
     onModelDraft: (String) -> Unit,
     onRefreshModels: () -> Unit,
-    onAllowPaid: (Boolean) -> Unit,
-    onRefreshBalance: () -> Unit
+    onAllowPaid: (Boolean) -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -72,29 +71,21 @@ fun ChatScreen(
                     maxLines = 1
                 )
                 Text(
-                    text = "每万汉字估算：${ChatModels.estimatePerTenThousandChars(state.provider, state.model)}",
+                    text = when (state.provider) {
+                        ChatProvider.CLOUDFLARE -> "计费：Workers AI Neurons"
+                        ChatProvider.VENICE -> "计费：Venice API Token 用量"
+                        ChatProvider.APIPOD -> "计费：APIPod 当前模型路由价格"
+                        else -> "计费：以服务商实际价格为准"
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
+                    maxLines = 1
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = when (state.provider) {
-                            ChatProvider.VENICE -> state.balanceInfo ?: if (state.token.isBlank()) "余额：请先设置 Venice Key" else "余额：尚未读取"
-                            ChatProvider.CLOUDFLARE -> "额度：Workers AI Neurons，请查看 Cloudflare 控制台"
-                            ChatProvider.APIPOD -> "余额：请查看 APIPod 控制台"
-                            else -> "余额：请查看服务商控制台"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (state.provider == ChatProvider.VENICE) {
-                        TextButton(onClick = onRefreshBalance, enabled = !state.busy && state.token.isNotBlank()) {
-                            Text("刷新")
-                        }
-                    }
-                }
+                Text(
+                    text = "余额：暂未接入可靠的实时查询",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
             TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
