@@ -40,7 +40,8 @@ fun ChatScreen(
     onModel: (String) -> Unit,
     onModelDraft: (String) -> Unit,
     onRefreshModels: () -> Unit,
-    onAllowPaid: (Boolean) -> Unit
+    onAllowPaid: (Boolean) -> Unit,
+    onRefreshBalance: () -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -56,36 +57,48 @@ fun ChatScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(Modifier.weight(1f)) {
+            val priceGuide = ChatModels.priceGuide(state.provider, state.model)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("提示词助手", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                Text(
-                    text = "${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-                Text(
-                    text = "模型 ID：${state.model}",
+                Text("当前模型：${ChatModels.displayName(state.provider, state.model)}",
+                    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text("${state.provider.label} · ID：${state.model}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-                Text(
-                    text = when (state.provider) {
-                        ChatProvider.CLOUDFLARE -> "计费：Workers AI Neurons"
-                        ChatProvider.VENICE -> "计费：Venice API Token 用量"
-                        ChatProvider.APIPOD -> "计费：APIPod 当前模型路由价格"
-                        else -> "计费：以服务商实际价格为准"
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-                Text(
-                    text = "余额：暂未接入可靠的实时查询",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    maxLines = 1)
+                if (priceGuide != null) {
+                    Text("每 1 万汉字估算：输入 ${priceGuide.inputPerTenThousandChars} · 输出 ${priceGuide.outputPerTenThousandChars}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(priceGuide.note, style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Text("当前模型价格暂无可靠数据，不显示估算费用",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = when (state.provider) {
+                            ChatProvider.CLOUDFLARE ->
+                                "额度：每日免费 10,000 Neurons；实时剩余请查看 Cloudflare 控制台"
+                            ChatProvider.VENICE ->
+                                state.balanceInfo ?: if (state.token.isBlank()) "余额：请先配置 Venice API Key" else "余额：点击刷新查询"
+                            ChatProvider.APIPOD ->
+                                "余额：请查看 APIPod 控制台（当前 Key 接口未提供余额查询）"
+                            else -> "余额：请查看服务商控制台"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (state.provider == ChatProvider.VENICE) {
+                        TextButton(onClick = onRefreshBalance,
+                            enabled = !state.balanceLoading && state.token.isNotBlank()) {
+                            Text(if (state.balanceLoading) "查询中" else "刷新")
+                        }
+                    }
+                }
             }
             TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
             TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
