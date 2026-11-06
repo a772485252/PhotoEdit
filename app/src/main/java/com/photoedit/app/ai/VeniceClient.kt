@@ -21,7 +21,7 @@ class VeniceClient {
         VeniceRules.validateKey(key)
         VeniceRules.validatePrompt(prompt)
         val json = JSONObject().put("model", VeniceRules.model(reference != null)).put("prompt", prompt)
-            .put("safe_mode", true).put("enhance_prompt", false)
+            .put("safe_mode", false).put("enhance_prompt", false)
         val path = if (reference == null) {
             json.put("width", 1024).put("height", 1024).put("format", "webp")
                 .put("variants", 1).put("return_binary", true)
