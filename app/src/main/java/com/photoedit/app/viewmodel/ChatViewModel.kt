@@ -107,8 +107,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 val current = _state.value
                 if (current.provider == snapshot.provider && current.token == snapshot.token)
                     _state.value = current.copy(balanceInfo = balance)
-            } catch (_: CancellationException) {
-                throw
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
                 val current = _state.value
                 if (current.provider == snapshot.provider && current.token == snapshot.token)
