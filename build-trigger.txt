@@ -1,1 +1,3 @@
 Build PhotoEdit v0.9.29 (versionCode 41). Update this file only when a build is explicitly requested.
+
+Retry build after fixing push event version validation.
