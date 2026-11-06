@@ -276,3 +276,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Disabled Venice safe_mode in the native image generation/edit request to avoid enabling optional safe-mode blur. Provider/model refusals and platform/legal restrictions may still apply; no promise of unlimited content.
 - ChatSettingsStore Venice namespace now points to the same encrypted venice_private store used by AiViewModel image generation. One Venice API Key serves both chat and image generation; saving/clearing from either feature updates the same credential. UI copy warns clearing affects both.
 - Version 0.9.19 / versionCode 31. Build and live API/device test pending.
+
+
+## V0.9.20 Fix stale Venice model unit test (2026-11-06)
+- Updated VeniceRulesTest.referenceSwitchesBothEndpointModelAndDisplayedPrice expected text-to-image model ID from z-image-turbo to lustify-v8. Production rule already correctly selected Lustify v8; the failure was a stale assertion left from the previous default model.
+- Version 0.9.20 / versionCode 32. CI build and test rerun pending.
