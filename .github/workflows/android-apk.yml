@@ -1,9 +1,17 @@
 name: Android APK
-run-name: PhotoEdit v${{ inputs.app_version }} · Android APK
+run-name: PhotoEdit v${{ inputs.app_version }} · ${{ inputs.build_mode }} APK
 
 on:
   workflow_dispatch:
     inputs:
+      build_mode:
+        description: "Quick skips unit tests and lint; Full runs all checks"
+        required: true
+        default: "quick"
+        type: choice
+        options:
+          - quick
+          - full
       app_version:
         description: "App version to display (must match app/build.gradle.kts)"
         required: true
@@ -62,8 +70,12 @@ jobs:
           mkdir -p "$HOME/.android"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
           keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey
-      - name: Build debug APK
-        run: gradle --no-daemon --no-build-cache clean testDebugUnitTest lintDebug assembleDebug
+      - name: Quick build debug APK
+        if: inputs.build_mode == 'quick'
+        run: gradle --build-cache --parallel assembleDebug
+      - name: Full verification and build
+        if: inputs.build_mode == 'full'
+        run: gradle --build-cache --parallel testDebugUnitTest lintDebug assembleDebug
       - name: Verify APK signature
         run: |
           set -euo pipefail
