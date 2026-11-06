@@ -5,7 +5,7 @@ import org.junit.Test
 
 class VeniceRulesTest {
     @Test fun referenceSwitchesBothEndpointModelAndDisplayedPrice() {
-        assertEquals("z-image-turbo", VeniceRules.model(false))
+        assertEquals("lustify-v8", VeniceRules.model(false))
         assertEquals("0.01", VeniceRules.estimate(false))
         assertEquals("firered-image-edit", VeniceRules.model(true))
         assertEquals("0.04", VeniceRules.estimate(true))
