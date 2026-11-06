@@ -10,13 +10,15 @@ object PromptComposer {
     private val poseBlock = Regex("(?s)【姿势】.*?【/姿势】")
     private val gridBlock = Regex("(?s)【双宫格随机姿势】.*?【/双宫格随机姿势】")
     private val cameraBlock = Regex("(?s)【镜头】.*?【/镜头】")
+    private val anatomyBlock = Regex("(?s)【人体质量】.*?【/人体质量】")
+    private const val anatomyNote = "【人体质量】人物肢体结构自然完整，双臂双手双腿双脚数量正确，手指清晰，避免多余、缺失、断裂、融合、变形及意外截断。【/人体质量】"
 
     private fun combine(existing: String, outfit: String?, pose: String?, camera: String? = cameraBlock.find(existing)?.value): String {
         val appearance = appearanceBlock.find(existing)?.value
-        val custom = listOf(appearanceBlock, outfitBlock, poseBlock, gridBlock, cameraBlock).fold(existing) { text, regex ->
+        val custom = listOf(appearanceBlock, outfitBlock, poseBlock, gridBlock, cameraBlock, anatomyBlock).fold(existing) { text, regex ->
             regex.replace(text, "")
         }.trim()
-        return listOfNotNull(custom.takeIf { it.isNotBlank() }, appearance, outfit, pose, camera)
+        return listOfNotNull(custom.takeIf { it.isNotBlank() }, appearance, outfit, pose, camera, anatomyNote)
             .joinToString("\n\n")
     }
 
