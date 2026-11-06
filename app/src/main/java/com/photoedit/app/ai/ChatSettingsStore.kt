@@ -8,7 +8,7 @@ data class ChatSettings(val token: String, val model: String, val account: Strin
 
 /** Provider keys retain separate Keystore aliases; the existing Groq namespace is unchanged. */
 class ChatSettingsStore(context: Context) {
-    private val stores = ChatProvider.entries.associateWith { if (it == ChatProvider.CLOUDFLARE) AiSettingsStore(context) else AiSettingsStore(context, it.namespace) }
+    private val stores = ChatProvider.entries.associateWith { when (it) { ChatProvider.CLOUDFLARE -> AiSettingsStore(context); ChatProvider.VENICE -> AiSettingsStore(context, "venice_private"); else -> AiSettingsStore(context, it.namespace) } }
     private val prefs = context.getSharedPreferences("chat_selection", Context.MODE_PRIVATE)
 
     fun provider(): ChatProvider =
