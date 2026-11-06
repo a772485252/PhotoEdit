@@ -391,7 +391,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         }
                         if (state.busy) {
                             LinearProgressIndicator(Modifier.fillMaxWidth())
-                            Text("正在处理…", style = MaterialTheme.typography.bodySmall)
+                            Text("正在处理…熄屏后会尝试继续，通知栏会显示生成状态。", style = MaterialTheme.typography.bodySmall)
                         }
                         state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
                     }
