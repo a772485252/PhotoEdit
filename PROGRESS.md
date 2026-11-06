@@ -239,3 +239,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Uses Cloudflare REST endpoint /accounts/{account}/ai/run/{model}, messages payload, and result.response envelope. Existing OpenRouter/Groq API paths and credentials remain unchanged.
 - UI includes setup guidance: token needs Workers AI Read and Workers AI Edit. Model IDs are restricted to @cf namespace. Unit test added for provider/model validation.
 - Version 0.9.14 / versionCode 26. CI build and live account/token/device test pending; user must supply a suitable Cloudflare token before use.
+
+
+## V0.9.15 Cloudflare image-token sharing and image-provider cleanup (2026-11-06)
+- ChatSettingsStore now routes the Cloudflare chat credential to the same encrypted AiSettingsStore namespace used by the image-generation Cloudflare token. Existing saved image Token and Account ID are reused automatically when selecting Cloudflare chat; no second paste/save is needed.
+- Clearing the Cloudflare key from chat settings also clears the shared image-generation Cloudflare credential; the chat UI explicitly warns about this shared behavior. OpenRouter and Groq remain independent.
+- Image provider selector now exposes only APIPod and Venice. Cloudflare, AI Horde and Runware have been removed from the image provider selection; legacy stored selections migrate to APIPod. Their old encrypted credentials/data are not automatically deleted.
+- Image generation provider switching now accepts only APIPod and Venice. Existing APIPod/Venice clients and settings are retained. Chat Cloudflare remains available as a text provider and reuses the image Cloudflare credential.
+- Version 0.9.15 / versionCode 27. CI build and device test pending.
