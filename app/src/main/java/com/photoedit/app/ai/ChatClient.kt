@@ -49,6 +49,18 @@ class ChatClient {
         answer.take(8000)
     }
 
+    suspend fun veniceBalance(token: String): String = withContext(Dispatchers.IO) {
+        AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
+        val data = request(ChatProvider.VENICE, token, "/api_keys/rate_limits", null)
+            .optJSONObject("data") ?: throw IOException("Venice 未返回账户余额信息")
+        val balances = data.optJSONObject("balances")
+            ?: throw IOException("Venice 未返回余额字段，请检查 API Key 权限")
+        val usd = balances.optDouble("USD", 0.0)
+        val diem = balances.optDouble("DIEM", 0.0)
+        "余额：$" + String.format(java.util.Locale.US, "%.4f", usd) +
+            " USD · " + String.format(java.util.Locale.US, "%.4f", diem) + " DIEM"
+    }
+
     suspend fun openRouterModels(token: String): List<ChatModel> = withContext(Dispatchers.IO) {
         AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
         val data = request(ChatProvider.OPENROUTER, token, "/models", null, 8 * 1024 * 1024)
