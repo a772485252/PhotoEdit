@@ -156,14 +156,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (_state.value.busy) return
         perform {
             withContext(Dispatchers.IO) { settings.savePromptRules(value) }
-            _state.value = _state.value.copy(promptRules = value, messages = emptyList(), notice = "扩写规则已保存，新对话开始生效")
+            _state.value = _state.value.copy(promptRules = value, notice = "扩写规则已保存；聊天记录和输入草稿已保留，新规则从下一次提示词请求开始生效")
         }
     }
     fun resetPromptRules() {
         if (_state.value.busy) return
         perform {
             withContext(Dispatchers.IO) { settings.resetPromptRules() }
-            _state.value = _state.value.copy(promptRules = ChatRules.SYSTEM_PROMPT, messages = emptyList(), notice = "已恢复默认扩写规则")
+            _state.value = _state.value.copy(promptRules = ChatRules.SYSTEM_PROMPT, notice = "已恢复默认扩写规则；聊天记录和输入草稿已保留")
         }
     }
     fun send() {
