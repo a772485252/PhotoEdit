@@ -27,7 +27,8 @@ data class ChatUiState(
     val models: List<ChatModel> = ChatModels.presets(ChatProvider.CLOUDFLARE),
     val allowPaid: Boolean = false,
     val token: String = "", val input: String = "", val promptMode: Boolean = true,
-    val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null
+    val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null,
+    val balanceInfo: String? = null
 )
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
@@ -44,7 +45,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(provider = provider, model = provider.defaultModel,
                 models = ChatModels.presets(provider))
             val loaded = withContext(Dispatchers.IO) { settings.load(provider) }
-            _state.value = _state.value.copy(token = loaded.token, model = loaded.model)
+            _state.value = _state.value.copy(token = loaded.token, model = loaded.model,
+                balanceInfo = if (provider == ChatProvider.VENICE && loaded.token.isNotBlank())
+                    runCatching { client.veniceBalance(loaded.token) }.getOrNull() else null)
         }
     }
 
@@ -55,9 +58,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         perform {
             val loaded = drafts[value] ?: withContext(Dispatchers.IO) { settings.load(value) }
             withContext(Dispatchers.IO) { settings.select(value, loaded.model) }
+            val balance = if (value == ChatProvider.VENICE && loaded.token.isNotBlank())
+                runCatching { client.veniceBalance(loaded.token) }.getOrNull() else null
             _state.value = _state.value.copy(provider = value, token = loaded.token, model = loaded.model,
                 modelDraft = "", models = catalogs[value] ?: ChatModels.presets(value), allowPaid = false,
-                messages = emptyList(), notice = if (value == ChatProvider.APIPOD) "已读取图片生成设置中的 APIPod Key；聊天与图片共用同一个 Key" else "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
+                balanceInfo = balance, messages = emptyList(), notice = if (value == ChatProvider.APIPOD) "已读取图片生成设置中的 APIPod Key；聊天与图片共用同一个 Key" else "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
         }
     }
 
@@ -93,6 +98,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun refreshBalance() {
+        val state = _state.value
+        if (state.busy || state.provider != ChatProvider.VENICE || state.token.isBlank()) return
+        perform {
+            val balance = client.veniceBalance(state.token)
+            _state.value = _state.value.copy(balanceInfo = balance, notice = null)
+        }
+    }
+
     fun token(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim()) }
     fun input(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(input = value.take(2000)) }
     fun mode(value: Boolean) {
@@ -125,6 +139,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(input = "",
                 messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+            if (state.provider == ChatProvider.VENICE) {
+                val balance = runCatching { client.veniceBalance(state.token) }.getOrNull()
+                _state.value = _state.value.copy(balanceInfo = balance)
+            }
         }
     }
     fun regenerateLast() {
@@ -138,6 +156,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode)
             val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+            if (state.provider == ChatProvider.VENICE) {
+                val balance = runCatching { client.veniceBalance(state.token) }.getOrNull()
+                _state.value = _state.value.copy(balanceInfo = balance)
+            }
         }
     }
     private fun perform(block: suspend () -> Unit) {
