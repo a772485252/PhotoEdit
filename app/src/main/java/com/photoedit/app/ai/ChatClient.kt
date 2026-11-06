@@ -62,7 +62,7 @@ class ChatClient {
             return "$suffix " + String.format(java.util.Locale.US, "%.4f", value)
         }
         val parts = listOfNotNull(
-            amount("USD", "USD $"),
+            amount("USD", "USD \\$"),
             amount("DIEM", "DIEM"),
             amount("BUNDLED_CREDITS", "赠送额度")
         )
