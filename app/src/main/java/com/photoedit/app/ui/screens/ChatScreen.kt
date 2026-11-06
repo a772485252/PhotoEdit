@@ -1,123 +1,372 @@
 package com.photoedit.app.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.photoedit.app.viewmodel.ChatUiState
+import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ChatProvider
+import com.photoedit.app.viewmodel.ChatUiState
 
 @Composable
-fun ChatScreen(state: ChatUiState, onKey: (String) -> Unit, onSaveKey: () -> Unit, onClearKey: () -> Unit,
-    onInput: (String) -> Unit, onMode: (Boolean) -> Unit, onSend: () -> Unit, onClearChat: () -> Unit,
-    canUsePrompt: Boolean, onUsePrompt: (String) -> Unit,
-    onProvider: (ChatProvider) -> Unit, onModel: (String) -> Unit,
-    onModelDraft: (String) -> Unit, onRefreshModels: () -> Unit, onAllowPaid: (Boolean) -> Unit) {
-    val scroll = rememberScrollState()
+fun ChatScreen(
+    state: ChatUiState,
+    onKey: (String) -> Unit,
+    onSaveKey: () -> Unit,
+    onClearKey: () -> Unit,
+    onInput: (String) -> Unit,
+    onMode: (Boolean) -> Unit,
+    onSend: () -> Unit,
+    onClearChat: () -> Unit,
+    onRegenerate: () -> Unit,
+    canUsePrompt: Boolean,
+    onUsePrompt: (String) -> Unit,
+    onProvider: (ChatProvider) -> Unit,
+    onModel: (String) -> Unit,
+    onModelDraft: (String) -> Unit,
+    onRefreshModels: () -> Unit,
+    onAllowPaid: (Boolean) -> Unit
+) {
+    var settingsOpen by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
     val clipboard = LocalClipboardManager.current
-    LaunchedEffect(state.messages.size) { if (state.messages.isNotEmpty()) scroll.animateScrollTo(scroll.maxValue) }
-    Column(Modifier.fillMaxSize().imePadding().verticalScroll(scroll).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("提示词助手", style = MaterialTheme.typography.headlineSmall)
-        Text("聊天额度与 Cloudflare 生图独立，各平台分别填写 Key。")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ChatProvider.entries.forEach { provider ->
-                FilterChip(state.provider == provider, { onProvider(provider) },
-                    label = { Text(provider.label) }, enabled = !state.busy)
+
+    LaunchedEffect(state.messages.size, state.busy) {
+        if (state.messages.isNotEmpty()) listState.animateScrollToItem(state.messages.lastIndex)
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("提示词助手", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = "${state.provider.label} · ${state.model.substringAfterLast('/')}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
             }
+            TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
+            TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
         }
-        if (state.provider == ChatProvider.OPENROUTER) {
-            Text("免费模型有每日和速率限制，高峰可能不可用。不会自动改用付费模型。", style = MaterialTheme.typography.bodySmall)
+        HorizontalDivider()
+
+        if (state.messages.isEmpty()) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 22.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("✦", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    }
+                }
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    if (state.promptMode) "想生成什么样的图片？" else "有什么想聊的？",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    if (state.promptMode) "描述你的创意，我帮你整理成清晰、完整的图片提示词。" else "可以连续提问，也可以随时切换到提示词创作。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(22.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Suggestion("人物写真") { onInput("帮我设计一组写实人物写真提示词") }
+                    Suggestion("场景构图") { onInput("帮我设计有电影感的场景和摄影构图") }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Suggestion("服装灵感") { onInput("帮我设计一套有辨识度的时尚服装造型") }
+                    Suggestion("优化提示词") { onInput("请帮我优化下面这段图片提示词：") }
+                }
+            }
         } else {
-            Text("Groq Free 账号有独立额度；付费账号按平台设置计费。", style = MaterialTheme.typography.bodySmall)
-        }
-        OutlinedTextField(state.token, onKey, label = { Text("${state.provider.label} API Key") }, singleLine = true,
-            enabled = !state.busy, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onSaveKey, enabled = !state.busy) { Text("保存 Key") }
-            TextButton(onClick = onClearKey, enabled = !state.busy) { Text("清除 Key") }
-        }
-        ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(state.promptMode, { onMode(true) }, label = { Text("生成提示词") }, enabled = !state.busy)
-            FilterChip(!state.promptMode, { onMode(false) }, label = { Text("普通聊天") }, enabled = !state.busy)
-        }
-        Text("只向所选平台发送文字和最近对话，不上传参考图。切换平台、模型或模式会开始新对话，草稿保留。", style = MaterialTheme.typography.bodySmall)
-        state.messages.forEach { message ->
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(if (message.role == "user") "你" else "助手", style = MaterialTheme.typography.labelLarge)
-                    SelectionContainer { Text(message.text) }
-                    if (message.role == "assistant") Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
-                        if (state.promptMode) TextButton(onClick = { onUsePrompt(message.text) }, enabled = canUsePrompt && message.text.length <= 4000) { Text("带入生图页") }
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                itemsIndexed(state.messages) { index, message ->
+                    val isUser = message.role == "user"
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+                    ) {
+                        Column(Modifier.widthIn(max = 340.dp), horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
+                            Text(
+                                if (isUser) "你" else "PhotoEdit AI",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(
+                                    topStart = 18.dp, topEnd = 18.dp,
+                                    bottomStart = if (isUser) 18.dp else 5.dp,
+                                    bottomEnd = if (isUser) 5.dp else 18.dp
+                                ),
+                                color = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                SelectionContainer {
+                                    Text(
+                                        message.text,
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            if (!isUser) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
+                                    if (state.promptMode) {
+                                        TextButton(
+                                            onClick = { onUsePrompt(message.text) },
+                                            enabled = canUsePrompt && message.text.length <= 4000
+                                        ) { Text("带入生图") }
+                                    }
+                                    if (index == state.messages.lastIndex && !state.busy) {
+                                        TextButton(onClick = onRegenerate) { Text("重新生成") }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (state.busy) {
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            Text("正在思考…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
         }
-        if (state.busy) { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("正在处理…") }
-        state.notice?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
-        OutlinedTextField(state.input, onInput, label = { Text(if (state.promptMode) "描述你想生成的画面" else "输入消息") }, minLines = 3,
-            enabled = !state.busy, modifier = Modifier.fillMaxWidth())
-        Button(onClick = onSend, enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
-            Text(if (state.promptMode) "生成／修改提示词" else "发送")
+
+        state.notice?.let {
+            Text(
+                it,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-        TextButton(onClick = onClearChat, enabled = !state.busy) { Text("开始新对话") }
-        Text("带入生图页只填入文字，不会自动生成图片。", style = MaterialTheme.typography.bodySmall)
+
+        Surface(tonalElevation = 2.dp) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    FilterChip(
+                        selected = state.promptMode,
+                        onClick = { onMode(true) },
+                        label = { Text("生成提示词") },
+                        enabled = !state.busy
+                    )
+                    FilterChip(
+                        selected = !state.promptMode,
+                        onClick = { onMode(false) },
+                        label = { Text("普通聊天") },
+                        enabled = !state.busy
+                    )
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("模型设置") }
+                }
+                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = state.input,
+                        onValueChange = onInput,
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text(if (state.promptMode) "描述你想生成的画面…" else "发送消息…") },
+                        minLines = 1,
+                        maxLines = 4,
+                        enabled = !state.busy,
+                        shape = RoundedCornerShape(22.dp)
+                    )
+                    Button(
+                        onClick = onSend,
+                        enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
+                        modifier = Modifier.height(54.dp),
+                        contentPadding = PaddingValues(horizontal = 18.dp),
+                        shape = RoundedCornerShape(18.dp)
+                    ) { Text("发送") }
+                }
+                Text(
+                    "聊天仅发送文字和最近对话，不会上传参考图；带入生图页也不会自动生成图片。",
+                    modifier = Modifier.padding(start = 4.dp, top = 6.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+
+    if (settingsOpen) {
+        AlertDialog(
+            onDismissRequest = { settingsOpen = false },
+            title = { Text("模型与 API 设置") },
+            text = {
+                Column(
+                    Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("服务平台", style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ChatProvider.entries.forEach { provider ->
+                            FilterChip(
+                                selected = state.provider == provider,
+                                onClick = { onProvider(provider) },
+                                label = { Text(provider.label) },
+                                enabled = !state.busy
+                            )
+                        }
+                    }
+                    Text(
+                        if (state.provider == ChatProvider.OPENROUTER)
+                            "OpenRouter 免费模型有每日和速率限制；不会自动切换到付费模型。"
+                        else "Groq 额度按账号套餐执行；请使用独立的 Groq API Key。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedTextField(
+                        value = state.token,
+                        onValueChange = onKey,
+                        label = { Text("${state.provider.label} API Key") },
+                        singleLine = true,
+                        enabled = !state.busy,
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = onSaveKey, enabled = !state.busy && state.token.isNotBlank()) { Text("保存 Key") }
+                        TextButton(onClick = onClearKey, enabled = !state.busy) { Text("清除当前 Key") }
+                    }
+                    HorizontalDivider()
+                    Text("模型选择", style = MaterialTheme.typography.titleSmall)
+                    ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
+                    Text(
+                        "Key 会加密保存在本机。OpenRouter 与 Groq 使用各自独立的 Key；切换模型会开始新对话。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = { TextButton(onClick = { settingsOpen = false }) { Text("完成") } },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier.fillMaxWidth(0.94f)
+        )
     }
 }
 
 @Composable
-private fun ModelSelector(state: ChatUiState, onModel: (String) -> Unit, onDraft: (String) -> Unit,
-    onRefresh: () -> Unit, onAllowPaid: (Boolean) -> Unit) {
+private fun Suggestion(label: String, onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+private fun ModelSelector(
+    state: ChatUiState,
+    onModel: (String) -> Unit,
+    onDraft: (String) -> Unit,
+    onRefresh: () -> Unit,
+    onAllowPaid: (Boolean) -> Unit
+) {
     var expanded by remember(state.provider) { mutableStateOf(false) }
     var query by remember(state.provider) { mutableStateOf("") }
     val router = state.provider == ChatProvider.OPENROUTER
     Text("当前模型：${state.model}", style = MaterialTheme.typography.bodyMedium)
     if (router) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = state.allowPaid, onCheckedChange = onAllowPaid, enabled = !state.busy)
-            Text("显示并允许付费模型（按平台计费）", modifier = Modifier.padding(top = 12.dp))
+            Text("显示并允许付费模型（按平台计费）", style = MaterialTheme.typography.bodySmall)
         }
-        Text("付费开关仅本次会话有效。关闭时只允许 :free 模型或 openrouter/free。",
-            style = MaterialTheme.typography.bodySmall)
-        OutlinedTextField(query, { query = it }, label = { Text("搜索模型名称或 ID") },
-            modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !state.busy)
+        Text(
+            "付费开关仅本次会话有效。关闭时只允许 :free 模型或 openrouter/free。",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text("搜索模型名称或 ID") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !state.busy
+        )
     }
     val available = state.models.filter {
         (!router || state.allowPaid || (it.free == true && it.id.endsWith(":free"))) &&
             (it.name.contains(query, true) || it.id.contains(query, true))
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box {
             OutlinedButton(onClick = { expanded = true }, enabled = !state.busy) { Text("选择模型（${available.size}）") }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false },
-                modifier = Modifier.heightIn(max = 320.dp)) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.heightIn(max = 300.dp)
+            ) {
                 available.take(100).forEach { model ->
                     DropdownMenuItem(
-                        text = { Text(model.name + "\n" + model.id + if (router) {
-                            if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
-                        } else " · 额度按 Groq 账号套餐") },
-                        onClick = { expanded = false; onModel(model.id) })
+                        text = {
+                            Text(
+                                model.name + "\n" + model.id + if (router) {
+                                    if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
+                                } else " · 额度按 Groq 账号套餐"
+                            )
+                        },
+                        onClick = { expanded = false; onModel(model.id) }
+                    )
                 }
-                if (available.size > 100) DropdownMenuItem(text = { Text("请搜索以缩小结果范围") }, onClick = {}, enabled = false)
-                if (available.isEmpty()) DropdownMenuItem(text = { Text("无匹配模型，可刷新或手动填写 ID") }, onClick = {}, enabled = false)
+                if (available.isEmpty()) {
+                    DropdownMenuItem(text = { Text("无匹配模型，可刷新或手动填写 ID") }, onClick = {}, enabled = false)
+                }
             }
         }
-        if (router) TextButton(onClick = onRefresh, enabled = !state.busy && state.token.isNotBlank()) { Text("刷新列表") }
+        if (router) {
+            TextButton(onClick = onRefresh, enabled = !state.busy && state.token.isNotBlank()) { Text("刷新列表") }
+        }
     }
-    OutlinedTextField(state.modelDraft, onDraft, label = { Text("自定义模型 ID") },
-        modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !state.busy)
-    TextButton(onClick = { onModel(state.modelDraft) }, enabled = !state.busy && state.modelDraft.isNotBlank()) { Text("使用此模型并保存") }
-    Text("平台和模型选择会自动保存。预置列表不代表实时可用；刷新列表需要 OpenRouter Key，不会发送聊天。",
-        style = MaterialTheme.typography.bodySmall)
+    OutlinedTextField(
+        value = state.modelDraft,
+        onValueChange = onDraft,
+        label = { Text("自定义模型 ID") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        enabled = !state.busy
+    )
+    TextButton(
+        onClick = { onModel(state.modelDraft) },
+        enabled = !state.busy && state.modelDraft.isNotBlank()
+    ) { Text("使用此模型并保存") }
 }
