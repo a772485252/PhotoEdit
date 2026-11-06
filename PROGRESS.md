@@ -415,3 +415,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Files: `GenerationForegroundService.kt`, `AiViewModel.kt`, `AiScreen.kt`, `AndroidManifest.xml`, `app/build.gradle.kts`, `.github/workflows/android-apk.yml`, `PROJECT.md`, `PROGRESS.md`.
 - Version 0.9.28 / versionCode 40. Build, unit tests, lint, and physical-device screen-off/battery-policy behavior are not verified. Per project policy, no APK build was triggered; wait for an explicit APK/download request.
 - Limitations: screen-off continuation is best-effort under Android Doze and manufacturer battery policies. Foreground service improves process priority and the wake lock keeps CPU active, but force-stop, process death, reboot or OEM task termination can still interrupt the request. This is not a durable persisted task queue.
+
+
+## V0.9.30 Chat rule editing preserves conversation (2026-11-06)
+- Removed the message-clearing side effect from saving custom prompt rules and restoring defaults. Both actions now preserve the visible conversation and unsent input draft.
+- Updated the rule editor explanation and status messages. New instructions apply to the next prompt-mode request; retained turns remain available as context. Starting a new chat remains the explicit clear action.
+- Added a focused unit test for applying custom rules while preserving previous conversation turns.
+- Updated app version to 0.9.30 / versionCode 42 and synchronized the manual APK workflow default.
+- Source changes committed. Full APK build requested; CI tests, lint, signature verification and publication are pending.
