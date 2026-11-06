@@ -306,3 +306,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added visible loading feedback while the conversation is empty, so a first request no longer appears to do nothing while the API is processing. The submit button now reads "生成提示词" in prompt mode and "发送" in normal chat mode.
 - No API endpoint, model, credentials, billing, or image-generation behavior changed. API failure diagnosis still requires the exact in-app notice shown after pressing "生成提示词"; no live Cloudflare request or APK build was performed.
 - Version 0.9.22 / versionCode 34 should be applied in the next version bump before an APK build. APK builds remain manual-only and are not triggered by this code edit.
+
+
+## V0.9.23 chat model identity and billing disclosure correction (2026-11-06)
+- Confirmed the active Prompt Assistant provider set from source: Cloudflare Workers AI / GLM-4.7-Flash, Venice AI / Venice Uncensored 1.2, and APIPod / Grok 4.5. APIPod Grok 4.5 is an existing chat provider using the APIPod image/chat shared Key; it is not a separate xAI account integration.
+- Venice chat is also present in source/UI and uses the shared Venice Key used by Venice image generation. Its presence in code does not prove the user's Key is configured or that live API access works; authenticated live validation remains pending.
+- Chat header now displays provider, human-readable selected model name, and exact model ID. Billing method is identified by provider. No unverified per-character price figures or unverified balance endpoint are shown.
+- Real-time balance query is not yet implemented/verified for Cloudflare, Venice or APIPod. APIPod Grok 4.5 effective price depends on APIPod's route/pricing, so do not substitute xAI direct pricing. Per-10,000-character estimates require verified provider/model input and output prices plus actual token usage or an explicit approximation.
+- Removed an unverified Venice balance request and speculative per-character cost figures before finalizing. No API request, model routing, credentials, or billing behavior changed.
+- The V0.9.22 prompt-assistant first-use UX changes remain. Current version 0.9.22 / versionCode 34; no APK build was triggered. Device and authenticated API validation pending.
