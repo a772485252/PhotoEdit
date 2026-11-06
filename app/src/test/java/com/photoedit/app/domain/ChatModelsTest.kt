@@ -20,6 +20,13 @@ class ChatModelsTest {
         ChatModels.validate(ChatProvider.GROQ, "openai/gpt-oss-20b", false)
     }
 
+    @Test fun cloudflareFreeGlmModelIsAcceptedAndRestrictedToWorkersAiIds() {
+        assertEquals("cloudflare_chat_private", ChatProvider.CLOUDFLARE.namespace)
+        ChatModels.validate(ChatProvider.CLOUDFLARE, "@cf/zai-org/glm-4.7-flash", false)
+        assertTrue(runCatching { ChatModels.validate(ChatProvider.CLOUDFLARE, "https://example.com", false) }.isFailure)
+        assertTrue(runCatching { ChatModels.validate(ChatProvider.CLOUDFLARE, "openai/gpt-oss-20b", false) }.isFailure)
+    }
+
     @Test fun missingMalformedOrNegativePricesAreNotFree() {
         listOf(null, "", "NaN", "-1", "0.00001").forEach { assertFalse(ChatModels.zeroPrice(it)) }
         listOf("0", "0.0", "0e-6").forEach { assertTrue(ChatModels.zeroPrice(it)) }
