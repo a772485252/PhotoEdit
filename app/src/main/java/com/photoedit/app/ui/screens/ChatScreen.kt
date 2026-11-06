@@ -237,21 +237,9 @@ fun ChatScreen(
                     Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("服务平台", style = MaterialTheme.typography.titleSmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ChatProvider.entries.forEach { provider ->
-                            FilterChip(
-                                selected = state.provider == provider,
-                                onClick = { onProvider(provider) },
-                                label = { Text(provider.label) },
-                                enabled = !state.busy
-                            )
-                        }
-                    }
+                    Text("当前服务：Cloudflare Workers AI", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        if (state.provider == ChatProvider.OPENROUTER)
-                            "OpenRouter 免费模型有每日和速率限制；不会自动切换到付费模型。"
-                        else if (state.provider == ChatProvider.GROQ) "Groq 额度按账号套餐执行；请使用独立的 Groq API Key。" else "Cloudflare 提示词助手使用本机已保存的 Cloudflare Token 和 Account ID；如果之前配置过可直接沿用。Token 需要具备 Workers AI 调用权限；GLM-4.7-Flash 使用每日免费 Neurons 额度。",
+                        "提示词助手使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 使用 Workers AI 免费 Neurons 额度；Token 需要具备 Workers AI 调用权限。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -273,7 +261,7 @@ fun ChatScreen(
                     Text("模型选择", style = MaterialTheme.typography.titleSmall)
                     ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
                     Text(
-                        "Key 会加密保存在本机。OpenRouter、Groq 使用独立 Key。Cloudflare 目前仅用于提示词助手；在这里清除只会清除提示词助手使用的 Cloudflare 凭据。切换模型会开始新对话。",
+                        "Cloudflare Token 会加密保存在本机，仅用于提示词助手。清除后需要重新配置；不会影响 APIPod 或 Venice 图片生成设置。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
