@@ -32,6 +32,16 @@ Build a genuine native Android application for photo processing and short-form v
 16. Keep unit tests in the test source set; they are not packaged into the APK. CI should run testDebugUnitTest before publishing an APK.
 
 
+## UI design and review (mandatory)
+- Before any UI change, inspect the target screen, its parent navigation/container, shared components, and existing theme. Read the current UI guidance in PROJECT.md; do not make an isolated visual patch without understanding surrounding layout.
+- Preserve a consistent product design system: typography hierarchy, spacing scale, component shapes, colors, interaction states, and information density. Prefer existing Material 3 components and shared components over one-off styling.
+- Design for real phone widths first. Check narrow and typical Android widths, portrait layout, system bars, keyboard/IME, scrolling, dialogs, long localized labels, and accessibility/font scaling where relevant.
+- Never rely on a horizontal row of multiple long chips/buttons if they can be clipped or pushed off-screen. Use adaptive wrapping, FlowRow, Lazy layouts, or deliberate grouping; ensure every action remains discoverable and reachable.
+- Keep primary actions visible and visually prioritized. Avoid accidental scroll traps, oversized headers, excessive nested cards, crowded settings dialogs, and controls that require horizontal scrolling unless the pattern is intentional.
+- Before finishing, review the full screen hierarchy and state variants (loading, empty, error, selected, disabled, long text). If a UI preview/test infrastructure exists, use it; otherwise perform a reasoned layout review and explicitly mark device verification as pending.
+- When a UI change affects the design system or reusable patterns, update the UI guidance in PROJECT.md. Record every UI change and its validation limits in PROGRESS.md in the same session.
+- If a dedicated UI/product-design skill or repository design-system document is available, read and follow it before editing. If none is available, say so and apply these rules; never claim a skill was consulted when it was not.
+
 ## UI and business separation (mandatory)
 - Use a lightweight single-app-module MVVM structure: ui/screens, ui/components, ui/theme, viewmodel, domain, and processing.
 - Compose UI renders immutable UI state and emits user intents through callbacks.
