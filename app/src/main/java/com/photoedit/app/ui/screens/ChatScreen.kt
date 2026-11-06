@@ -256,7 +256,7 @@ fun ChatScreen(
                         if (state.provider == ChatProvider.CLOUDFLARE)
                             "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费；Token 需要 Workers AI 调用权限。"
                         else
-                            "使用独立的 Venice API Key，与图片生成设置分开保存。Venice API 按所选模型的输入、输出 Token 价格计费，不包含在网页端免费次数中。",
+                            "使用与 Venice 图片生成共用的 API Key。API 按所选模型的输入、输出 Token 价格计费，不包含在网页端免费次数中。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -281,7 +281,7 @@ fun ChatScreen(
                         if (state.provider == ChatProvider.CLOUDFLARE)
                             "Cloudflare Token 会加密保存在本机，仅用于提示词助手。清除后需要重新配置。"
                         else
-                            "Venice 聊天 Key 独立加密保存在本机；不会自动复用或修改 Venice 图片生成 Key。",
+                            "Venice 聊天与图片生成共用同一个 Key；在这里清除也会同时影响 Venice 图片生成。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
