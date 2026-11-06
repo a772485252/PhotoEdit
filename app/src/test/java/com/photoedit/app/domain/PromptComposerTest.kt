@@ -4,6 +4,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PromptComposerTest {
+    @Test fun anatomyBlockIsNotDuplicated() {
+        val first = PromptComposer.withPose("瀑布", PoseCatalog.poses.first())
+        val second = PromptComposer.withCamera(first, CameraCatalog.presets.first())
+        assertEquals(1, "【人体质量】".toRegex().findAll(second).count())
+        assertTrue(second.contains("缺失、断裂"))
+    }
     @Test fun outfitThenPoseKeepsBothAndUserInstructions() {
         val outfit = OutfitCatalog.presets.first()
         val pose = PoseCatalog.poses.first()
