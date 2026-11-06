@@ -15,6 +15,11 @@ class ChatRulesTest {
     @Test fun emptyHistoryCreatesOnlySystemAndCurrentUser() {
         assertEquals(2, ChatRules.messages(emptyList(), "写个瀑布写真提示词", true).size)
     }
+    @Test fun promptModeUsesUnambiguousAnatomyGuidance() {
+        val system = ChatRules.messages(emptyList(), "写真", true).first().text
+        assertTrue(system.contains("明确且唯一"))
+        assertTrue(system.contains("缺失"))
+    }
     @Test fun modeChoosesDifferentInstructions() {
         assertNotEquals(ChatRules.messages(emptyList(), "hello", true).first(), ChatRules.messages(emptyList(), "hello", false).first())
     }
