@@ -25,6 +25,11 @@ Build a genuine native Android application for photo processing and short-form v
 8. If a new session starts, read AGENTS.md, PROJECT.md and PROGRESS.md first.
 9. Do not force-push, delete files, or rewrite history without explicit approval.
 10. Prefer GitHub Actions for builds; test generated APKs on a real Android device.
+11. Keep a lightweight unit-test suite for critical domain rules; do not remove the test module merely to avoid occasional stale assertions.
+12. Prioritize tests for model/provider validation, API credential and prompt validation, billing/price selection, image/reference constraints, and error classification.
+13. Do not add UI snapshot tests, broad network mocks, or test-only architecture unless a concrete regression risk justifies them.
+14. When behavior or model defaults change, update the corresponding focused tests in the same change. If a test fails, determine whether production behavior or the assertion is outdated; never delete a valid test just to make CI green.
+15. Keep unit tests in the test source set; they are not packaged into the APK. CI should run testDebugUnitTest before publishing an APK.
 
 ## UI and business separation (mandatory)
 - Use a lightweight single-app-module MVVM structure: ui/screens, ui/components, ui/theme, viewmodel, domain, and processing.
