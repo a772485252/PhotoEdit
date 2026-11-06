@@ -49,6 +49,27 @@ class ChatClient {
         answer.take(8000)
     }
 
+    suspend fun veniceBalance(token: String): String = withContext(Dispatchers.IO) {
+        AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
+        val data = request(ChatProvider.VENICE, token, "/api_keys/rate_limits", null)
+            .optJSONObject("data") ?: throw IOException("Venice 未返回账户信息")
+        val balances = data.optJSONObject("balances")
+            ?: throw IOException("Venice 未返回余额字段")
+        fun amount(name: String, suffix: String): String? {
+            if (!balances.has(name) || balances.isNull(name)) return null
+            val value = balances.optDouble(name, Double.NaN)
+            if (!value.isFinite()) return null
+            return "$suffix " + String.format(java.util.Locale.US, "%.4f", value)
+        }
+        val parts = listOfNotNull(
+            amount("USD", "USD $"),
+            amount("DIEM", "DIEM"),
+            amount("BUNDLED_CREDITS", "赠送额度")
+        )
+        if (parts.isEmpty()) throw IOException("Venice 余额接口未返回可用余额")
+        (if (data.optBoolean("accessPermitted", true)) "可用 · " else "当前 Key 暂不可用 · ") + parts.joinToString(" · ")
+    }
+
     suspend fun openRouterModels(token: String): List<ChatModel> = withContext(Dispatchers.IO) {
         AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
         val data = request(ChatProvider.OPENROUTER, token, "/models", null, 8 * 1024 * 1024)
