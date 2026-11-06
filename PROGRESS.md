@@ -410,7 +410,7 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 ## V0.9.28 Screen-off image generation (2026-11-06)
 - Added `GenerationForegroundService`, started only after the user taps Generate. It posts a low-importance ongoing notification with a tap-to-open action and a clear no-auto-gallery-save message.
 - Acquires a `PARTIAL_WAKE_LOCK` with a 30-minute timeout while the existing ViewModel generation coroutine runs; releases it when the service stops. Generation completion/failure stops the service.
-- Added manifest permissions for foreground service, dataSync service type and wake lock; updated AI screen progress copy to explain screen-off behavior.
+- Added manifest permissions for foreground service, dataSync service type and wake lock; updated AI screen progress copy to explain screen-off behavior and qualify that notification visibility depends on system notification permission.
 - Confirmed by source inspection that gallery writing remains exclusively in the explicit `saveImage()` action. Generation results continue to be held as in-memory Bitmaps for in-app preview; no automatic MediaStore or gallery write was added.
 - Files: `GenerationForegroundService.kt`, `AiViewModel.kt`, `AiScreen.kt`, `AndroidManifest.xml`, `app/build.gradle.kts`, `.github/workflows/android-apk.yml`, `PROJECT.md`, `PROGRESS.md`.
 - Version 0.9.28 / versionCode 40. Build, unit tests, lint, and physical-device screen-off/battery-policy behavior are not verified. Per project policy, no APK build was triggered; wait for an explicit APK/download request.
