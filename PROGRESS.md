@@ -338,3 +338,5 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Files changed: ChatModels.kt, ChatClient.kt, ChatViewModel.kt, ChatScreen.kt, MainActivity.kt, ChatModelsTest.kt, app/build.gradle.kts, PROJECT.md.
 - Version 0.9.23 / versionCode 35. Unit tests/build/device/API balance validation have not yet been run. No APK build was triggered; APK remains manual-only on explicit user request.
 - Public references: Cloudflare GLM-4.7-Flash model pricing and Workers AI pricing; Venice API Key Rate Limits and Balances; APIPod Grok 4.5 model/channel pricing.
+
+- Follow-up source review corrected coroutine cancellation propagation in the asynchronous Venice balance refresh. This is included in the same V0.9.23 work; no behavior or API contract changed.
