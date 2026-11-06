@@ -130,3 +130,12 @@ A free native Android application for preparing images and short-form video mate
 - Diagnose failures before changing tests. Fix production code when behavior is wrong; update assertions only when the intended behavior has deliberately changed. Never delete a valid test merely to make CI pass.
 - Unit tests run in CI before APK publishing and are not packaged into the APK, so retaining JUnit does not increase installed APK size.
 - Current approach: small focused tests, build/lint/test gate, then real-device/API verification for behavior that unit tests cannot prove.
+
+
+## Current Prompt Assistant providers and billing visibility (2026-11-06)
+- Active selectable chat providers in current source/UI: Cloudflare Workers AI (default GLM-4.7-Flash), Venice AI (Venice Uncensored 1.2), and APIPod (Grok 4.5).
+- APIPod Grok 4.5 uses the APIPod provider and the same encrypted APIPod Key as APIPod image generation. It is not an xAI direct API connection; do not use xAI direct prices as a proxy for APIPod routing prices.
+- Venice chat and Venice image generation use the same encrypted Venice Key namespace. This is a separate Venice API integration; the presence of code does not mean a key has been configured or that live authenticated API calls have been validated.
+- Chat header displays provider, selected model display name, and exact model ID. It labels each provider's billing method but intentionally does not invent per-character prices.
+- Live balance lookup is not yet implemented/verified for these providers. To show approximate cost per 10,000 Chinese characters, obtain verified input/output prices for the exact provider/model route and state the approximation assumptions. Actual charges should use returned token usage/settlement data where available.
+- Current code version: 0.9.22 / versionCode 34. Latest prompt-assistant first-use UI refinement and model identity display are committed; APK build remains manual-only and requires explicit user request.
