@@ -3,7 +3,8 @@ package com.photoedit.app.domain
 enum class ChatProvider(val label: String, val namespace: String, val defaultModel: String) {
     OPENROUTER("OpenRouter", "openrouter_chat_private", "nvidia/nemotron-3.5-super-vl:free"),
     GROQ("Groq", "groq_chat_private", "openai/gpt-oss-20b"),
-    CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash")
+    CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash"),
+    VENICE("Venice AI", "venice_chat_private", "venice-uncensored-1-2")
 }
 
 data class ChatModel(val id: String, val name: String, val free: Boolean? = null)
@@ -29,6 +30,9 @@ object ChatModels {
         }
         if (provider == ChatProvider.CLOUDFLARE) {
             require(model.startsWith("@cf/") && model.count { it == '/' } >= 2) { "Cloudflare 模型 ID 必须来自 Workers AI 模型目录" }
+        }
+        if (provider == ChatProvider.VENICE) {
+            require(model.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:-]*"))) { "Venice 模型 ID 格式无效" }
         }
         if (provider == ChatProvider.OPENROUTER && !allowPaid) {
             require(model.endsWith(":free") || model == "openrouter/free") {
