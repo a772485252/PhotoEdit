@@ -189,3 +189,10 @@ A free native Android application for preparing images and short-form video mate
 - In the Prompt Assistant's Generate Prompt mode (including APIPod Grok 4.5), the system instruction defaults to close full-body framing: subject fills most of the frame while head, hands, and feet remain fully visible with a small safe margin.
 - The assistant must pick a single definite pose/camera direction when unspecified, respect user-specified composition, avoid mutually exclusive alternatives, and return one directly usable prompt rather than options or explanations.
 - Anatomy-quality guidance applies to this chat-generated text too; no guarantee of image-model compliance. This changes chat prompt generation guidance, not image generation or API routing.
+
+
+## Editable prompt-assistant instructions (v0.9.26)
+- In Generate Prompt mode, an “扩写规则” control opens one editable multi-line instruction field with Save, Cancel and Restore Default actions.
+- The custom instruction is stored locally in Android SharedPreferences and applied as the system instruction to future prompt-generation requests for all active chat providers; ordinary chat keeps its own default instruction. No prompt history is persisted.
+- Saving or restoring rules clears the in-memory conversation to prevent prior context from overriding new rules. The default instruction remains ChatRules.SYSTEM_PROMPT. Maximum rule length is 8000 characters; empty rules cannot be saved.
+- No network request is made when editing rules. Source version 0.9.26 / code 38; APK workflow remains manual-only.
