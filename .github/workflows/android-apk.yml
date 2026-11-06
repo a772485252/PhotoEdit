@@ -76,7 +76,7 @@ jobs:
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
           keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey
       - name: Quick build debug APK
-        if: inputs.build_mode == 'quick'
+        if: github.event_name == 'push' || inputs.build_mode == 'quick'
         run: gradle --build-cache --parallel assembleDebug
       - name: Full verification and build
         if: inputs.build_mode == 'full'
