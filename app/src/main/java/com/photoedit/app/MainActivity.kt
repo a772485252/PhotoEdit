@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
                                         tab = 1
                                     }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
                                     onModelDraft = chatViewModel::modelDraft, onRefreshModels = chatViewModel::refreshModels,
-                                    onAllowPaid = chatViewModel::allowPaid)
+                                    onAllowPaid = chatViewModel::allowPaid, onRefreshBalance = chatViewModel::refreshBalance)
                         }
                     }
                 }
