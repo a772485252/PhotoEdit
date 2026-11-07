@@ -432,3 +432,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Limitations: this is best-effort while the process remains alive; force-stop, process death, reboot, network loss, Doze/OEM restrictions and notification permission/settings can still affect completion or notification visibility. The in-memory response/history is not durable across process death.
 - Files: PromptGenerationForegroundService.kt (new), ChatViewModel.kt, ChatScreen.kt, AndroidManifest.xml, app/build.gradle.kts, .github/workflows/android-apk.yml, PROJECT.md, PROGRESS.md.
 - Version 0.9.31 / versionCode 43. No APK build requested yet; compilation, tests, lint and physical-device background/screen-off behavior remain unverified.
+
+## 2026-11-07 prompt assistant phone layout and APIPod 403 messaging
+- Updated ui/screens/ChatScreen.kt: compact header, expandable model/cost details, separate mode/settings rows, full-width multiline composer and full-width primary send action to avoid narrow-phone wrapping.
+- Updated ai/ChatClient.kt: HTTP 403 now explicitly identifies the status and separates possible account/key, region, and content causes without claiming a definitive diagnosis or exposing provider response bodies.
+- Existing prompt drafts, model choice, API Key storage and manual-only request behavior remain unchanged.
+- Build/tests and real-device verification pending; no APK build triggered per manual-build policy. Verify narrow phones, keyboard resizing, font scaling and actual APIPod response using user-owned credentials.
