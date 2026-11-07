@@ -462,3 +462,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated AGENTS.md mandatory rules and workflow publishing. No build triggered for this configuration-only request; verify on next explicitly requested build.
 
 - Version bumped to v0.9.33 (versionCode 45) for the APIPod HTTP error diagnostics fix; APK build pending.
+
+## 2026-11-07 v0.9.34 APIPod model picker UI
+- Simplified APIPod model dropdown entries to `Grok 4.5` / `Grok 4.6` with a single billing line, removing repeated model IDs and provider text in the title.
+- Bumped app versionName to 0.9.34 and versionCode to 46; synchronized workflow_dispatch version default.
+- User explicitly requested APK build; push-triggered quick build is the available GitHub connector route.
