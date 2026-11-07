@@ -438,3 +438,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated ai/ChatClient.kt: HTTP 403 now explicitly identifies the status and separates possible account/key, region, and content causes without claiming a definitive diagnosis or exposing provider response bodies.
 - Existing prompt drafts, model choice, API Key storage and manual-only request behavior remain unchanged.
 - Build/tests and real-device verification pending; no APK build triggered per manual-build policy. Verify narrow phones, keyboard resizing, font scaling and actual APIPod response using user-owned credentials.
+
+## 2026-11-07 Venice DeepSeek optional chat model
+- Added Venice preset deepseek-v4-1-flash-uncensored and readable display name plus indicative 10,000-character token-cost guide in domain/ChatModels.kt.
+- Uses existing Venice chat endpoint and encrypted Venice Key; APIPod Grok 4.5 remains independently selectable with separate balance and credentials.
+- Provider model ID and prices checked against public Venice model documentation. Live API entitlement and model output not verified; build/tests pending. No APK build triggered until explicitly requested.
