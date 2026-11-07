@@ -56,56 +56,37 @@ fun ChatScreen(
     }
 
     Column(Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            val priceGuide = ChatModels.priceGuide(state.provider, state.model)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("提示词助手", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                Text("当前模型：${ChatModels.displayName(state.provider, state.model)}",
-                    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text("${state.provider.label} · ID：${state.model}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1)
-                if (priceGuide != null) {
-                    Text("每 1 万汉字估算：输入 ${priceGuide.inputPerTenThousandChars} · 输出 ${priceGuide.outputPerTenThousandChars}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(priceGuide.note, style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    Text("当前模型价格暂无可靠数据，不显示估算费用",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("提示词助手", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = when (state.provider) {
-                            ChatProvider.CLOUDFLARE ->
-                                "额度：每日免费 10,000 Neurons；实时剩余请查看 Cloudflare 控制台"
-                            ChatProvider.VENICE ->
-                                state.balanceInfo ?: if (state.token.isBlank()) "余额：请先配置 Venice API Key" else "余额：点击刷新查询"
-                            ChatProvider.APIPOD ->
-                                "余额：尚未接入应用内查询，请在 APIPod 控制台查看"
-                            else -> "余额：请查看服务商控制台"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (state.provider == ChatProvider.VENICE) {
-                        TextButton(onClick = onRefreshBalance,
-                            enabled = !state.balanceLoading && state.token.isNotBlank()) {
-                            Text(if (state.balanceLoading) "查询中" else "刷新")
-                        }
-                    }
-                }
+                TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
+                TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
             }
-            TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
-            TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
+            var detailsExpanded by remember { mutableStateOf(false) }
+            TextButton(onClick = { detailsExpanded = !detailsExpanded },
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)) {
+                Text(if (detailsExpanded) "收起模型与费用信息" else "查看模型与费用信息",
+                    style = MaterialTheme.typography.labelSmall)
+            }
+            if (detailsExpanded) {
+                val priceGuide = ChatModels.priceGuide(state.provider, state.model)
+                Text("模型 ID：${state.model}", style = MaterialTheme.typography.labelSmall)
+                Text(priceGuide?.let { "每 1 万汉字估算：输入 ${it.inputPerTenThousandChars} · 输出 ${it.outputPerTenThousandChars}" }
+                    ?: "当前模型价格暂无可靠数据",
+                    style = MaterialTheme.typography.labelSmall)
+                priceGuide?.let { Text(it.note, style = MaterialTheme.typography.labelSmall) }
+                Text(when (state.provider) {
+                    ChatProvider.CLOUDFLARE -> "额度：实时剩余请查看 Cloudflare 控制台"
+                    ChatProvider.VENICE -> state.balanceInfo ?: "余额：可在设置中刷新"
+                    ChatProvider.APIPOD -> "余额：请在 APIPod 控制台查看"
+                    else -> "余额：请查看服务商控制台"
+                }, style = MaterialTheme.typography.labelSmall)
+            }
         }
         HorizontalDivider()
 
@@ -227,41 +208,31 @@ fun ChatScreen(
 
         Surface(tonalElevation = 2.dp) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    FilterChip(
-                        selected = state.promptMode,
-                        onClick = { onMode(true) },
-                        label = { Text("生成提示词") },
-                        enabled = !state.busy
-                    )
-                    FilterChip(
-                        selected = !state.promptMode,
-                        onClick = { onMode(false) },
-                        label = { Text("普通聊天") },
-                        enabled = !state.busy
-                    )
-                    Spacer(Modifier.weight(1f))
-                    if (state.promptMode) TextButton(onClick = { rulesOpen = true }, enabled = !state.busy) { Text("扩写规则") }
-                    TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("模型设置") }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = state.promptMode, onClick = { onMode(true) },
+                        label = { Text("生成提示词") }, enabled = !state.busy)
+                    FilterChip(selected = !state.promptMode, onClick = { onMode(false) },
+                        label = { Text("普通聊天") }, enabled = !state.busy)
                 }
-                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = state.input,
-                        onValueChange = onInput,
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text(if (state.promptMode) "输入创意或粘贴需要优化的提示词…" else "发送消息…") },
-                        minLines = 1,
-                        maxLines = 4,
-                        enabled = !state.busy,
-                        shape = RoundedCornerShape(22.dp)
-                    )
-                    Button(
-                        onClick = onSend,
-                        enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
-                        modifier = Modifier.height(54.dp),
-                        contentPadding = PaddingValues(horizontal = 18.dp),
-                        shape = RoundedCornerShape(18.dp)
-                    ) { Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送") }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (state.promptMode) TextButton(onClick = { rulesOpen = true },
+                        enabled = !state.busy) { Text("扩写规则") }
+                    TextButton(onClick = { settingsOpen = true },
+                        enabled = !state.busy) { Text("模型设置") }
+                }
+                OutlinedTextField(
+                    value = state.input, onValueChange = onInput,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else "发送消息…") },
+                    minLines = 2, maxLines = 5, enabled = !state.busy,
+                    shape = RoundedCornerShape(18.dp)
+                )
+                Button(onClick = onSend,
+                    enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(16.dp)) {
+                    Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送")
                 }
                 Text(
                     "聊天仅发送文字和最近对话，不会上传参考图；生成期间可切换到其他应用。通知显示取决于系统通知权限。",
