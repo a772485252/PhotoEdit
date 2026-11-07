@@ -241,3 +241,7 @@ A free native Android application for preparing images and short-form video mate
 ## Venice optional DeepSeek text model (2026-11-07)
 - Prompt assistant Venice selector offers DeepSeek V4.1 Flash Uncensored (ID deepseek-v4-1-flash-uncensored) alongside Venice Uncensored 1.2. Uses existing Venice API Key, HTTPS chat client and per-token billing. APIPod credits cannot fund Venice requests.
 - Venice public listed prices: USD 0.33 input / 1.32 output per million tokens; displayed character-based estimate is approximate. Model availability and credits require user account verification.
+
+## APIPod Grok 4.6 (2026-11-07)
+- Prompt assistant APIPod models include grok-4.5 (default) and grok-4.6 (optional). Both use existing APIPod credentials, client, and balance. Grok 4.6 API ID is `grok-4.6` and displayed estimated pricing uses APIPod xAI channel rates; actual billed usage may differ.
+- Build only on explicit user request for APK download; pending build verification.
