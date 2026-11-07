@@ -397,7 +397,7 @@ private fun ModelSelector(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                model.name + "\n" + model.id + if (router) {
+                                (if (state.provider == ChatProvider.APIPOD) model.name.substringBefore(" · ") else model.name) + "\n" + if (router) {
                                     if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
                                 } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else if (state.provider == ChatProvider.VENICE) " · Venice API 按 Token 计费" else if (state.provider == ChatProvider.APIPOD) " · APIPod 按 Token 计费" else " · Cloudflare Workers AI"
                             )
