@@ -453,3 +453,6 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - ChatClient now reads JSON error code/message from non-2xx HTTP error streams and appends a bounded, sanitized diagnostic to the existing localized status text. Current API key is redacted.
 - No endpoint, model, credential storage, billing, or retry behavior changed.
 - Source commit 69d94532; live API behavior and Android build not yet verified. User requested an APK build, but this connector does not expose workflow_dispatch; manual dispatch remains required.
+
+## 2026-11-07 Versioned APK filenames
+- APK publish workflow now writes `latest-apk/PhotoEdit-v<versionName>.apk` alongside legacy `latest-apk/PhotoEdit-debug.apk`, preserving old link compatibility. Version read from Gradle. Change applies on next successful build; not retroactively published.
