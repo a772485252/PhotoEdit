@@ -443,3 +443,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added Venice preset deepseek-v4-1-flash-uncensored and readable display name plus indicative 10,000-character token-cost guide in domain/ChatModels.kt.
 - Uses existing Venice chat endpoint and encrypted Venice Key; APIPod Grok 4.5 remains independently selectable with separate balance and credentials.
 - Provider model ID and prices checked against public Venice model documentation. Live API entitlement and model output not verified; build/tests pending. No APK build triggered until explicitly requested.
+
+## 2026-11-07 APIPod Grok 4.6 option
+- Added grok-4.6 to APIPod chat model presets while keeping grok-4.5 as default; existing APIPod Key and chat client are reused.
+- Added display name and indicative APIPod xAI channel price guide ($1.40 input / $4.20 output per million tokens).
+- Source: https://www.apipod.ai/llm/xai/grok-4.6 . Code committed; no APK build requested or triggered, API call not live-tested.
