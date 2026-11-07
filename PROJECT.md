@@ -237,3 +237,7 @@ A free native Android application for preparing images and short-form video mate
 - Mobile composer uses a full-width input and full-width primary action, with mode and secondary settings controls on separate rows.
 - Chat HTTP 403 reports a service-side rejection with possible causes, not a verified content-moderation diagnosis. No automatic paid retries or model switching.
 - Device/API verification and full CI checks remain pending until user requests an APK build.
+
+## Venice optional DeepSeek text model (2026-11-07)
+- Prompt assistant Venice selector offers DeepSeek V4.1 Flash Uncensored (ID deepseek-v4-1-flash-uncensored) alongside Venice Uncensored 1.2. Uses existing Venice API Key, HTTPS chat client and per-token billing. APIPod credits cannot fund Venice requests.
+- Venice public listed prices: USD 0.33 input / 1.32 output per million tokens; displayed character-based estimate is approximate. Model availability and credits require user account verification.
