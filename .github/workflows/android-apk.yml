@@ -142,10 +142,13 @@ jobs:
             find app/build/outputs -maxdepth 5 -type f -print 2>/dev/null || true
             exit 1
           fi
+          VERSION=$(sed -n 's/^[[:space:]]*versionName = "\\(.*\\)"/\\1/p' app/build.gradle.kts | head -n 1)
+          if [ -z "$VERSION" ]; then echo "::error::Missing versionName"; exit 1; fi
+          cp "$APK_PATH" "latest-apk/PhotoEdit-v${VERSION}.apk"
           cp "$APK_PATH" latest-apk/PhotoEdit-debug.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f latest-apk/PhotoEdit-debug.apk
+          git add -f "latest-apk/PhotoEdit-v${VERSION}.apk" latest-apk/PhotoEdit-debug.apk
           if git diff --cached --quiet; then
             echo "APK unchanged; no commit needed"
             exit 0
