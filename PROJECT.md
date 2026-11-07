@@ -245,3 +245,6 @@ A free native Android application for preparing images and short-form video mate
 ## APIPod Grok 4.6 (2026-11-07)
 - Prompt assistant APIPod models include grok-4.5 (default) and grok-4.6 (optional). Both use existing APIPod credentials, client, and balance. Grok 4.6 API ID is `grok-4.6` and displayed estimated pricing uses APIPod xAI channel rates; actual billed usage may differ.
 - Build only on explicit user request for APK download; pending build verification.
+
+## 2026-11-07 Versioned APK filenames
+- APK publish workflow now writes `latest-apk/PhotoEdit-v<versionName>.apk` alongside legacy `latest-apk/PhotoEdit-debug.apk`, preserving old link compatibility. Version read from Gradle. Change applies on next successful build; not retroactively published.
