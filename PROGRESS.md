@@ -460,3 +460,5 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 ## 2026-11-07 Versioned-only APK policy
 - User confirmed legacy `PhotoEdit-debug.apk` URL need not be maintained. Workflow now publishes only `latest-apk/PhotoEdit-v<versionName>.apk`, version read from Gradle; existing legacy file may remain but is no longer updated or recommended.
 - Updated AGENTS.md mandatory rules and workflow publishing. No build triggered for this configuration-only request; verify on next explicitly requested build.
+
+- Version bumped to v0.9.33 (versionCode 45) for the APIPod HTTP error diagnostics fix; APK build pending.
