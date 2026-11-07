@@ -125,7 +125,7 @@ class ChatClient {
             } else when (status) {
                 401 -> "${provider.label} Key 无效或已过期，请检查当前平台的 Key"
                 402 -> "${provider.label} 余额或消费上限不足；可手动选择免费模型"
-                403 -> "${provider.label} 拒绝访问，请检查账号、地区、隐私设置及内容要求"
+                403 -> "${provider.label} 请求被服务端拒绝（HTTP 403）。可能是 Key 权限、地区策略或内容策略；请先用普通问候语测试，若仍失败请检查服务商控制台。不会自动重试。"
                 429 -> "${provider.label} 额度或速率受限，请稍后再试；未自动重试或切换平台"
                 400, 404 -> "${provider.label} 请求或模型不可用，请刷新列表或检查模型 ID"
                 else -> "${provider.label} 请求失败（HTTP $status），请稍后手动重试"
