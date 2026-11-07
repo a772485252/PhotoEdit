@@ -118,7 +118,18 @@ class ChatClient {
             }
             if (body != null) connection.outputStream.use { it.write(body) }
             val status = connection.responseCode
-            if (status !in 200..299) throw IOException(if (provider == ChatProvider.CLOUDFLARE) when (status) {
+            if (status !in 200..299) {
+                val detail = try {
+                    val raw = connection.errorStream?.bufferedReader()?.use { it.readText().take(4096) }.orEmpty()
+                    val json = JSONObject(raw)
+                    val error = json.optJSONObject("error")
+                    val message = error?.optString("message").orEmpty().ifBlank { json.optString("message") }
+                    val code = error?.optString("code").orEmpty()
+                    listOf(code, message).filter { it.isNotBlank() }.joinToString(": ")
+                        .replace(token, "[已隐藏凭证]").replace(Regex("[\\r\\n\\t]"), " ").take(240)
+                        .takeIf { it.isNotBlank() }
+                } catch (_: Exception) { null }
+                throw IOException((if (provider == ChatProvider.CLOUDFLARE) when (status) {
                 401, 403 -> "Cloudflare API Token 无效或缺少 Workers AI 权限（需要 Workers AI Read 和 Edit）"
                 429 -> "Cloudflare Workers AI 请求受限或免费额度已用完，请查看 AI 控制台"
                 else -> "Cloudflare Workers AI 请求失败（HTTP $status），请检查 Account ID、Token 权限和模型可用性"
@@ -129,7 +140,8 @@ class ChatClient {
                 429 -> "${provider.label} 额度或速率受限，请稍后再试；未自动重试或切换平台"
                 400, 404 -> "${provider.label} 请求或模型不可用，请刷新列表或检查模型 ID"
                 else -> "${provider.label} 请求失败（HTTP $status），请稍后手动重试"
-            })
+            }) + (if (detail == null) "" else "；服务端详情：$detail"))
+            }
             val bytes = connection.inputStream.use { input ->
                 val output = ByteArrayOutputStream()
                 val buffer = ByteArray(4096)
