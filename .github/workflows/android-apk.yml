@@ -18,7 +18,7 @@ on:
       app_version:
         description: "App version to display (must match app/build.gradle.kts)"
         required: true
-        default: "0.9.31"
+        default: "0.9.32"
         type: string
 
 concurrency:
