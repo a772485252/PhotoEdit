@@ -231,3 +231,9 @@ A free native Android application for preparing images and short-form video mate
 - Added a separate notification channel and service declaration. Chat UI now explains that the user can switch apps during generation and that notification visibility depends on Android notification permission/settings.
 - The generated text remains in the existing in-memory chat state. No automatic file/gallery write or chat-history persistence was added.
 - Source version 0.9.31 / versionCode 43. APK workflow remains manual-only.
+
+## 2026-11-07 prompt assistant interaction update
+- Prompt assistant displays compact provider/model summary; cost and model metadata are expandable rather than always occupying the conversation viewport.
+- Mobile composer uses a full-width input and full-width primary action, with mode and secondary settings controls on separate rows.
+- Chat HTTP 403 reports a service-side rejection with possible causes, not a verified content-moderation diagnosis. No automatic paid retries or model switching.
+- Device/API verification and full CI checks remain pending until user requests an APK build.
