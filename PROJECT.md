@@ -248,3 +248,7 @@ A free native Android application for preparing images and short-form video mate
 
 ## 2026-11-07 Versioned APK filenames
 - APK publish workflow now writes `latest-apk/PhotoEdit-v<versionName>.apk` alongside legacy `latest-apk/PhotoEdit-debug.apk`, preserving old link compatibility. Version read from Gradle. Change applies on next successful build; not retroactively published.
+
+## 2026-11-07 Versioned-only APK policy
+- User confirmed legacy `PhotoEdit-debug.apk` URL need not be maintained. Workflow now publishes only `latest-apk/PhotoEdit-v<versionName>.apk`, version read from Gradle; existing legacy file may remain but is no longer updated or recommended.
+- Updated AGENTS.md mandatory rules and workflow publishing. No build triggered for this configuration-only request; verify on next explicitly requested build.
