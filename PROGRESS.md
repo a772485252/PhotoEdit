@@ -448,3 +448,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added grok-4.6 to APIPod chat model presets while keeping grok-4.5 as default; existing APIPod Key and chat client are reused.
 - Added display name and indicative APIPod xAI channel price guide ($1.40 input / $4.20 output per million tokens).
 - Source: https://www.apipod.ai/llm/xai/grok-4.6 . Code committed; no APK build requested or triggered, API call not live-tested.
+
+## 2026-11-07 APIPod HTTP error diagnostics
+- ChatClient now reads JSON error code/message from non-2xx HTTP error streams and appends a bounded, sanitized diagnostic to the existing localized status text. Current API key is redacted.
+- No endpoint, model, credential storage, billing, or retry behavior changed.
+- Source commit 69d94532; live API behavior and Android build not yet verified. User requested an APK build, but this connector does not expose workflow_dispatch; manual dispatch remains required.
