@@ -28,14 +28,15 @@ object ChatModels {
             ChatModel("deepseek-v4-1-flash-uncensored", "DeepSeek V4.1 Flash Uncensored")
         )
         ChatProvider.APIPOD -> listOf(
-            ChatModel(provider.defaultModel, "Grok 4.5 · APIPod")
+            ChatModel(provider.defaultModel, "Grok 4.5 · APIPod"),
+            ChatModel("grok-4.6", "Grok 4.6 · APIPod")
         )
     }
 
     fun displayName(provider: ChatProvider, model: String): String = when (provider) {
         ChatProvider.CLOUDFLARE -> if (model == "@cf/zai-org/glm-4.7-flash") "GLM-4.7-Flash" else model.substringAfterLast('/')
         ChatProvider.VENICE -> presets(provider).firstOrNull { it.id == model }?.name ?: model
-        ChatProvider.APIPOD -> if (model == "grok-4.5") "Grok 4.5" else model
+        ChatProvider.APIPOD -> presets(provider).firstOrNull { it.id == model }?.name ?: model
         else -> presets(provider).firstOrNull { it.id == model }?.name ?: model
     }
 
@@ -59,6 +60,9 @@ object ChatModels {
         provider == ChatProvider.VENICE && model == "deepseek-v4-1-flash-uncensored" ->
             PriceGuide("\$0.0033", "\$0.0132",
                 "按 1 字≈1 Token 粗估；Venice 标价输入 \$0.33、输出 \$1.32 / 百万 Token")
+        provider == ChatProvider.APIPOD && model == "grok-4.6" ->
+            PriceGuide("\$0.0140", "\$0.0420",
+                "按 1 字≈1 Token 粗估；APIPod xAI 渠道输入 \$1.40、输出 \$4.20 / 百万 Token，实际按 Token 结算")
         provider == ChatProvider.APIPOD && model == "grok-4.5" ->
             PriceGuide("\$0.002–\$0.014", "\$0.006–\$0.042",
                 "按 1 字≈1 Token 粗估；区间对应 APIPod Grok Lite 至 xAI 默认渠道")
