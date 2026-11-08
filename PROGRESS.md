@@ -477,3 +477,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated AGENTS.md to record that Venice official API is temporarily unavailable as a practical integration choice because payment/recharge is not currently accessible to the user.
 - Future text-prompt expansion provider research should prioritize usable payment routes and verified model availability; do not repeatedly recommend Venice without a user-reported payment change.
 - Documentation-only change. No app code, model selection, APK version, or build changed; no build triggered.
+
+## APIPod DeepSeek Flash chat preset (2026-11-08)
+- Added `deepseek-flash` to APIPod prompt-assistant presets and indicative per-character pricing in `domain/ChatModels.kt`; existing Grok selections and image generation unchanged.
+- Added focused preset, validation, display name and pricing assertions in `ChatModelsTest.kt`; updated PROJECT.md.
+- No new dependency or key; existing APIPod Chat Completions transport reused. Live model availability and moderation behavior not verified; no APK build or tests executed because user did not request an APK build.
