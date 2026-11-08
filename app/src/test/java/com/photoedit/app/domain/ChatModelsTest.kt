@@ -39,6 +39,14 @@ class ChatModelsTest {
         assertEquals("\$0.006–\$0.042", apipod?.outputPerTenThousandChars)
     }
 
+    @Test fun apipodDeepSeekFlashPresetAndPricing() {
+        assertTrue(ChatModels.presets(ChatProvider.APIPOD).any { it.id == "deepseek-flash" })
+        ChatModels.validate(ChatProvider.APIPOD, "deepseek-flash", false)
+        assertEquals("DeepSeek Flash · APIPod", ChatModels.displayName(ChatProvider.APIPOD, "deepseek-flash"))
+        assertEquals("\$0.0015", ChatModels.priceGuide(ChatProvider.APIPOD, "deepseek-flash")?.inputPerTenThousandChars)
+        assertEquals("\$0.0060", ChatModels.priceGuide(ChatProvider.APIPOD, "deepseek-flash")?.outputPerTenThousandChars)
+    }
+
     @Test fun unknownModelDoesNotInventAPrice() {
         assertNull(ChatModels.priceGuide(ChatProvider.APIPOD, "custom-model"))
         assertNull(ChatModels.priceGuide(ChatProvider.CLOUDFLARE, "@cf/unknown/model"))
