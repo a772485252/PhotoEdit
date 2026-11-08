@@ -28,11 +28,14 @@ import com.photoedit.app.ui.screens.HomeScreen
 import com.photoedit.app.ui.theme.PhotoEditTheme
 import com.photoedit.app.viewmodel.AiViewModel
 import com.photoedit.app.viewmodel.HomeViewModel
+import com.photoedit.app.viewmodel.DressChangeViewModel
+import com.photoedit.app.ui.screens.DressChangeScreen
 
 class MainActivity : ComponentActivity() {
     private val chatViewModel: ChatViewModel by viewModels()
     private val homeViewModel: HomeViewModel by viewModels()
     private val aiViewModel: AiViewModel by viewModels()
+    private val dressChangeViewModel: DressChangeViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -41,6 +44,8 @@ class MainActivity : ComponentActivity() {
                 val state by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val ai by aiViewModel.uiState.collectAsStateWithLifecycle()
                 val chat by chatViewModel.uiState.collectAsStateWithLifecycle()
+                val dressChange by dressChangeViewModel.uiState.collectAsStateWithLifecycle()
+                val dressPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(30)) { dressChangeViewModel.selectPhotos(it) }
                 val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { homeViewModel.onPhotoSelected(it) }
                 val referencePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { aiViewModel.selectReference(it) }
                 val gridPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -55,6 +60,7 @@ class MainActivity : ComponentActivity() {
                             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("图片拆分") })
                             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("AI 图片") })
                             Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("提示词助手") })
+                            Tab(selected = tab == 3, onClick = { tab = 3 }, text = { Text("变装视频") })
                         }
                         androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
                             if (tab == 0) HomeScreen(state, onChoosePhoto = {
