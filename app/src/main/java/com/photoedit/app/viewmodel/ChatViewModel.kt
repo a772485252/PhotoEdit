@@ -172,7 +172,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (state.busy) return
         perform(foreground = true) {
             val request = ChatRules.messages(state.messages, state.input, state.promptMode, state.promptRules)
-            val answer = client.reply(state.provider, state.token, state.model, request, state.allowPaid)
+            val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
+            if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
+            if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
+            val answer = client.reply(state.provider, activeToken, state.model, request, state.allowPaid)
             _state.value = _state.value.copy(input = "",
                 messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
             if (state.provider == ChatProvider.VENICE) refreshBalance()
