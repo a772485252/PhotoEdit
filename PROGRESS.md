@@ -467,3 +467,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Simplified APIPod model dropdown entries to `Grok 4.5` / `Grok 4.6` with a single billing line, removing repeated model IDs and provider text in the title.
 - Bumped app versionName to 0.9.34 and versionCode to 46; synchronized workflow_dispatch version default.
 - User explicitly requested APK build; push-triggered quick build is the available GitHub connector route.
+
+## 2026-11-08 v0.9.35 APIPod shared-key synchronization
+- Chat send and regenerate now reload the encrypted APIPod Key from shared storage immediately before the request, preventing stale in-memory credentials after the image screen changes the Key. Missing saved Key produces a clear error; no automatic retries or paid calls added.
+- Chat HTTP error handling recognizes `insufficient_user_quota` specifically instead of treating it as a generic permission/region/content HTTP 403; preserves sanitized server details.
+- Changed ChatViewModel.kt, ChatClient.kt, app/build.gradle.kts, android-apk.yml. Version 0.9.35 / versionCode 47. No APK build requested yet; compilation, tests, and live provider verification pending. This does not prove the remote quota issue is resolved.
