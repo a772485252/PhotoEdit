@@ -482,3 +482,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added `deepseek-flash` to APIPod prompt-assistant presets and indicative per-character pricing in `domain/ChatModels.kt`; existing Grok selections and image generation unchanged.
 - Added focused preset, validation, display name and pricing assertions in `ChatModelsTest.kt`; updated PROJECT.md.
 - No new dependency or key; existing APIPod Chat Completions transport reused. Live model availability and moderation behavior not verified; no APK build or tests executed because user did not request an APK build.
+
+## v0.9.36 release build requested (2026-11-08)
+- Increased versionCode to 48 and versionName to 0.9.36 for DeepSeek Flash APIPod preset.
+- Synchronized workflow_dispatch default and changed push-trigger builds to run full testDebugUnitTest + lintDebug + assembleDebug verification, instead of quick, for this API/model change.
+- Build verification and publication pending workflow result; live APIPod request remains unverified.
