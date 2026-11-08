@@ -83,6 +83,17 @@ fun DressChangeScreen(
         }
         if (state.videoPath != null) {
             Text("无声视频已生成，可预览并主动保存到相册。", style = MaterialTheme.typography.bodySmall)
+            val previewPath = state.videoPath
+            AndroidView(factory = { context -> VideoView(context).apply {
+                setVideoPath(previewPath)
+                setOnPreparedListener { player -> player.isLooping = true; start() }
+            } }, update = { view ->
+                if (view.tag != previewPath) {
+                    view.tag = previewPath
+                    view.setVideoPath(previewPath)
+                    view.start()
+                }
+            }, modifier = Modifier.fillMaxWidth().height(160.dp))
             Button(onClick = onSave, enabled = !state.exporting && !state.saving && state.savedVideoUri == null, modifier = Modifier.fillMaxWidth()) {
                 Text(if (state.saving) "正在保存…" else if (state.savedVideoUri != null) "已保存到相册" else "保存视频到相册")
             }
