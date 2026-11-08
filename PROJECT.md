@@ -252,3 +252,8 @@ A free native Android application for preparing images and short-form video mate
 ## 2026-11-07 Versioned-only APK policy
 - User confirmed legacy `PhotoEdit-debug.apk` URL need not be maintained. Workflow now publishes only `latest-apk/PhotoEdit-v<versionName>.apk`, version read from Gradle; existing legacy file may remain but is no longer updated or recommended.
 - Updated AGENTS.md mandatory rules and workflow publishing. No build triggered for this configuration-only request; verify on next explicitly requested build.
+
+## 2026-11-08 v0.9.35 APIPod shared-key synchronization
+- Chat send and regenerate now reload the encrypted APIPod Key from shared storage immediately before the request, preventing stale in-memory credentials after the image screen changes the Key. Missing saved Key produces a clear error; no automatic retries or paid calls added.
+- Chat HTTP error handling recognizes `insufficient_user_quota` specifically instead of treating it as a generic permission/region/content HTTP 403; preserves sanitized server details.
+- Changed ChatViewModel.kt, ChatClient.kt, app/build.gradle.kts, android-apk.yml. Version 0.9.35 / versionCode 47. No APK build requested yet; compilation, tests, and live provider verification pending. This does not prove the remote quota issue is resolved.
