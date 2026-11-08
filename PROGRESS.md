@@ -472,3 +472,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Chat send and regenerate now reload the encrypted APIPod Key from shared storage immediately before the request, preventing stale in-memory credentials after the image screen changes the Key. Missing saved Key produces a clear error; no automatic retries or paid calls added.
 - Chat HTTP error handling recognizes `insufficient_user_quota` specifically instead of treating it as a generic permission/region/content HTTP 403; preserves sanitized server details.
 - Changed ChatViewModel.kt, ChatClient.kt, app/build.gradle.kts, android-apk.yml. Version 0.9.35 / versionCode 47. No APK build requested yet; compilation, tests, and live provider verification pending. This does not prove the remote quota issue is resolved.
+
+## Provider recommendation rule correction (2026-11-08)
+- Updated AGENTS.md to record that Venice official API is temporarily unavailable as a practical integration choice because payment/recharge is not currently accessible to the user.
+- Future text-prompt expansion provider research should prioritize usable payment routes and verified model availability; do not repeatedly recommend Venice without a user-reported payment change.
+- Documentation-only change. No app code, model selection, APK version, or build changed; no build triggered.
