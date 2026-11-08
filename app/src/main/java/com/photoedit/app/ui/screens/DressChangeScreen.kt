@@ -70,7 +70,7 @@ fun DressChangeScreen(
                 }
             }
             item {
-                Text("当前仅支持无声 MP4，自动配乐仍在开发中。", style = MaterialTheme.typography.bodySmall)
+                Text("当前自动合成原创电子节奏，不使用网络热门歌曲。", style = MaterialTheme.typography.bodySmall)
             }
         }
         if (state.exporting) {
@@ -78,10 +78,10 @@ fun DressChangeScreen(
             Text("正在离线编码：${state.progress}%")
         }
         Button(onClick = onExport, enabled = state.timeline != null && !state.exporting, modifier = Modifier.fillMaxWidth()) {
-            Text("生成无声 MP4（测试版）")
+            Text("生成带节奏 MP4（测试版）")
         }
         if (state.videoPath != null) {
-            Text("无声视频已生成，可预览并主动保存到相册。", style = MaterialTheme.typography.bodySmall)
+            Text("视频已生成，可预览并主动保存到相册。", style = MaterialTheme.typography.bodySmall)
             val previewPath = state.videoPath
             AndroidView(factory = { context -> VideoView(context).apply {
                 tag = previewPath
