@@ -44,7 +44,7 @@ class DressChangeViewModel(application: Application) : AndroidViewModel(applicat
         val current = mutableState.value
         if (current.exporting || current.saving || from !in current.photos.indices || to !in current.photos.indices || from == to) return
         val photos = current.photos.toMutableList().apply { add(to, removeAt(from)) }
-        mutableState.value = current.copy(photos = photos)
+        mutableState.value = current.copy(photos = photos, videoPath = null, savedVideoUri = null, message = null)
     }
 
     fun export() {
@@ -89,6 +89,8 @@ class DressChangeViewModel(application: Application) : AndroidViewModel(applicat
         val photos = current.photos.toMutableList().apply { removeAt(index) }
         mutableState.value = current.copy(
             photos = photos,
+            videoPath = null,
+            savedVideoUri = null,
             timeline = if (photos.size >= 2) DressChangePlanner.plan(photos.size) else null,
             message = if (photos.size < 2) "至少选择两张照片" else null
         )
