@@ -52,6 +52,9 @@ class MainActivity : ComponentActivity() {
                 val gridPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                     if (it) homeViewModel.save() else homeViewModel.permissionDenied()
                 }
+                val videoPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                    if (it) dressChangeViewModel.saveVideo()
+                }
                 val aiPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                     if (it) aiViewModel.saveImage() else aiViewModel.permissionDenied()
                 }
@@ -91,7 +94,10 @@ class MainActivity : ComponentActivity() {
                                 onClearVeniceKey = aiViewModel::clearVeniceKey,
                                 onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else if (tab == 3) DressChangeScreen(dressChange, onChoose = {
                                 dressPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                            }, onMove = dressChangeViewModel::move, onRemove = dressChangeViewModel::remove, onExport = dressChangeViewModel::export)
+                            }, onMove = dressChangeViewModel::move, onRemove = dressChangeViewModel::remove, onExport = dressChangeViewModel::export, onSave = {
+                                if (needsStoragePermission()) videoPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                else dressChangeViewModel.saveVideo()
+                            })
                             else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
                                     canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
