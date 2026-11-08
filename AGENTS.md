@@ -67,3 +67,7 @@ Build a genuine native Android application for photo processing and short-form v
 
 ## Current project status
 The app is an established Kotlin + Jetpack Compose Android project. For current implementation state, active providers/models, and next steps, read PROJECT.md and the latest entries in PROGRESS.md; do not rely on this file for a stale task description.
+
+## Provider payment constraint (2026-11-08)
+- Venice official API is temporarily not usable for this user's PhotoEdit workflow because the user currently cannot pay/recharge there. Do not recommend Venice as an immediately actionable provider or propose integrating its paid official API unless the user explicitly says payment access has changed.
+- When recommending prompt-expansion models, prioritize currently payable/usable providers and verify model availability, pricing, and content policies before proposing integration. Do not assume an uncensored model is offered by APIPod.
