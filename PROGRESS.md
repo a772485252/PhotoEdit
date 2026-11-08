@@ -501,3 +501,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Users can select up to 30 photos, inspect beat timing and reorder/remove; no misleading Generate action until actual encoder is implemented.
 - UI uses lazy scrolling and a scrollable tab bar for smaller phones. Preview thumbnails use sampled decoding; real-device memory and URI persistence need verification.
 - No music, rendering, MP4 export or gallery save yet. No Gradle compilation, lint, unit-test execution or APK build performed; source integration is unverified.
+
+## 2026-11-08 — Dress-change milestone 3 (source committed; no build)
+- Fixed MainActivity tab 3 navigation regression: it now actually renders DressChangeScreen, rather than falling through to ChatScreen.
+- Added domain/DressChangeMotion.kt for deterministic 9:16 720p/30fps frame transform calculations (Ken Burns zoom/pan and short beat fade), plus DressChangeMotionTest.kt for frame bounds, beat switch, timeline coverage.
+- Rendering/export, soundtrack, background jobs and gallery save are NOT implemented. No APK build triggered per user build policy; tests/compilation and device behavior remain unverified.
