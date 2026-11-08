@@ -15,9 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
                 }
                 Scaffold { padding ->
                     Column(Modifier.fillMaxSize().padding(padding)) {
-                        TabRow(selectedTabIndex = tab) {
+                        ScrollableTabRow(selectedTabIndex = tab, edgePadding = 8.dp) {
                             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("图片拆分") })
                             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("AI 图片") })
                             Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("提示词助手") })
