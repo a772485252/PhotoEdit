@@ -487,3 +487,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Increased versionCode to 48 and versionName to 0.9.36 for DeepSeek Flash APIPod preset.
 - Synchronized workflow_dispatch default and changed push-trigger builds to run full testDebugUnitTest + lintDebug + assembleDebug verification, instead of quick, for this API/model change.
 - Build verification and publication pending workflow result; live APIPod request remains unverified.
+
+
+## 2026-11-08 — Offline dress-change video milestone 1 (code committed, build pending)
+- Added domain/DressChangePlanner.kt: deterministic 8/12/15-second pop-style beat templates, validation and 2–30-photo timeline planning. This produces cue data only, not a video.
+- Added focused domain/DressChangePlannerTest.kt for beat alignment, continuity, maximum photo count and invalid input.
+- No soundtrack assets bundled: original/licensed music must be provided before automatic audible output can work; no unlicensed trending songs downloaded.
+- Still pending: photo picker/order UI, motion and transitions, audio, MP4 rendering, foreground export, manual save and real-device verification.
+- No APK build triggered, per AGENTS.md. Unit tests not executed in this environment; compilation unverified.
