@@ -272,3 +272,5 @@ A free native Android application for preparing images and short-form video mate
 - Milestone 2: added DressChangeViewModel and DressChangeScreen; Android multiple-image picker (up to 30), ordered photo list with move up/down/remove, beat cue time labels and fourth horizontally scrollable navigation tab. The screen explicitly states MP4 export and music are not available yet. Existing image and chat screens preserved.
 
 - Milestone 3: corrected MainActivity fourth-tab routing (previous code accidentally rendered ChatScreen for tab 3). Added pure DressChangeMotion frame transform planner (720x1280, 30 FPS, alternating pan/zoom and short beat fade). It only computes frames; no actual image renderer, audio or MP4 encoder yet.
+
+- Frame rendering adapter: processing/DressChangeFrameRenderer draws normalized Ken Burns transforms into a caller-provided Canvas, including beat-cut fade/flash, without allocating a full-resolution bitmap per frame. This is a renderer component, not yet an MP4 encoder.
