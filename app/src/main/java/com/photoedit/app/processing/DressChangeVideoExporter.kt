@@ -13,8 +13,8 @@ import com.photoedit.app.domain.DressChangeMotion
 import com.photoedit.app.domain.DressChangeTimeline
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.ensureActive
 import java.io.File
-import java.nio.ByteBuffer
 
 /**
  * Offline silent MP4 encoder. Uses byte-buffer YUV420 for broad Android API 26 compatibility.
