@@ -495,3 +495,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - No soundtrack assets bundled: original/licensed music must be provided before automatic audible output can work; no unlicensed trending songs downloaded.
 - Still pending: photo picker/order UI, motion and transitions, audio, MP4 rendering, foreground export, manual save and real-device verification.
 - No APK build triggered, per AGENTS.md. Unit tests not executed in this environment; compilation unverified.
+
+## 2026-11-08 — Dress-change milestone 2 (source committed; no build)
+- Added viewmodel/DressChangeViewModel.kt and ui/screens/DressChangeScreen.kt; wired multi-photo picker and fourth scrollable tab in MainActivity.kt.
+- Users can select up to 30 photos, inspect beat timing and reorder/remove; no misleading Generate action until actual encoder is implemented.
+- UI uses lazy scrolling and a scrollable tab bar for smaller phones. Preview thumbnails use sampled decoding; real-device memory and URI persistence need verification.
+- No music, rendering, MP4 export or gallery save yet. No Gradle compilation, lint, unit-test execution or APK build performed; source integration is unverified.
