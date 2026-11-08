@@ -1,5 +1,1 @@
-Build request: 2026-11-07 v0.9.32 Grok 4.6; full verification requested, push-triggered quick build.
-
-Explicit APK download request: publish version-named v0.9.32 APK with latest workflow.
-
-Build request: v0.9.34 APIPod model picker cleanup; user explicitly requested build after version bump. Push-triggered quick build.
+2026-11-08 v0.9.35 full build requested; validate APIPod shared-key sync and quota diagnostics.
