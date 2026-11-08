@@ -268,3 +268,5 @@ A free native Android application for preparing images and short-form video mate
 - New pure Kotlin DressChangePlanner defines deterministic 8/12/15-second pop-style beat timelines for 2–30 photos. Music references are deliberately null until original or licensed audio assets are supplied.
 - Target behavior: multi-select and reorder photos, beat-synchronized cuts, motion/transition rendering, automatic soundtrack, 9:16 H.264/AAC MP4 export, explicit gallery save. These UI/render/audio/export capabilities are NOT implemented yet.
 - Offline only, no paid video API. Do not bundle unlicensed Douyin songs. No APK build until explicitly requested.
+
+- Milestone 2: added DressChangeViewModel and DressChangeScreen; Android multiple-image picker (up to 30), ordered photo list with move up/down/remove, beat cue time labels and fourth horizontally scrollable navigation tab. The screen explicitly states MP4 export and music are not available yet. Existing image and chat screens preserved.
