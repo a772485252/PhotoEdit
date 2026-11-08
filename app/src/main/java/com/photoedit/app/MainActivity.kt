@@ -89,7 +89,10 @@ class MainActivity : ComponentActivity() {
                                 onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking,
                                 onVeniceKey = aiViewModel::veniceKey, onSaveVeniceKey = aiViewModel::saveVeniceKey,
                                 onClearVeniceKey = aiViewModel::clearVeniceKey,
-                                onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else if (tab == 3) DressChangeScreen(dressChange, onChoose = {
+                                dressPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            }, onMove = dressChangeViewModel::move, onRemove = dressChangeViewModel::remove)
+                            else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
                                     canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
