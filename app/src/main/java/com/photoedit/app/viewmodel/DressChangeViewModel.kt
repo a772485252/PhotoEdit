@@ -4,6 +4,7 @@ import android.net.Uri
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.photoedit.app.processing.DressChangeAudioMuxer
 import com.photoedit.app.processing.DressChangeVideoExporter
 import com.photoedit.app.processing.DressChangeVideoSaver
 import java.io.File
@@ -54,10 +55,15 @@ class DressChangeViewModel(application: Application) : AndroidViewModel(applicat
         mutableState.value = current.copy(exporting = true, progress = 0, videoPath = null, savedVideoUri = null, message = null)
         viewModelScope.launch {
             try {
-                val output = exporter.export(current.photos, timeline) { percent ->
-                    mutableState.value = mutableState.value.copy(progress = percent)
+                val silent = exporter.export(current.photos, timeline) { percent ->
+                    mutableState.value = mutableState.value.copy(progress = percent * 85 / 100)
                 }
-                mutableState.value = mutableState.value.copy(videoPath = output.absolutePath, message = "无声 MP4 已生成到应用缓存，尚未保存到相册")
+                val output = try {
+                    DressChangeAudioMuxer.addOriginalBeat(silent, timeline)
+                } finally {
+                    silent.delete()
+                }
+                mutableState.value = mutableState.value.copy(videoPath = output.absolutePath, progress = 100, message = "带原创节奏音乐的 MP4 已生成，可预览或保存")
             } catch (e: Exception) {
                 mutableState.value = mutableState.value.copy(message = "视频生成失败：${e.localizedMessage ?: "请重试"}")
             } finally {
