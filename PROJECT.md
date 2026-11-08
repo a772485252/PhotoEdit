@@ -262,3 +262,9 @@ A free native Android application for preparing images and short-form video mate
 - APIPod text model preset `deepseek-flash` added alongside Grok 4.5/4.6, using the same encrypted APIPod key and existing Chat Completions endpoint. No new provider, SDK, or image-generation changes.
 - Indicative pricing: $0.15 input / $0.60 output per million tokens; app displays approximate 10k-character guidance. Availability, billing and content policy require live user-key testing.
 - Venice official API remains temporarily unsuitable due to unavailable payment/recharge access; do not suggest it as an immediately actionable integration.
+
+
+## Offline dress-change montage (implementation in progress, 2026-11-08)
+- New pure Kotlin DressChangePlanner defines deterministic 8/12/15-second pop-style beat timelines for 2–30 photos. Music references are deliberately null until original or licensed audio assets are supplied.
+- Target behavior: multi-select and reorder photos, beat-synchronized cuts, motion/transition rendering, automatic soundtrack, 9:16 H.264/AAC MP4 export, explicit gallery save. These UI/render/audio/export capabilities are NOT implemented yet.
+- Offline only, no paid video API. Do not bundle unlicensed Douyin songs. No APK build until explicitly requested.
