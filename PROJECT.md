@@ -257,3 +257,8 @@ A free native Android application for preparing images and short-form video mate
 - Chat send and regenerate now reload the encrypted APIPod Key from shared storage immediately before the request, preventing stale in-memory credentials after the image screen changes the Key. Missing saved Key produces a clear error; no automatic retries or paid calls added.
 - Chat HTTP error handling recognizes `insufficient_user_quota` specifically instead of treating it as a generic permission/region/content HTTP 403; preserves sanitized server details.
 - Changed ChatViewModel.kt, ChatClient.kt, app/build.gradle.kts, android-apk.yml. Version 0.9.35 / versionCode 47. No APK build requested yet; compilation, tests, and live provider verification pending. This does not prove the remote quota issue is resolved.
+
+## APIPod DeepSeek Flash prompt-assistant option (2026-11-08)
+- APIPod text model preset `deepseek-flash` added alongside Grok 4.5/4.6, using the same encrypted APIPod key and existing Chat Completions endpoint. No new provider, SDK, or image-generation changes.
+- Indicative pricing: $0.15 input / $0.60 output per million tokens; app displays approximate 10k-character guidance. Availability, billing and content policy require live user-key testing.
+- Venice official API remains temporarily unsuitable due to unavailable payment/recharge access; do not suggest it as an immediately actionable integration.
