@@ -13,6 +13,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.widget.VideoView
+import androidx.compose.ui.viewinterop.AndroidView
 import com.photoedit.app.viewmodel.DressChangeUiState
 
 @Composable
@@ -21,7 +24,8 @@ fun DressChangeScreen(
     onChoose: () -> Unit,
     onMove: (Int, Int) -> Unit,
     onRemove: (Int) -> Unit,
-    onExport: () -> Unit
+    onExport: () -> Unit,
+    onSave: () -> Unit
 ) {
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text("一键变装卡点", style = MaterialTheme.typography.titleLarge)
@@ -67,7 +71,7 @@ fun DressChangeScreen(
                 }
             }
             item {
-                Text("当前仅支持生成无声 MP4，自动配乐和保存到相册仍在开发中。", style = MaterialTheme.typography.bodySmall)
+                Text("当前仅支持无声 MP4，自动配乐仍在开发中。", style = MaterialTheme.typography.bodySmall)
             }
         }
         if (state.exporting) {
@@ -77,6 +81,11 @@ fun DressChangeScreen(
         Button(onClick = onExport, enabled = state.timeline != null && !state.exporting, modifier = Modifier.fillMaxWidth()) {
             Text("生成无声 MP4（测试版）")
         }
-        if (state.videoPath != null) Text("已生成临时文件，尚未保存到相册。", style = MaterialTheme.typography.bodySmall)
+        if (state.videoPath != null) {
+            Text("无声视频已生成，可预览并主动保存到相册。", style = MaterialTheme.typography.bodySmall)
+            Button(onClick = onSave, enabled = !state.exporting && !state.saving && state.savedVideoUri == null, modifier = Modifier.fillMaxWidth()) {
+                Text(if (state.saving) "正在保存…" else if (state.savedVideoUri != null) "已保存到相册" else "保存视频到相册")
+            }
+        }
     }
 }
