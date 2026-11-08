@@ -20,13 +20,14 @@ fun DressChangeScreen(
     state: DressChangeUiState,
     onChoose: () -> Unit,
     onMove: (Int, Int) -> Unit,
-    onRemove: (Int) -> Unit
+    onRemove: (Int) -> Unit,
+    onExport: () -> Unit
 ) {
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text("一键变装卡点", style = MaterialTheme.typography.titleLarge)
         Text("本地选择照片，按流行变装节奏自动安排切换时间。", style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
-        Button(onClick = onChoose, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onChoose, enabled = !state.exporting, modifier = Modifier.fillMaxWidth()) {
             Text(if (state.photos.isEmpty()) "选择 2～30 张照片" else "重新选择照片")
         }
         state.timeline?.let {
@@ -59,15 +60,23 @@ fun DressChangeScreen(
                                 Text("${cue.startMs / 1000.0}–${cue.endMs / 1000.0} 秒", style = MaterialTheme.typography.bodySmall)
                             }
                         }
-                        TextButton(onClick = { onMove(index, index - 1) }, enabled = index > 0) { Text("↑") }
-                        TextButton(onClick = { onMove(index, index + 1) }, enabled = index < state.photos.lastIndex) { Text("↓") }
-                        TextButton(onClick = { onRemove(index) }) { Text("删") }
+                        TextButton(onClick = { onMove(index, index - 1) }, enabled = !state.exporting && index > 0) { Text("↑") }
+                        TextButton(onClick = { onMove(index, index + 1) }, enabled = !state.exporting && index < state.photos.lastIndex) { Text("↓") }
+                        TextButton(onClick = { onRemove(index) }, enabled = !state.exporting) { Text("删") }
                     }
                 }
             }
             item {
-                Text("视频编码、运镜和自动配乐仍在开发中。当前页面仅提供照片排序和卡点时间轴预览，不会生成视频。", style = MaterialTheme.typography.bodySmall)
+                Text("当前仅支持生成无声 MP4，自动配乐和保存到相册仍在开发中。", style = MaterialTheme.typography.bodySmall)
             }
         }
+        if (state.exporting) {
+            LinearProgressIndicator(progress = { state.progress / 100f }, modifier = Modifier.fillMaxWidth())
+            Text("正在离线编码：${state.progress}%")
+        }
+        Button(onClick = onExport, enabled = state.timeline != null && !state.exporting, modifier = Modifier.fillMaxWidth()) {
+            Text("生成无声 MP4（测试版）")
+        }
+        if (state.videoPath != null) Text("已生成临时文件，尚未保存到相册。", style = MaterialTheme.typography.bodySmall)
     }
 }
