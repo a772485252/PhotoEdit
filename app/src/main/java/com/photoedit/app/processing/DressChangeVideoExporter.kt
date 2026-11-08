@@ -123,7 +123,7 @@ class DressChangeVideoExporter(private val context: Context) {
                     }
                 }
             }
-            check(muxerStarted && output.length() > 0L)
+            check(muxerStarted)
             output
         } catch (error: Throwable) {
             output.delete()
