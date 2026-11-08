@@ -1,1 +1,1 @@
-2026-11-08 v0.9.35 full build requested; validate APIPod shared-key sync and quota diagnostics.
+2026-11-08 v0.9.36 full build requested; DeepSeek Flash APIPod preset.
