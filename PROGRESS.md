@@ -528,3 +528,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Fixed DressChangeViewModel to invalidate previously exported video after photo order/removal changes, avoiding saving a stale montage.
 - Fixed premature MP4 file-length check before MediaMuxer finalization.
 - Generated PCM is NOT yet AAC-encoded or added to MP4; export remains silent. Audio synthesis is not a substitute for a currently trending licensed song. No APK build, compilation, lint or unit tests executed; integration and codec behavior remain unverified.
+
+## 2026-11-08 — Dress-change milestone 7 (AAC + MP4 mux source committed; unverified)
+- Added processing/DressChangeAudioMuxer.kt to encode generated mono 44.1kHz PCM to AAC-LC via MediaCodec/MediaMuxer, then copy video/audio samples into a combined MP4 via MediaExtractor/MediaMuxer.
+- Wired ViewModel two-stage export (video 0–85% progress, AAC/remux final stage) and removed silent intermediate after use. UI now correctly says "生成带节奏 MP4（测试版）" and explains audio is original electronic beats rather than a trending licensed song.
+- Still no background/foreground service; exports may stop if app process is killed. Device AAC/AVC compatibility, playback timing, generated file validity, lint, tests and compilation are unverified; no APK build requested or run.
