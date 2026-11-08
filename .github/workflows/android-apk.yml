@@ -18,7 +18,7 @@ on:
       app_version:
         description: "App version to display (must match app/build.gradle.kts)"
         required: true
-        default: "0.9.35"
+        default: "0.9.36"
         type: string
 
 concurrency:
@@ -76,10 +76,10 @@ jobs:
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
           keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey
       - name: Quick build debug APK
-        if: github.event_name == 'push' || inputs.build_mode == 'quick'
+        if: inputs.build_mode == 'quick'
         run: gradle --build-cache --parallel assembleDebug
       - name: Full verification and build
-        if: inputs.build_mode == 'full'
+        if: github.event_name == 'push' || inputs.build_mode == 'full'
         run: gradle --build-cache --parallel testDebugUnitTest lintDebug assembleDebug
       - name: Verify APK signature
         run: |
