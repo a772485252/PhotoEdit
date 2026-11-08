@@ -506,3 +506,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Fixed MainActivity tab 3 navigation regression: it now actually renders DressChangeScreen, rather than falling through to ChatScreen.
 - Added domain/DressChangeMotion.kt for deterministic 9:16 720p/30fps frame transform calculations (Ken Burns zoom/pan and short beat fade), plus DressChangeMotionTest.kt for frame bounds, beat switch, timeline coverage.
 - Rendering/export, soundtrack, background jobs and gallery save are NOT implemented. No APK build triggered per user build policy; tests/compilation and device behavior remain unverified.
+
+## 2026-11-08 — Dress-change frame renderer milestone
+- Added processing/DressChangeFrameRenderer.kt to draw cropped 9:16-compatible Ken Burns frames with beat-cut opacity/flash into a caller-owned Android Canvas.
+- Reused existing domain/DressChangeMotion.kt frame scheduling (found already present on main); no duplicate motion planner added. Existing motion tests are also present.
+- Still needs MediaCodec/MediaMuxer encoder, audio soundtrack, user-facing preview/export/save and device validation. No APK build requested or run; compilation remains unverified.
