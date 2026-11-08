@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.widget.VideoView
 import androidx.compose.ui.viewinterop.AndroidView
 import com.photoedit.app.viewmodel.DressChangeUiState
@@ -85,6 +84,7 @@ fun DressChangeScreen(
             Text("无声视频已生成，可预览并主动保存到相册。", style = MaterialTheme.typography.bodySmall)
             val previewPath = state.videoPath
             AndroidView(factory = { context -> VideoView(context).apply {
+                tag = previewPath
                 setVideoPath(previewPath)
                 setOnPreparedListener { player -> player.isLooping = true; start() }
             } }, update = { view ->
