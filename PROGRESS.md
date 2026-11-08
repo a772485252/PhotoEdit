@@ -511,3 +511,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added processing/DressChangeFrameRenderer.kt to draw cropped 9:16-compatible Ken Burns frames with beat-cut opacity/flash into a caller-owned Android Canvas.
 - Reused existing domain/DressChangeMotion.kt frame scheduling (found already present on main); no duplicate motion planner added. Existing motion tests are also present.
 - Still needs MediaCodec/MediaMuxer encoder, audio soundtrack, user-facing preview/export/save and device validation. No APK build requested or run; compilation remains unverified.
+
+## 2026-11-08 — Dress-change milestone 4 (silent MP4 encoder, unverified)
+- Added processing/DressChangeVideoExporter.kt: MediaCodec AVC YUV420 byte-buffer encoding, MediaMuxer MP4, frame rendering with sampled image decoding and per-frame motion. Temporary output remains in app cache; no gallery save.
+- Wired ViewModel export/progress and fixed-bottom "生成无声 MP4（测试版）" button in DressChangeScreen, plus MainActivity callback.
+- Explicitly no soundtrack yet. No background service, no final save, no playback preview, no device codec validation. Some devices may reject YUV420 input layout or 720p configuration; investigate through full build and device logs when APK is requested.
+- No build or tests run per user build policy. Code compilation and runtime correctness remain unverified.
