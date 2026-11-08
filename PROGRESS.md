@@ -522,3 +522,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added processing/DressChangeVideoSaver.kt to copy generated cache MP4 to Movies/PhotoEdit via MediaStore only when user explicitly taps Save; rollback on failure and Android 10+ pending visibility.
 - Added ViewModel save state, screen VideoView preview and save button, plus Android 8/9 legacy storage permission flow in MainActivity. No automatic gallery writes.
 - Automatic licensed soundtrack, audio muxing, robust background export and codec compatibility remain pending. Compilation, lint, tests and real-device verification NOT run; no APK build requested.
+
+## 2026-11-08 — Dress-change milestone 6 (original audio groundwork, not yet muxed)
+- Added domain/DressChangeBeatAudio.kt for deterministic, sample-free original electronic kick/clap/bass PCM in bounded chunks; no copyrighted Douyin tracks or paid API. Added DressChangeBeatAudioTest.kt for deterministic chunk continuity and bounds.
+- Fixed DressChangeViewModel to invalidate previously exported video after photo order/removal changes, avoiding saving a stale montage.
+- Fixed premature MP4 file-length check before MediaMuxer finalization.
+- Generated PCM is NOT yet AAC-encoded or added to MP4; export remains silent. Audio synthesis is not a substitute for a currently trending licensed song. No APK build, compilation, lint or unit tests executed; integration and codec behavior remain unverified.
