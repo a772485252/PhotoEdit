@@ -1,1 +1,1 @@
-2026-11-08 v0.9.36 full build requested; DeepSeek Flash APIPod preset.
+2026-11-09 v0.9.37 full build explicitly requested; dress-change video with original AAC beat, preview and manual save.
