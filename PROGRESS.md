@@ -545,3 +545,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated build-trigger.txt to explicitly request the full GitHub Actions APK workflow for the current dress-change video implementation.
 - Trigger commit submitted. Build success, lint/tests, signing, published versioned APK and device runtime are NOT yet verified. Do not distribute an unverified APK.
 - Personal-use scope: original synthesized audio rather than licensed trending songs; no guarantee of background persistence. Follow up with workflow logs and fix actual failures before marking release complete.
+
+## 2026-11-09 — Fix failed v0.9.37 Kotlin compile
+- User-provided GitHub Actions log showed :app:compileDebugKotlin failed in DressChangeScreen.kt because a delegated produceState Bitmap? cannot be smart-cast.
+- Fixed the nullable thumbnail access by copying it to a stable local variable before the null check and asImageBitmap call.
+- The prior build failed; APK publishing steps were skipped. Rebuild requested to validate the fix; outcome pending.
