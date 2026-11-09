@@ -561,3 +561,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Fixed produceState by assigning its value directly from a suspend thumbnail helper; moved image decoding into Dispatchers.IO and guarded invalid dimensions. This avoids both prior delegated-property smart-cast and producer-assignment lint issues.
 - Reviewed DressChangePlanner, Motion, FrameRenderer, BeatAudio, VideoExporter, AudioMuxer, VideoSaver, ViewModel and screen. Fixed silent MP4 exporter to stop/finalize MediaMuxer before checking output file size.
 - Remaining device risks: MediaCodec YUV layout support, playback A/V timing, and foreground/background survival. No new dependencies or architecture added. Compilation/lint/build and on-device testing remain unverified until the next Actions run.
+
+## 2026-11-09 — Replace recurring Compose thumbnail Lint failure
+- User screenshot confirms third full-build attempt failed at :app:lintDebug, one ProduceStateDoesNotAssignValue error in DressChangeScreen.kt (57 nonblocking warnings). Previous direct producer assignment still triggered the lint rule.
+- Removed produceState entirely for thumbnail state; now use remember(uri) mutableStateOf<Bitmap?> and LaunchedEffect(uri) calling the existing Dispatchers.IO thumbnail loader. This avoids the problematic lint API rather than suppressing checks.
+- No architecture or dependency changes. Build outcome still pending; requested full rebuild follows.
