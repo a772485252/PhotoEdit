@@ -8,6 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import android.content.Context
+import android.net.Uri
+import android.graphics.Bitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Modifier
@@ -48,18 +51,7 @@ fun DressChangeScreen(
                     Row(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val context = LocalContext.current
                         val thumbnail by produceState<android.graphics.Bitmap?>(initialValue = null, key1 = uri) {
-                            value = withContext(Dispatchers.IO) {
-                            try {
-                                context.contentResolver.openInputStream(uri)?.use { stream ->
-                                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                                    BitmapFactory.decodeStream(stream, null, options)
-                                    val sample = maxOf(1, maxOf(options.outWidth, options.outHeight) / 256)
-                                    context.contentResolver.openInputStream(uri)?.use { input ->
-                                        BitmapFactory.decodeStream(input, null, BitmapFactory.Options().apply { inSampleSize = sample })
-                                    }
-                                }
-                            } catch (_: Exception) { null }
-                            }
+                            value = loadDressThumbnail(context, uri)
                         }
                         val loadedThumbnail = thumbnail
                         if (loadedThumbnail != null) Image(loadedThumbnail.asImageBitmap(), "第 ${index + 1} 张", Modifier.size(64.dp), contentScale = ContentScale.Crop)
@@ -106,3 +98,21 @@ fun DressChangeScreen(
         }
     }
 }
+
+private suspend fun loadDressThumbnail(context: Context, uri: Uri): Bitmap? =
+    withContext(Dispatchers.IO) {
+        try {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input, null, options)
+            }
+            if (options.outWidth <= 0 || options.outHeight <= 0) return@withContext null
+            var sample = 1
+            while (maxOf(options.outWidth, options.outHeight) / sample > 256) sample *= 2
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input, null, BitmapFactory.Options().apply { inSampleSize = sample })
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
