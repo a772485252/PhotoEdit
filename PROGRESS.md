@@ -576,3 +576,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Verified AGENTS.md already mandates versioned filenames latest-apk/PhotoEdit-v<versionName>.apk and explicitly prohibits linking historical PhotoEdit-debug.apk as latest.
 - Confirmed via repository fetch that latest-apk/PhotoEdit-v0.9.37.apk exists. Corrected the download link to the versioned path.
 - Prior assistant response linked the historical debug filename in violation of the existing rule. Do not repeat; existence of an APK file alone is not proof of successful workflow or device compatibility.
+
+## 2026-11-09 — Remove obsolete APK alias
+- User explicitly requested deleting the old APK file. Deleted latest-apk/PhotoEdit-debug.apk from main (commit 5d588c862d95dd7e8f560048f79cd6d1d25e6047).
+- Verified obsolete file now returns NOT_FOUND, and versioned latest-apk/PhotoEdit-v0.9.37.apk still exists.
+- Future APK publishing must retain versioned naming only, per AGENTS.md. This was a repository file cleanup, not a new APK build.
