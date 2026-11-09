@@ -539,3 +539,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Optimized DressChangeBeatAudio.samples: binary-search the initial beat and advance a cursor, rather than scanning every beat for each PCM sample.
 - Moved DressChangeScreen thumbnail decoding to Dispatchers.IO via produceState, avoiding synchronous image I/O during scrolling.
 - Known pending risks: actual codec compatibility, export resource cleanup, legacy permissions, audio/video timing, and background execution. No tests, Gradle build or APK build run; source remains unverified.
+
+## 2026-11-09 — User-requested v0.9.37 full build
+- Bumped app/build.gradle.kts to versionCode 49 and versionName 0.9.37.
+- Updated build-trigger.txt to explicitly request the full GitHub Actions APK workflow for the current dress-change video implementation.
+- Trigger commit submitted. Build success, lint/tests, signing, published versioned APK and device runtime are NOT yet verified. Do not distribute an unverified APK.
+- Personal-use scope: original synthesized audio rather than licensed trending songs; no guarantee of background persistence. Follow up with workflow logs and fix actual failures before marking release complete.
