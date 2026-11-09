@@ -571,3 +571,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - User screenshot from the next build showed :app:compileDebugKotlin failed at DressChangeScreen.kt:55:42 because mutableStateOf delegated var required androidx.compose.runtime.setValue.
 - Added the missing setValue import and fetched the resulting file again to confirm the import and delegated state declaration are both present.
 - Previous build failed; no APK was produced. Rebuild requested. Do not claim success until full workflow and artifact publishing are verified.
+
+## 2026-11-09 — Correct APK download filename guidance
+- Verified AGENTS.md already mandates versioned filenames latest-apk/PhotoEdit-v<versionName>.apk and explicitly prohibits linking historical PhotoEdit-debug.apk as latest.
+- Confirmed via repository fetch that latest-apk/PhotoEdit-v0.9.37.apk exists. Corrected the download link to the versioned path.
+- Prior assistant response linked the historical debug filename in violation of the existing rule. Do not repeat; existence of an APK file alone is not proof of successful workflow or device compatibility.
