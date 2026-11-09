@@ -555,3 +555,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - User-provided full-build log shows lintDebug failed in DressChangeAudioMuxer.kt copyTrack: MediaExtractor.sampleFlags was passed directly into MediaCodec.BufferInfo.set flags. These are different flag namespaces.
 - Replaced direct flags forwarding with explicit mapping of extractor SAMPLE_FLAG_SYNC to MediaCodec.BUFFER_FLAG_KEY_FRAME; other extractor-only flags are not forwarded.
 - Screenshot indicates two lint errors total but only this error location is visible; full remaining lint report and successful rebuild remain to be verified.
+
+## 2026-11-09 — Full dress-change source review after Lint failure
+- Latest user-provided full-build log: :app:lintDebug failed with one blocking Compose ProduceStateDoesNotAssignValue in DressChangeScreen.kt, plus 57 warnings (warnings were not counted as 57 errors).
+- Fixed produceState by assigning its value directly from a suspend thumbnail helper; moved image decoding into Dispatchers.IO and guarded invalid dimensions. This avoids both prior delegated-property smart-cast and producer-assignment lint issues.
+- Reviewed DressChangePlanner, Motion, FrameRenderer, BeatAudio, VideoExporter, AudioMuxer, VideoSaver, ViewModel and screen. Fixed silent MP4 exporter to stop/finalize MediaMuxer before checking output file size.
+- Remaining device risks: MediaCodec YUV layout support, playback A/V timing, and foreground/background survival. No new dependencies or architecture added. Compilation/lint/build and on-device testing remain unverified until the next Actions run.
