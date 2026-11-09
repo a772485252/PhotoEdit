@@ -6,7 +6,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.asImageBitmap
@@ -44,7 +47,8 @@ fun DressChangeScreen(
                 Card(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val context = LocalContext.current
-                        val thumbnail = remember(uri) {
+                        val thumbnail by produceState<android.graphics.Bitmap?>(initialValue = null, key1 = uri) {
+                            value = withContext(Dispatchers.IO) {
                             try {
                                 context.contentResolver.openInputStream(uri)?.use { stream ->
                                     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -55,6 +59,7 @@ fun DressChangeScreen(
                                     }
                                 }
                             } catch (_: Exception) { null }
+                            }
                         }
                         if (thumbnail != null) Image(thumbnail.asImageBitmap(), "第 ${index + 1} 张", Modifier.size(64.dp), contentScale = ContentScale.Crop)
                         Column(Modifier.weight(1f)) {
