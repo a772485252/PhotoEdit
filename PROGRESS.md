@@ -566,3 +566,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - User screenshot confirms third full-build attempt failed at :app:lintDebug, one ProduceStateDoesNotAssignValue error in DressChangeScreen.kt (57 nonblocking warnings). Previous direct producer assignment still triggered the lint rule.
 - Removed produceState entirely for thumbnail state; now use remember(uri) mutableStateOf<Bitmap?> and LaunchedEffect(uri) calling the existing Dispatchers.IO thumbnail loader. This avoids the problematic lint API rather than suppressing checks.
 - No architecture or dependency changes. Build outcome still pending; requested full rebuild follows.
+
+## 2026-11-09 — Fix missing Kotlin delegated-state setter import
+- User screenshot from the next build showed :app:compileDebugKotlin failed at DressChangeScreen.kt:55:42 because mutableStateOf delegated var required androidx.compose.runtime.setValue.
+- Added the missing setValue import and fetched the resulting file again to confirm the import and delegated state declaration are both present.
+- Previous build failed; no APK was produced. Rebuild requested. Do not claim success until full workflow and artifact publishing are verified.
