@@ -533,3 +533,9 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Added processing/DressChangeAudioMuxer.kt to encode generated mono 44.1kHz PCM to AAC-LC via MediaCodec/MediaMuxer, then copy video/audio samples into a combined MP4 via MediaExtractor/MediaMuxer.
 - Wired ViewModel two-stage export (video 0–85% progress, AAC/remux final stage) and removed silent intermediate after use. UI now correctly says "生成带节奏 MP4（测试版）" and explains audio is original electronic beats rather than a trending licensed song.
 - Still no background/foreground service; exports may stop if app process is killed. Device AAC/AVC compatibility, playback timing, generated file validity, lint, tests and compilation are unverified; no APK build requested or run.
+
+## 2026-11-09 — Personal-use simplicity and performance review (no APK build)
+- Reviewed DressChangeAudioMuxer, DressChangeVideoExporter, ViewModel, UI and project rules. The current two-stage MP4 + AAC remux writes extra temporary files, but rewriting the codec pipeline before any compilation/device test would introduce higher risk. Kept existing architecture and avoided adding foreground services or third-party libraries.
+- Optimized DressChangeBeatAudio.samples: binary-search the initial beat and advance a cursor, rather than scanning every beat for each PCM sample.
+- Moved DressChangeScreen thumbnail decoding to Dispatchers.IO via produceState, avoiding synchronous image I/O during scrolling.
+- Known pending risks: actual codec compatibility, export resource cleanup, legacy permissions, audio/video timing, and background execution. No tests, Gradle build or APK build run; source remains unverified.
