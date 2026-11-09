@@ -1,1 +1,1 @@
-2026-11-09 v0.9.37 full rebuild requested after Kotlin delegated thumbnail smart-cast compile fix.
+2026-11-09 v0.9.37 full rebuild after Android Lint MediaExtractor-to-MediaCodec flag mapping fix.
