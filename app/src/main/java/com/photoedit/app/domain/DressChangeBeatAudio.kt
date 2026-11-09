@@ -18,11 +18,12 @@ object DressChangeBeatAudio {
         require(startSample.toLong() + count <= total)
         val result = ShortArray(count)
         val beats = (listOf(0L) + timeline.cues.drop(1).map { it.startMs }).distinct().sorted()
+        var beatIndex = beats.binarySearch(startSample * 1000L / SAMPLE_RATE).let { if (it >= 0) it else -it - 2 }
         for (i in 0 until count) {
             val sample = startSample + i
             val t = sample.toDouble() / SAMPLE_RATE
             val timeMs = sample * 1000L / SAMPLE_RATE
-            val beatIndex = beats.indexOfLast { it <= timeMs }
+            while (beatIndex + 1 < beats.size && beats[beatIndex + 1] <= timeMs) beatIndex++
             val beatTime = if (beatIndex >= 0) beats[beatIndex] / 1000.0 else 0.0
             val since = (t - beatTime).coerceAtLeast(0.0)
             // Punchy low kick, snare-like synthetic noise and quiet bass pulse.
