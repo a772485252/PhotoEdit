@@ -148,7 +148,12 @@ object DressChangeAudioMuxer {
             val size = extractor.readSampleData(buffer, 0)
             if (size < 0) break
             require(size <= buffer.capacity()) { "视频样本过大" }
-            info.set(0, size, extractor.sampleTime, extractor.sampleFlags)
+            val flags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
+                MediaCodec.BUFFER_FLAG_KEY_FRAME
+            } else {
+                0
+            }
+            info.set(0, size, extractor.sampleTime, flags)
             buffer.position(0)
             buffer.limit(size)
             muxer.writeSampleData(track, buffer, info)
