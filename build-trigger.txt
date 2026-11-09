@@ -1,1 +1,1 @@
-2026-11-09 v0.9.37 full rebuild after Compose produceState lint fix and full video source review.
+2026-11-09 v0.9.37 full rebuild: remove produceState to eliminate recurring Compose Lint failure.
