@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import android.content.Context
 import android.net.Uri
 import android.graphics.Bitmap
@@ -50,8 +52,9 @@ fun DressChangeScreen(
                 Card(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val context = LocalContext.current
-                        val thumbnail by produceState<android.graphics.Bitmap?>(initialValue = null, key1 = uri) {
-                            value = loadDressThumbnail(context, uri)
+                        var thumbnail by remember(uri) { mutableStateOf<Bitmap?>(null) }
+                        LaunchedEffect(uri) {
+                            thumbnail = loadDressThumbnail(context, uri)
                         }
                         val loadedThumbnail = thumbnail
                         if (loadedThumbnail != null) Image(loadedThumbnail.asImageBitmap(), "第 ${index + 1} 张", Modifier.size(64.dp), contentScale = ContentScale.Crop)
