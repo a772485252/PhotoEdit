@@ -550,3 +550,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - User-provided GitHub Actions log showed :app:compileDebugKotlin failed in DressChangeScreen.kt because a delegated produceState Bitmap? cannot be smart-cast.
 - Fixed the nullable thumbnail access by copying it to a stable local variable before the null check and asImageBitmap call.
 - The prior build failed; APK publishing steps were skipped. Rebuild requested to validate the fix; outcome pending.
+
+## 2026-11-09 — Fix v0.9.37 Android Lint WrongConstant
+- User-provided full-build log shows lintDebug failed in DressChangeAudioMuxer.kt copyTrack: MediaExtractor.sampleFlags was passed directly into MediaCodec.BufferInfo.set flags. These are different flag namespaces.
+- Replaced direct flags forwarding with explicit mapping of extractor SAMPLE_FLAG_SYNC to MediaCodec.BUFFER_FLAG_KEY_FRAME; other extractor-only flags are not forwarded.
+- Screenshot indicates two lint errors total but only this error location is visible; full remaining lint report and successful rebuild remain to be verified.
