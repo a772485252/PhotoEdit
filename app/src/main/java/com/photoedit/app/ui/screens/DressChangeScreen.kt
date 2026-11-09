@@ -61,7 +61,8 @@ fun DressChangeScreen(
                             } catch (_: Exception) { null }
                             }
                         }
-                        if (thumbnail != null) Image(thumbnail.asImageBitmap(), "第 ${index + 1} 张", Modifier.size(64.dp), contentScale = ContentScale.Crop)
+                        val loadedThumbnail = thumbnail
+                        if (loadedThumbnail != null) Image(loadedThumbnail.asImageBitmap(), "第 ${index + 1} 张", Modifier.size(64.dp), contentScale = ContentScale.Crop)
                         Column(Modifier.weight(1f)) {
                             Text("照片 ${index + 1}", style = MaterialTheme.typography.titleSmall)
                             state.timeline?.cues?.getOrNull(index)?.let { cue ->
