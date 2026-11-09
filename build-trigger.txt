@@ -1,1 +1,1 @@
-2026-11-09 v0.9.37 full rebuild after Android Lint MediaExtractor-to-MediaCodec flag mapping fix.
+2026-11-09 v0.9.37 full rebuild after Compose produceState lint fix and full video source review.
