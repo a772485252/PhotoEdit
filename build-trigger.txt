@@ -1,1 +1,1 @@
-2026-11-09 v0.9.37 full rebuild: remove produceState to eliminate recurring Compose Lint failure.
+2026-11-09 v0.9.37 full rebuild after restoring required Compose delegated setValue import.
