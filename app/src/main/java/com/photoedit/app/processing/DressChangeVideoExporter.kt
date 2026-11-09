@@ -124,9 +124,11 @@ class DressChangeVideoExporter(private val context: Context) {
                 }
             }
             check(muxerStarted)
+            requireNotNull(muxer).stop()
+            muxerStarted = false
+            check(output.length() > 0L) { "视频编码结果为空" }
             output
         } catch (error: Throwable) {
-            output.delete()
             throw error
         } finally {
             currentBitmap?.recycle()
@@ -135,6 +137,7 @@ class DressChangeVideoExporter(private val context: Context) {
             try { muxer?.release() } catch (_: Exception) {}
             try { if (started) codec.stop() } catch (_: Exception) {}
             codec.release()
+            if (!output.exists() || output.length() == 0L) output.delete()
         }
     }
 
