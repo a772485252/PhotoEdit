@@ -5,7 +5,7 @@
 ## 当前功能
 
 - 图片拆分：等尺寸宫格预览、PNG 相册导出；大图按安全处理尺寸采样。
-- AI 图片：APIPod、Venice，支持文字生图和单张参考图编辑，结果手动保存到相册。
+- AI 图片：APIPod，支持文字生图和单张参考图编辑，结果手动保存到相册。
 - 提示词助手：生成提示词、普通聊天、自定义扩写规则、复制和带入生图页。
 - 变装视频测试版：多图排序、运镜、原创合成节奏、MP4 预览与手动保存；编解码兼容性和真机体验仍需验证。
 
@@ -14,12 +14,14 @@
 | 功能 | 平台 | 预设模型 ID |
 | --- | --- | --- |
 | 聊天 | Cloudflare Workers AI | @cf/zai-org/glm-4.7-flash |
-| 聊天 | Venice | venice-uncensored-1-2、deepseek-v4-1-flash-uncensored |
 | 聊天 | APIPod | grok-4.5、grok-4.6、deepseek-flash |
 | 生图 | APIPod | z-image-spicy、z-image-spicy-pro；参考图使用 qwen-image-edit-spicy |
-| 生图 | Venice | lustify-v8；参考图使用 firered-image-edit |
 
-聊天保留自定义模型 ID；是否可调用以平台与账号权限为准。Venice 接口代码保留，但当前使用流程存在充值限制。APIPod 聊天和生图共用其加密保存的 Key，Venice 同理；Cloudflare 聊天保留原有加密凭据。不要将 Key、Token 或个人账户数据提交仓库。
+聊天保留自定义模型 ID；是否可调用以平台与账号权限为准。APIPod 聊天和生图共用其加密保存的 Key；Cloudflare 聊天保留原有加密凭据。不要将 Key、Token 或个人账户数据提交仓库。
+
+## 模型服务选择规则
+
+后续付费模型服务须先核实 API 充值支持支付宝或微信支付中的至少一种；网页会员支付不等于 API 充值支持。支付方式未确认时不作为可直接使用的付费方案推荐。免费且无需充值的方案可另行评估。
 
 ## 获取 APK
 

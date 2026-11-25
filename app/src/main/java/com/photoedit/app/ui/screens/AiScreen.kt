@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ApiPodRules
-import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.ui.components.PhotoPreview
 import com.photoedit.app.viewmodel.AiUiState
 
@@ -40,31 +39,20 @@ import com.photoedit.app.viewmodel.AiUiState
 fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
              onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit,
  onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit,
- onProvider: (String) -> Unit,
  onApiPodKey: (String) -> Unit, onSaveApiPodKey: () -> Unit, onClearApiPodKey: () -> Unit,
- onApiPodPro: (Boolean) -> Unit, onStopApiPodWaiting: () -> Unit, onAbandonApiPodTracking: () -> Unit,
- onVeniceKey: (String) -> Unit, onSaveVeniceKey: () -> Unit, onClearVeniceKey: () -> Unit,
- onAcknowledgeVeniceOutcome: () -> Unit) {
+ onApiPodPro: (Boolean) -> Unit, onStopApiPodWaiting: () -> Unit, onAbandonApiPodTracking: () -> Unit) {
     val context = LocalContext.current
     val history = rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
     var enlargedResult by remember { mutableStateOf<Bitmap?>(null) }
-    val apiPod = state.provider == "apipod"
-    val venice = state.provider == "venice"
     val pendingTask = state.apiPodPending
-    val veniceUnknown = venice && state.veniceOutcomeUnknown
     val effectiveReference = (state.continueEditing && state.result != null) || state.reference != null
     val apiPodModel = ApiPodRules.model(effectiveReference, state.apiPodPro)
     val apiPodEstimate = ApiPodRules.estimate(effectiveReference, state.apiPodPro)
     var confirmAbandon by remember { mutableStateOf(false) }
-    val editingEnabled = !state.busy && !pendingTask && !state.veniceOutcomeUnknown
-    var confirmVeniceOutcome by remember { mutableStateOf(false) }
-    val providerName = when {
-        venice -> "Venice · " + VeniceRules.model(effectiveReference)
-        else -> "APIPod · 付费"
-    }
-    val hasKey = if (venice) state.veniceKey.isNotBlank() else state.apiPodKey.isNotBlank()
+    val editingEnabled = !state.busy && !pendingTask
+    val hasKey = state.apiPodKey.isNotBlank()
 
     LaunchedEffect(state.turns.size) {
         // One footer item always exists, including in an empty conversation.
@@ -89,12 +77,6 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
             confirmButton = { TextButton(onClick = { confirmAbandon = false; onAbandonApiPodTracking() }) { Text("结束跟踪") } },
             dismissButton = { TextButton(onClick = { confirmAbandon = false }) { Text("保留任务") } })
     }
-    if (confirmVeniceOutcome) {
-        AlertDialog(onDismissRequest = { confirmVeniceOutcome = false }, title = { Text("已核对上一笔请求？") },
-            text = { Text("Venice 本次接口是同步生成，无法查询或恢复丢失的响应。请先核对平台用量。继续后再次生成会新建付费请求，不能取消或退回上一笔费用。") },
-            confirmButton = { TextButton(onClick = { confirmVeniceOutcome = false; onAcknowledgeVeniceOutcome() }) { Text("已核对，允许新请求") } },
-            dismissButton = { TextButton(onClick = { confirmVeniceOutcome = false }) { Text("返回核对") } })
-    }
     if (showSettings) {
         Dialog(onDismissRequest = { showSettings = false }) {
             Surface(shape = MaterialTheme.shapes.large) {
@@ -102,42 +84,23 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
                     .verticalScroll(rememberScrollState()).padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("图片生成设置", style = MaterialTheme.typography.titleLarge)
-                    Column {
-                        FilterChip(apiPod, { onProvider("apipod") }, label = { Text("APIPod") }, enabled = editingEnabled)
-                        FilterChip(venice, { onProvider("venice") }, label = { Text("Venice") }, enabled = editingEnabled)
+                    Text("APIPod", style = MaterialTheme.typography.titleSmall)
+                    Text("按次付费，不是免费额度。文生图约 $0.015/次，Pro 约 $0.025/次，参考图编辑约 $0.04/次；实际以平台价格与结算为准。", style = MaterialTheme.typography.bodySmall)
+                    OutlinedTextField(state.apiPodKey, onApiPodKey, label = { Text("APIPod API Key") }, singleLine = true,
+                        enabled = editingEnabled, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+                    Row {
+                        TextButton(onClick = onSaveApiPodKey, enabled = editingEnabled) { Text("保存 Key") }
+                        TextButton(onClick = onClearApiPodKey, enabled = editingEnabled) { Text("清除 Key") }
                     }
-                    Text("切换平台保留草稿和参考图，清空当前平台的结果记录。", style = MaterialTheme.typography.bodySmall)
-                    if (venice) {
-                        Text("按次付费：文字生图 Lustify v8 约 $0.01/张；单张参考图编辑仍使用 FireRed，约 $0.04/次，以平台结算为准。", style = MaterialTheme.typography.bodySmall)
-                        OutlinedTextField(state.veniceKey, onVeniceKey, label = { Text("Venice API Key") }, singleLine = true,
-                            enabled = editingEnabled, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
-                        Row {
-                            TextButton(onClick = onSaveVeniceKey, enabled = editingEnabled) { Text("保存 Key") }
-                            TextButton(onClick = onClearVeniceKey, enabled = editingEnabled) { Text("清除 Key") }
-                        }
-                        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://venice.ai/settings/api"))) }) { Text("打开 Venice API 控制台") }
-                        Text("本次模型：${VeniceRules.model(effectiveReference)}", style = MaterialTheme.typography.bodySmall)
-                        Text("支持一张参考图或继续编辑上一张结果；参考图最长边缩至 1024，缩放后宽高均需至少 256 像素。文生图 1024 × 1024。未开启额外付费提示词增强。", style = MaterialTheme.typography.bodySmall)
-                        Text("保留平台默认内容审核与成人内容模糊处理；模型规则不同，不承诺审核通过或人体完全无缺陷。参考图编辑接口仍属实验性功能。", style = MaterialTheme.typography.bodySmall)
-                        Text("此接口同步返回图片，不支持任务查询。超时请先核对用量，应用不会自动重试。API 按用量付费，网页免费额度不能直接当作 API 额度。", style = MaterialTheme.typography.bodySmall)
-                    } else if (apiPod) {
-                        Text("按次付费，不是免费额度。文生图约 $0.015/次，Pro 约 $0.025/次，参考图编辑约 $0.04/次；实际以平台价格与结算为准。", style = MaterialTheme.typography.bodySmall)
-                        OutlinedTextField(state.apiPodKey, onApiPodKey, label = { Text("APIPod API Key") }, singleLine = true,
-                            enabled = editingEnabled, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
-                        Row {
-                            TextButton(onClick = onSaveApiPodKey, enabled = editingEnabled) { Text("保存 Key") }
-                            TextButton(onClick = onClearApiPodKey, enabled = editingEnabled) { Text("清除 Key") }
-                        }
-                        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.apipod.ai/"))) }) { Text("打开 APIPod 控制台") }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(state.apiPodPro, onApiPodPro, enabled = editingEnabled && !effectiveReference)
-                            Text("文生图使用 Pro", style = MaterialTheme.typography.bodyMedium)
-                        }
-                        Text("本次模型：$apiPodModel", style = MaterialTheme.typography.bodySmall)
-                        Text("无参考图使用 Z-Image；有参考图或继续编辑时使用 Qwen Image Edit。上传图片最长边 1024 像素，编辑输出跟随主图；文生图尺寸由模型决定。", style = MaterialTheme.typography.bodySmall)
-                        Text("Spicy 路线面向成年人，平台明确不向中国大陆、香港、澳门开放。VPN 不保证账号或模型可用；请先确认地区资格。平台与上游内容规则仍生效。", style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.apipod.ai/"))) }) { Text("打开 APIPod 控制台") }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(state.apiPodPro, onApiPodPro, enabled = editingEnabled && !effectiveReference)
+                        Text("文生图使用 Pro", style = MaterialTheme.typography.bodyMedium)
                     }
-                    Text("点击生成才会向所选平台发送提示词和参考图。不会自动重试或切换平台。参考图会按所选平台缩小，人物长相不保证完全一致。", style = MaterialTheme.typography.bodySmall)
+                    Text("本次模型：$apiPodModel", style = MaterialTheme.typography.bodySmall)
+                    Text("无参考图使用 Z-Image；有参考图或继续编辑时使用 Qwen Image Edit。上传图片最长边 1024 像素，编辑输出跟随主图；文生图尺寸由模型决定。", style = MaterialTheme.typography.bodySmall)
+                    Text("Spicy 路线面向成年人，平台明确不向中国大陆、香港、澳门开放。VPN 不保证账号或模型可用；请先确认地区资格。平台与上游内容规则仍生效。", style = MaterialTheme.typography.bodySmall)
+                    Text("点击生成才会向 APIPod 发送提示词和参考图。不会自动重试。人物一致性需以结果为准。", style = MaterialTheme.typography.bodySmall)
                     state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     TextButton(onClick = { showSettings = false }, modifier = Modifier.align(Alignment.End)) { Text("完成") }
                 }
@@ -150,7 +113,7 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
         Column(Modifier.fillMaxSize()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = { showSettings = true }, modifier = Modifier.weight(1f)) {
-                    Text("$providerName ▾", maxLines = 1, style = MaterialTheme.typography.titleSmall)
+                    Text("APIPod · 图片设置 ▾", maxLines = 1, style = MaterialTheme.typography.titleSmall)
                 }
                 TextButton(onClick = onNewSession, enabled = editingEnabled) { Text("新会话") }
             }
@@ -181,15 +144,10 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
                             Text("输入描述，或点 + 添加参考图。", style = MaterialTheme.typography.bodyMedium)
                             if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("设置 API Key") }
                         }
-                        if (apiPod && state.apiPodPending) {
+                        if (state.apiPodPending) {
                             Text("原操作已保留，继续查询不会另建新的逻辑任务。", style = MaterialTheme.typography.bodySmall)
                             if (state.busy) TextButton(onClick = onStopApiPodWaiting) { Text("停止本机等待") }
                             else TextButton(onClick = { confirmAbandon = true }) { Text("结束本地跟踪…") }
-                        }
-                        if (veniceUnknown) {
-                            Text("上一笔结果与计费未知，请先核对平台用量；再次生成会新建付费请求。", style = MaterialTheme.typography.bodySmall)
-                            TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://venice.ai/settings/api"))) }) { Text("核对 Venice 用量") }
-                            TextButton(onClick = { confirmVeniceOutcome = true }) { Text("核对后继续…") }
                         }
                         if (state.busy) {
                             LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -222,15 +180,13 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
                         }
                     }
                     Text(when {
-                        veniceUnknown -> "上一笔结果未知，核对用量后才能继续。"
                         pendingTask -> "原任务已保留，请继续查询或处理原任务。"
                         state.continueEditing && state.result != null -> "本次参考：上一张生成结果"
                         state.reference != null -> "本次参考：已选图片"
                         else -> "本次参考：无（文生图）"
                     }, style = MaterialTheme.typography.labelSmall)
-                    if (apiPod) Text(apiPodModel + " · 约 $" + apiPodEstimate + "/次 · 以平台结算为准", style = MaterialTheme.typography.labelSmall)
-                    if (venice) Text(VeniceRules.model(effectiveReference) + " · 约 $" + VeniceRules.estimate(effectiveReference) + "/次 · 以平台结算为准", style = MaterialTheme.typography.labelSmall)
-                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 ${if (venice) "Venice Key" else "APIPod Key"}") }
+                    Text(apiPodModel + " · 约 $" + apiPodEstimate + "/次 · 以平台结算为准", style = MaterialTheme.typography.labelSmall)
+                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 APIPod Key") }
                     OutlinedTextField(state.prompt, onPrompt, placeholder = { Text("描述画面或修改要求…") },
                         minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())
@@ -238,8 +194,8 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
                         OutlinedButton(onClick = onChoose, enabled = editingEnabled, modifier = Modifier.fillMaxWidth()) { Text("添加参考图") }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        Button(onClick = onGenerate, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !state.busy && !veniceUnknown && hasKey && (pendingTask || state.prompt.isNotBlank()),
-                            shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else if (veniceUnknown) "先核对用量" else if (venice) "生成 · $" + VeniceRules.estimate(effectiveReference) else if (apiPod) "生成 · $" + apiPodEstimate else "生成 ↑") }
+                        Button(onClick = onGenerate, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !state.busy && hasKey && (pendingTask || state.prompt.isNotBlank()),
+                            shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else "生成 · $" + apiPodEstimate) }
                     }
                 }
             }

@@ -74,6 +74,10 @@ Build a genuine native Android application for photo processing and short-form v
 ## Current project status
 The app is an established Kotlin + Jetpack Compose Android project. For current implementation state, active providers/models, and next steps, read PROJECT.md and the latest entries in PROGRESS.md; do not rely on this file for a stale task description.
 
-## Provider payment constraint (2026-11-08)
-- Venice official API is temporarily not usable for this user's PhotoEdit workflow because the user currently cannot pay/recharge there. Do not recommend Venice as an immediately actionable provider or propose integrating its paid official API unless the user explicitly says payment access has changed.
-- When recommending prompt-expansion models, prioritize currently payable/usable providers and verify model availability, pricing, and content policies before proposing integration. Do not assume an uncensored model is offered by APIPod.
+## Model/provider selection and payment (mandatory, 2026-11-25)
+- 后续寻找、推荐或接入付费模型服务，必须先核实其 API 充值支持支付宝或微信支付中的至少一种；这是可用方案的筛选条件，不只是排序偏好。
+- 使用服务商当前官方充值/支付说明核实，区分 API 余额充值与网页会员订阅。支付方式不明时标记为未确认，不将其推荐为可直接使用的付费方案；不能仅凭第三方宣传或历史支持作结论。
+- 同时核实目标模型可用性、API 价格、地区资格和内容规则。不要因为支付方便就推断某个模型已被提供；不要建议绕过地区资格。
+- 免费、无需充值即可使用的方案不强加支付方式要求；如果涉及转为付费或扩展额度，再应用上述筛选条件。
+- Venice 聊天与生图已按用户要求移除，不再作为当前接入或可用推荐。只有用户明确改变要求时才重新评估。
+- Existing integrations are not proof of current payment support. Future paid-provider recommendations require current verification, including for previously integrated platforms.

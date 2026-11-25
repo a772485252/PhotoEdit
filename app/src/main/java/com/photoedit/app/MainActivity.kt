@@ -74,14 +74,11 @@ class MainActivity : ComponentActivity() {
                                 if (needsStoragePermission()) aiPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                 else aiViewModel.saveImage()
                             }, onNewSession = aiViewModel::newSession, onUseTurn = aiViewModel::useTurn,
-                            onContinue = aiViewModel::setContinueEditing, onProvider = aiViewModel::provider,
+                            onContinue = aiViewModel::setContinueEditing,
                             onApiPodKey = aiViewModel::apiPodKey, onSaveApiPodKey = aiViewModel::saveApiPodKey,
                             onClearApiPodKey = aiViewModel::clearApiPodKey, onApiPodPro = aiViewModel::apiPodPro,
                             onStopApiPodWaiting = aiViewModel::stopApiPodWaiting,
-                            onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking,
-                            onVeniceKey = aiViewModel::veniceKey, onSaveVeniceKey = aiViewModel::saveVeniceKey,
-                            onClearVeniceKey = aiViewModel::clearVeniceKey,
-                            onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else if (tab == 3) DressChangeScreen(dressChange, onChoose = {
+                            onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking) else if (tab == 3) DressChangeScreen(dressChange, onChoose = {
                             dressPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         }, onMove = dressChangeViewModel::move, onRemove = dressChangeViewModel::remove, onExport = dressChangeViewModel::export, onSave = {
                             if (needsStoragePermission()) videoPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -89,11 +86,11 @@ class MainActivity : ComponentActivity() {
                         })
                         else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                 chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
-                                canUsePrompt = !ai.busy && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
+                                canUsePrompt = !ai.busy && !ai.apiPodPending, onUsePrompt = { prompt ->
                                     aiViewModel.prompt(prompt)
                                     tab = 1
                                 }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
-                                onModelDraft = chatViewModel::modelDraft, onRefreshBalance = chatViewModel::refreshBalance,
+                                onModelDraft = chatViewModel::modelDraft,
                                 onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules)
                     }
                 }

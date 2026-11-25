@@ -2,7 +2,6 @@ package com.photoedit.app.domain
 
 enum class ChatProvider(val label: String, val namespace: String, val defaultModel: String) {
     CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash"),
-    VENICE("Venice AI", "venice_chat_private", "venice-uncensored-1-2"),
     APIPOD("APIPod", "apipod_private", "grok-4.5")
 }
 
@@ -13,10 +12,6 @@ object ChatModels {
         ChatProvider.CLOUDFLARE -> listOf(
             ChatModel(provider.defaultModel, "GLM-4.7-Flash · Workers AI")
         )
-        ChatProvider.VENICE -> listOf(
-            ChatModel(provider.defaultModel, "Venice Uncensored 1.2"),
-            ChatModel("deepseek-v4-1-flash-uncensored", "DeepSeek V4.1 Flash Uncensored")
-        )
         ChatProvider.APIPOD -> listOf(
             ChatModel(provider.defaultModel, "Grok 4.5 · APIPod"),
             ChatModel("grok-4.6", "Grok 4.6 · APIPod"),
@@ -26,9 +21,7 @@ object ChatModels {
 
     fun displayName(provider: ChatProvider, model: String): String = when (provider) {
         ChatProvider.CLOUDFLARE -> if (model == "@cf/zai-org/glm-4.7-flash") "GLM-4.7-Flash" else model.substringAfterLast('/')
-        ChatProvider.VENICE -> presets(provider).firstOrNull { it.id == model }?.name ?: model
         ChatProvider.APIPOD -> presets(provider).firstOrNull { it.id == model }?.name ?: model
-        else -> presets(provider).firstOrNull { it.id == model }?.name ?: model
     }
 
     data class PriceGuide(
@@ -45,12 +38,6 @@ object ChatModels {
         provider == ChatProvider.CLOUDFLARE && model == "@cf/zai-org/glm-4.7-flash" ->
             PriceGuide("\$0.0006 · 约55 Neurons", "\$0.0040 · 约364 Neurons",
                 "按 1 字≈1 Token 粗估；Workers AI 实际按 Neurons 计量")
-        provider == ChatProvider.VENICE && model == "venice-uncensored-1-2" ->
-            PriceGuide("\$0.0020", "\$0.0090",
-                "按 1 字≈1 Token 粗估；Venice 按实际 Token 用量计费")
-        provider == ChatProvider.VENICE && model == "deepseek-v4-1-flash-uncensored" ->
-            PriceGuide("\$0.0033", "\$0.0132",
-                "按 1 字≈1 Token 粗估；Venice 标价输入 \$0.33、输出 \$1.32 / 百万 Token")
         provider == ChatProvider.APIPOD && model == "deepseek-flash" ->
             PriceGuide("\$0.0015", "\$0.0060",
                 "按 1 字≈1 Token 粗估；APIPod 标价输入 \$0.15、输出 \$0.60 / 百万 Token，实际按 Token 结算")
@@ -69,9 +56,6 @@ object ChatModels {
         }
         if (provider == ChatProvider.CLOUDFLARE) {
             require(model.startsWith("@cf/") && model.count { it == '/' } >= 2) { "Cloudflare 模型 ID 必须来自 Workers AI 模型目录" }
-        }
-        if (provider == ChatProvider.VENICE) {
-            require(model.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:-]*"))) { "Venice 模型 ID 格式无效" }
         }
     }
 }

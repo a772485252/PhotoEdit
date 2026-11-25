@@ -23,7 +23,6 @@ class ChatClient {
             put(JSONObject().put("role", it.role).put("content", it.text))
         } })
         if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
-        if (provider == ChatProvider.VENICE) body.put("max_tokens", 2048)
         val endpoint = if (provider == ChatProvider.CLOUDFLARE) "/ai/run/$model" else "/chat/completions"
         if (provider == ChatProvider.CLOUDFLARE) body.put("max_tokens", 2048)
         val result = request(provider, token, endpoint, body.toString().toByteArray(Charsets.UTF_8))
@@ -40,32 +39,10 @@ class ChatClient {
         answer.take(8000)
     }
 
-    suspend fun veniceBalance(token: String): String = withContext(Dispatchers.IO) {
-        AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
-        val data = request(ChatProvider.VENICE, token, "/api_keys/rate_limits", null)
-            .optJSONObject("data") ?: throw IOException("Venice 未返回账户信息")
-        val balances = data.optJSONObject("balances")
-            ?: throw IOException("Venice 未返回余额字段")
-        fun amount(name: String, suffix: String): String? {
-            if (!balances.has(name) || balances.isNull(name)) return null
-            val value = balances.optDouble(name, Double.NaN)
-            if (!value.isFinite()) return null
-            return "$suffix " + String.format(java.util.Locale.US, "%.4f", value)
-        }
-        val parts = listOfNotNull(
-            amount("USD", "USD \\$"),
-            amount("DIEM", "DIEM"),
-            amount("BUNDLED_CREDITS", "赠送额度")
-        )
-        if (parts.isEmpty()) throw IOException("Venice 余额接口未返回可用余额")
-        (if (data.optBoolean("accessPermitted", true)) "可用 · " else "当前 Key 暂不可用 · ") + parts.joinToString(" · ")
-    }
-
     private fun request(provider: ChatProvider, token: String, path: String, body: ByteArray?,
         limit: Int = 512 * 1024): JSONObject {
         val base = when (provider) {
             ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
-            ChatProvider.VENICE -> "https://api.venice.ai/api/v1"
             ChatProvider.APIPOD -> "https://api.apipod.ai/v1"
         }
         val connection = URL(base + path).openConnection() as HttpURLConnection

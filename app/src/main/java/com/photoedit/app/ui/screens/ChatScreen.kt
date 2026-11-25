@@ -40,7 +40,6 @@ fun ChatScreen(
     onProvider: (ChatProvider) -> Unit,
     onModel: (String) -> Unit,
     onModelDraft: (String) -> Unit,
-    onRefreshBalance: () -> Unit,
     onSavePromptRules: (String) -> Unit,
     onResetPromptRules: () -> Unit
 ) {
@@ -83,7 +82,7 @@ fun ChatScreen(
                     priceGuide?.let { Text(it.note, style = MaterialTheme.typography.labelSmall) }
                     Text(when (state.provider) {
                         ChatProvider.CLOUDFLARE -> "额度：实时剩余请查看 Cloudflare 控制台"
-                        ChatProvider.VENICE -> state.balanceInfo ?: "余额：可在设置中刷新"
+
                         ChatProvider.APIPOD -> "余额：请在 APIPod 控制台查看"
 
                     }, style = MaterialTheme.typography.labelSmall)
@@ -290,7 +289,7 @@ fun ChatScreen(
                     Text(
                         when (state.provider) {
                             ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
-                            ChatProvider.VENICE -> "使用与 Venice 图片生成共用的 API Key。API 按所选模型 Token 价格计费。"
+
                             ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
                         },
                         style = MaterialTheme.typography.bodySmall,
@@ -316,7 +315,7 @@ fun ChatScreen(
                     Text(
                         when (state.provider) {
                             ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
-                            ChatProvider.VENICE -> "Venice 聊天与图片生成共用同一个 Key；在这里清除也会同时影响 Venice 图片生成。"
+
                             ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
                         },
                         style = MaterialTheme.typography.bodySmall,
@@ -353,7 +352,7 @@ private fun ModelSelector(
                             Text(
                                 model.name + "\n" + when (state.provider) {
                                     ChatProvider.CLOUDFLARE -> "Cloudflare Workers AI"
-                                    ChatProvider.VENICE -> "Venice API 按 Token 计费"
+
                                     ChatProvider.APIPOD -> "APIPod 按 Token 计费"
                                 }
                             )

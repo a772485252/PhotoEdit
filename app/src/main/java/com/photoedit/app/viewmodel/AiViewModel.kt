@@ -9,9 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.photoedit.app.ai.ApiPodClient
 import com.photoedit.app.ai.ApiPodOperation
 import com.photoedit.app.ai.ApiPodException
-import com.photoedit.app.ai.VeniceClient
-import com.photoedit.app.ai.VeniceException
-import com.photoedit.app.domain.VeniceRules
 import com.photoedit.app.ai.AiSettingsStore
 import kotlinx.coroutines.Job
 import com.photoedit.app.domain.AiRules
@@ -30,12 +27,9 @@ data class ImageTurn(val prompt: String, val image: Bitmap, val referenceUsed: B
 
 // Token is in volatile ViewModel memory; never save UI state into a Bundle or logs.
 data class AiUiState(
-    val provider: String = "apipod",
     val apiPodKey: String = "",
     val apiPodPro: Boolean = false,
     val apiPodPending: Boolean = false,
-    val veniceKey: String = "",
-    val veniceOutcomeUnknown: Boolean = false,
     val prompt: String = "",
     val reference: Bitmap? = null,
     val result: Bitmap? = null,
@@ -49,9 +43,7 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     private val apiPodClient = ApiPodClient()
     private val apiPodSettings = AiSettingsStore(application, "apipod_private")
     private var pendingApiPod: ApiPodOperation? = null
-    private val veniceClient = VeniceClient()
-    private val veniceSettings = AiSettingsStore(application, "venice_private")
-    private fun hasPending() = pendingApiPod != null || _state.value.veniceOutcomeUnknown
+    private fun hasPending() = pendingApiPod != null
     private val imagePreferences = application.getSharedPreferences("image_preferences", android.content.Context.MODE_PRIVATE)
     private var operation: Job? = null
     private val processor = ImageProcessor(application)
@@ -61,41 +53,9 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     init {
         perform {
             val (_, apiPodKey) = withContext(Dispatchers.IO) { apiPodSettings.load() }
-            val (_, veniceKey) = withContext(Dispatchers.IO) { veniceSettings.load() }
-            val provider = imagePreferences.getString("provider", "apipod").orEmpty()
-                .takeIf { it in listOf("apipod", "venice") } ?: "apipod"
-            _state.value = _state.value.copy(provider = provider, apiPodKey = apiPodKey, veniceKey = veniceKey,
+            _state.value = _state.value.copy(apiPodKey = apiPodKey,
                 apiPodPro = imagePreferences.getBoolean("apipod_pro", false))
         }
-    }
-    fun provider(value: String) {
-        if (_state.value.busy || value !in listOf("apipod", "venice") || value == _state.value.provider) return
-        if (hasPending()) { _state.value = _state.value.copy(message = "请先处理当前平台的原任务"); return }
-        // Keep draft/reference when changing transport; only the provider's result history resets.
-        _state.value = _state.value.copy(provider = value, result = null, turns = emptyList(), continueEditing = false)
-        imagePreferences.edit().putString("provider", value).apply()
-    }
-    fun veniceKey(value: String) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(veniceKey = value.trim()) }
-    fun saveVeniceKey() {
-        if (_state.value.busy || hasPending()) return
-        val key = _state.value.veniceKey
-        perform {
-            VeniceRules.validateKey(key)
-            withContext(Dispatchers.IO) { veniceSettings.save(AiRules.DEFAULT_ACCOUNT, key) }
-            _state.value = _state.value.copy(message = "Venice Key 已加密保存；尚未验证权限和余额")
-        }
-    }
-    fun clearVeniceKey() {
-        if (_state.value.busy || hasPending()) return
-        perform {
-            withContext(Dispatchers.IO) { veniceSettings.clear() }
-            _state.value = _state.value.copy(veniceKey = "", message = "已清除 Venice Key")
-        }
-    }
-    fun acknowledgeVeniceOutcome() {
-        if (_state.value.busy) return
-        _state.value = _state.value.copy(veniceOutcomeUnknown = false,
-            message = "已解除本机提交锁定；下次生成会新建付费请求，不是查询或恢复上一笔")
     }
     fun apiPodKey(value: String) { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(apiPodKey = value.trim()) }
     fun apiPodPro(value: Boolean) {
@@ -143,50 +103,27 @@ class AiViewModel(application: Application) : AndroidViewModel(application) {
     fun useTurn(index: Int) { if (!_state.value.busy && !hasPending()) _state.value.turns.getOrNull(index)?.let { _state.value = _state.value.copy(reference = it.image, continueEditing = false, message = "已选中历史图片作为参考") } }
     fun newSession() { if (!_state.value.busy && !hasPending()) _state.value = _state.value.copy(turns = emptyList(), result = null, reference = null, prompt = "", message = null, continueEditing = true) }
     fun generate() {
-        if (_state.value.busy || _state.value.veniceOutcomeUnknown) return
+        if (_state.value.busy) return
         val state = _state.value
         perform(foreground = true) {
             val selected = if (state.continueEditing && state.result != null) state.result else state.reference
-            var prompt = state.prompt.trim()
-            var referenceUsed = selected != null
-            var costUsd: Double? = null
-            var resultMessage = "生成完成；可继续输入修改要求"
-            val image = when (state.provider) {
-                "venice" -> {
-                    _state.value = _state.value.copy(message = "Venice 正在生成；同步请求可能需要数分钟，请勿重复提交…")
-                    try {
-                        val result = veniceClient.generate(state.veniceKey, prompt, selected)
-                        if (result.blurred) resultMessage = "Venice 已返回图片；平台标记结果经过模糊处理。实际费用请在平台核对"
-                        result.image
-                    } catch (error: VeniceException) {
-                        _state.value = _state.value.copy(veniceOutcomeUnknown = error.outcomeUnknown)
-                        throw error
-                    }
+            val task = pendingApiPod ?: apiPodClient.prepare(state.apiPodKey, state.prompt.trim(), selected, state.apiPodPro).also {
+                pendingApiPod = it
+                _state.value = _state.value.copy(apiPodPending = true)
+            }
+            val result = try {
+                apiPodClient.run(task) { message -> _state.value = _state.value.copy(message = message) }
+            } catch (error: ApiPodException) {
+                if (error.definitive || error.terminal) {
+                    pendingApiPod = null
+                    _state.value = _state.value.copy(apiPodPending = false)
                 }
-                "apipod" -> {
-                    val task = pendingApiPod ?: apiPodClient.prepare(state.apiPodKey, prompt, selected, state.apiPodPro).also {
-                        pendingApiPod = it
-                        _state.value = _state.value.copy(apiPodPending = true)
-                    }
-                    prompt = task.prompt
-                    referenceUsed = task.referenceUsed
-                    try {
-                        val result = apiPodClient.run(task) { message -> _state.value = _state.value.copy(message = message) }
-                        costUsd = result.costUsd
-                        result.image
-                    } catch (error: ApiPodException) {
-                        if (error.definitive || error.terminal) {
-                            pendingApiPod = null
-                            _state.value = _state.value.copy(apiPodPending = false)
-                        }
-                        throw error
-                    }
-                }
-                else -> error("不支持的图片平台")
+                throw error
             }
             pendingApiPod = null
-            _state.value = _state.value.copy(result = image, turns = state.turns + ImageTurn(prompt, image, referenceUsed, costUsd),
-                prompt = "", continueEditing = true, apiPodPending = false, message = resultMessage)
+            _state.value = _state.value.copy(result = result.image,
+                turns = state.turns + ImageTurn(task.prompt, result.image, task.referenceUsed, result.costUsd),
+                prompt = "", continueEditing = true, apiPodPending = false, message = "生成完成；可继续输入修改要求")
         }
     }
     fun saveImage() {
