@@ -655,3 +655,16 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated app/build.gradle.kts, workflow_dispatch version default and push-run title; artifact naming continues to derive from Gradle. Added explicit AGENTS.md rule: new-code APK releases must not reuse a published versionName, versionCode must increase, and metadata must agree. Same-source failed-build retries may retain the version.
 - GitHub connector has no workflow-dispatch capability; updated the dedicated build-trigger.txt fallback under existing authorization. Push-trigger builds run full testDebugUnitTest + lintDebug + assembleDebug, then fixed-signature verification and versioned artifact upload. No APK/AAB in source.
 - Updated PROJECT.md; diff/metadata checks passed. Full CI result, signing and artifact verification pending. Live API and device behavior remain unverified.
+
+
+## 2026-11-25 — Build result versus download-link preference
+- Clarified AGENTS.md and PROJECT.md: a build-only request completes normal verification and reports version/mode/result, without proactively sharing a download link. A link is supplied only on explicit request.
+- Keep required test/lint/package/signature/upload checks; use compact results and targeted log extraction rather than printing full successful logs. Documentation-only change; no additional APK build is triggered. The already authorized v0.9.39 full build continues.
+
+
+## 2026-11-25 — v0.9.39 full CI verified
+- Build source commit: 3519a7c5db0518e67278e51f2e668b994901a7b6; app version 0.9.39/code 51. Actions run 45582477350 titled PhotoEdit v0.9.39 · full APK completed successfully; job 139095704291.
+- Targeted log extraction confirms app:testDebugUnitTest, app:lintDebug and app:assembleDebug executed, with BUILD SUCCESSFUL in 1m 1s. Fixed-signature verification, versioned APK staging and upload steps all passed.
+- Artifact PhotoEdit-v0.9.39-apk, ID 15005764682, size 9,383,000 bytes, non-expired and retained until 2026-12-25. Workflow stages PhotoEdit-v0.9.39.apk from the verified output. Verified run SHA, job steps and artifact metadata; archive was not downloaded or inspected in this session. APK/AAB binaries remain outside source commits.
+- This supersedes the prior static-only validation status for the novel workflow: Android compilation, focused unit checks, lint, packaging and signature/upload now have CI evidence. Device layout, note persistence and real paid-model response behavior remain unverified.
+- Per clarified user preference, report build result without proactively sharing a download link. Updated PROJECT.md; this result/preference documentation commit does not change build-trigger.txt and does not trigger another APK build.

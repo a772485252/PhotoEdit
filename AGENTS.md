@@ -38,7 +38,7 @@ Build a genuine native Android application for photo processing and short-form v
 - Never commit APK/AAB binaries to the source repository. Ignore them in Git; do not use force-add, repository publishing commits, or a latest-apk directory.
 - Upload the signed APK as a GitHub Actions artifact named PhotoEdit-v<versionName>-apk containing PhotoEdit-v<versionName>.apk. Derive the version from app/build.gradle.kts.
 - Keep workflow contents permission read-only. No automated commits, reset, or push during builds.
-- Share a verified successful Actions run/artifact link; artifacts currently expire after 30 days and downloads require GitHub access. An expired artifact requires a new explicitly requested build.
+- 用户只说“构建”时，完成构建并报告版本、模式、验证结果，不主动提供下载链接。只有用户明确要求 APK 下载链接时，才分享已经核实成功的 Actions run/artifact 链接。产物保留 30 天，下载需要 GitHub 访问权限；过期后须由用户明确要求重新构建。
 - Preserve fixed signing identity and monotonic versionCode for app updates. Build only on explicit user request.
 - 每次发布包含新代码的新 APK，versionName 必须使用未发布过的新版本号，versionCode 必须大于此前发布值；不得沿用旧版本号发布不同内容。构建前核对版本历史与最新成功构建，并同步 app/build.gradle.kts、workflow_dispatch 默认值、工作流标题和产物名称。仅重试同一源码版本的失败构建可保留版本号；已发布产物的原样重建须明确说明。
 
