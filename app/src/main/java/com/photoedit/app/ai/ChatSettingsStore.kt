@@ -35,7 +35,10 @@ class ChatSettingsStore(context: Context) {
 
     fun load(provider: ChatProvider): ChatSettings {
         val (account, token) = stores.getValue(provider).load()
-        return ChatSettings(token, prefs.getString("model_${provider.name}", provider.defaultModel) ?: provider.defaultModel, account)
+        val savedModel = prefs.getString("model_${provider.name}", provider.defaultModel) ?: provider.defaultModel
+        // Do not restore a retired preset from an older installation.
+        val model = if (provider == ChatProvider.APIPOD && savedModel == "deepseek-flash") provider.defaultModel else savedModel
+        return ChatSettings(token, model, account)
     }
 
     fun select(provider: ChatProvider, model: String) {

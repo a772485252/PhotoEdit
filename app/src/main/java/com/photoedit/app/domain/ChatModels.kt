@@ -14,8 +14,7 @@ object ChatModels {
         )
         ChatProvider.APIPOD -> listOf(
             ChatModel(provider.defaultModel, "Grok 4.5 · APIPod"),
-            ChatModel("grok-4.6", "Grok 4.6 · APIPod"),
-            ChatModel("deepseek-flash", "DeepSeek Flash · APIPod")
+            ChatModel("grok-4.6", "Grok 4.6 · APIPod")
         )
     }
 
@@ -38,9 +37,6 @@ object ChatModels {
         provider == ChatProvider.CLOUDFLARE && model == "@cf/zai-org/glm-4.7-flash" ->
             PriceGuide("\$0.0006 · 约55 Neurons", "\$0.0040 · 约364 Neurons",
                 "按 1 字≈1 Token 粗估；Workers AI 实际按 Neurons 计量")
-        provider == ChatProvider.APIPOD && model == "deepseek-flash" ->
-            PriceGuide("\$0.0015", "\$0.0060",
-                "按 1 字≈1 Token 粗估；APIPod 标价输入 \$0.15、输出 \$0.60 / 百万 Token，实际按 Token 结算")
         provider == ChatProvider.APIPOD && model == "grok-4.6" ->
             PriceGuide("\$0.0140", "\$0.0420",
                 "按 1 字≈1 Token 粗估；APIPod xAI 渠道输入 \$1.40、输出 \$4.20 / 百万 Token，实际按 Token 结算")

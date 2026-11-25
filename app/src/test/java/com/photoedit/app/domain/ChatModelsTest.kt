@@ -6,7 +6,7 @@ import org.junit.Test
 class ChatModelsTest {
     @Test fun onlyVisibleProvidersAndTheirPresetsRemain() {
         assertEquals(setOf("CLOUDFLARE", "APIPOD"), ChatProvider.entries.map { it.name }.toSet())
-        assertEquals(4, ChatProvider.entries.sumOf { ChatModels.presets(it).size })
+        assertEquals(3, ChatProvider.entries.sumOf { ChatModels.presets(it).size })
         ChatProvider.entries.forEach { provider ->
             assertTrue(ChatModels.presets(provider).any { it.id == provider.defaultModel })
             ChatModels.presets(provider).forEach { ChatModels.validate(provider, it.id) }
@@ -36,14 +36,6 @@ class ChatModelsTest {
         val apipod = ChatModels.priceGuide(ChatProvider.APIPOD, "grok-4.5")
         assertEquals("\$0.002–\$0.014", apipod?.inputPerTenThousandChars)
         assertEquals("\$0.006–\$0.042", apipod?.outputPerTenThousandChars)
-    }
-
-    @Test fun apipodDeepSeekFlashPresetAndPricing() {
-        assertTrue(ChatModels.presets(ChatProvider.APIPOD).any { it.id == "deepseek-flash" })
-        ChatModels.validate(ChatProvider.APIPOD, "deepseek-flash")
-        assertEquals("DeepSeek Flash · APIPod", ChatModels.displayName(ChatProvider.APIPOD, "deepseek-flash"))
-        assertEquals("\$0.0015", ChatModels.priceGuide(ChatProvider.APIPOD, "deepseek-flash")?.inputPerTenThousandChars)
-        assertEquals("\$0.0060", ChatModels.priceGuide(ChatProvider.APIPOD, "deepseek-flash")?.outputPerTenThousandChars)
     }
 
     @Test fun unknownModelDoesNotInventAPrice() {
