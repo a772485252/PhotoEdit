@@ -668,3 +668,7 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Artifact PhotoEdit-v0.9.39-apk, ID 15005764682, size 9,383,000 bytes, non-expired and retained until 2026-12-25. Workflow stages PhotoEdit-v0.9.39.apk from the verified output. Verified run SHA, job steps and artifact metadata; archive was not downloaded or inspected in this session. APK/AAB binaries remain outside source commits.
 - This supersedes the prior static-only validation status for the novel workflow: Android compilation, focused unit checks, lint, packaging and signature/upload now have CI evidence. Device layout, note persistence and real paid-model response behavior remain unverified.
 - Per clarified user preference, report build result without proactively sharing a download link. Updated PROJECT.md; this result/preference documentation commit does not change build-trigger.txt and does not trigger another APK build.
+
+
+## 2026-11-25 — Simplified build handling rule
+- Updated AGENTS.md and PROJECT.md: build-only requests use Actions overall status; no individual success-log inspection, build-result records or unsolicited download links. Failure diagnosis and required CI checks remain. Clarified the documentation exception for routine build results; actual code/config/product/rule changes still require documentation. Documentation-only; no build triggered.
