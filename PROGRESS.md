@@ -625,3 +625,11 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Updated focused existing domain tests for the new provider, invalid IDs, separate credential identity and known/unknown price behavior. No new SDK or test framework.
 - Bumped app to 0.9.38/code 50, synchronized workflow default and push fallback Full run title, and updated build-trigger.txt on explicit user request. APK remains Actions-artifact-only with fixed signing and 30-day retention.
 - Full CI tests/lint/build/signing/upload pending. No API Key provided or used, so live endpoint behavior and Android/device UX remain unverified.
+
+## 2026-11-25 — v0.9.38 Full CI and artifact verified
+- Source commit: 85df73603c1158963da2296b72b3abed0253ccc4.
+- Successful full workflow: https://github.com/a772485252/PhotoEdit/actions/runs/45569518030 ; build job 139052421350 completed successfully.
+- Logs confirm testDebugUnitTest, assembleDebug and lintDebug executed; BUILD SUCCESSFUL in 3m 8s. Fixed-keystore signature verification, versioned staging and artifact upload steps all passed.
+- Artifact PhotoEdit-v0.9.38-apk, ID 15000968290, ZIP size 9,364,873 bytes, expires 2026-12-25. Downloaded ZIP digest matches GitHub artifact digest; archive contains exactly PhotoEdit-v0.9.38.apk (9,776,107 bytes). Temporary download is outside the source checkout; no APK/AAB committed.
+- Download: https://github.com/a772485252/PhotoEdit/actions/runs/45569518030/artifacts/15000968290 . GitHub access required; extract ZIP to install APK.
+- This verifies unit checks, lint, Android compilation/packaging, signature check and artifact distribution. No user API Key was used; live UncensoredLLM response quality, trial availability, credential persistence and real-device UI remain to be tested on-device.
