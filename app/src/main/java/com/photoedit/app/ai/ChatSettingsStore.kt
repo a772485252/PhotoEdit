@@ -13,6 +13,7 @@ class ChatSettingsStore(context: Context) {
         when (provider) {
             ChatProvider.CLOUDFLARE -> AiSettingsStore(context)
             ChatProvider.APIPOD -> AiSettingsStore(context, "apipod_private")
+            ChatProvider.UNCENSOREDLLM -> AiSettingsStore(context, ChatProvider.UNCENSOREDLLM.namespace)
         }
     }
     private val prefs = context.getSharedPreferences("chat_selection", Context.MODE_PRIVATE)

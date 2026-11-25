@@ -616,3 +616,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - ChatSettingsStore.load restores an old saved selection of the retired preset as the APIPod default (Grok 4.5), preventing automatic reuse after upgrade. Other custom IDs and existing encrypted credentials are preserved; shared APIPod transport and image routes are unchanged.
 - Updated README and current PROJECT model inventory. Historical milestone records remain historical. No new provider, validation framework or test suite added.
 - Targeted static validation passed: three changed Kotlin files parsed successfully; the only remaining retired-model source reference is saved-selection compatibility; git diff --check passed. No APK build requested or triggered; compilation, unit tests, Lint and device/API behavior remain unverified.
+
+
+## 2026-11-25 — v0.9.38 UncensoredLLM integration and requested Full APK
+- Added UNCENSOREDLLM chat provider with one preset glm-5.3-flash-uncensored, custom ID support, distinct encrypted credential namespace and fixed https://api.uncensoredllm.ai/v1/chat/completions endpoint. Reused existing background HTTPS transport and bounded text context; non-streaming, max_tokens 2048, no auto retry/model fallback. Existing providers, keys and first-launch/platform selection unchanged.
+- Chat settings add provider-specific explanation, registration/current-price links and masked Key save/clear. Pricing estimate is based on the public 2026-11-25 model row (input $0.1211/output $0.4238 per million tokens), clearly estimated and not a balance or final billing claim.
+- Official API/auth/response contract verified at https://uncensoredllm.ai/docs ; pricing/model at https://uncensoredllm.ai/pricing ; wallet API funding at https://uncensoredllm.ai/terms . This is a third-party model build, not a claim of official Z.ai hosting, unrestricted content or verified output quality.
+- Updated focused existing domain tests for the new provider, invalid IDs, separate credential identity and known/unknown price behavior. No new SDK or test framework.
+- Bumped app to 0.9.38/code 50, synchronized workflow default and push fallback Full run title, and updated build-trigger.txt on explicit user request. APK remains Actions-artifact-only with fixed signing and 30-day retention.
+- Full CI tests/lint/build/signing/upload pending. No API Key provided or used, so live endpoint behavior and Android/device UX remain unverified.

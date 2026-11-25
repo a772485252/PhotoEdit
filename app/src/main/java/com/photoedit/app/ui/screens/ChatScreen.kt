@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +49,7 @@ fun ChatScreen(
     var rulesDraft by remember(state.promptRules, rulesOpen) { mutableStateOf(state.promptRules) }
     val listState = rememberLazyListState()
     val clipboard = LocalClipboardManager.current
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(state.messages.size, state.busy) {
         if (state.messages.isNotEmpty()) listState.animateScrollToItem(state.messages.lastIndex)
@@ -84,6 +86,7 @@ fun ChatScreen(
                         ChatProvider.CLOUDFLARE -> "额度：实时剩余请查看 Cloudflare 控制台"
 
                         ChatProvider.APIPOD -> "余额：请在 APIPod 控制台查看"
+                        ChatProvider.UNCENSOREDLLM -> "试用额度及余额：请在 UncensoredLLM 控制台查看"
 
                     }, style = MaterialTheme.typography.labelSmall)
                 }
@@ -291,10 +294,15 @@ fun ChatScreen(
                             ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
 
                             ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
+                            ChatProvider.UNCENSOREDLLM -> "使用单独注册的 UncensoredLLM API Key，按 Token 计费；试用额度以控制台为准。此处是平台提供的低拒答衍生版，仍遵循平台规则。"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (state.provider == ChatProvider.UNCENSOREDLLM) {
+                        TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/") }) { Text("注册 / 获取 Key") }
+                        TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/pricing") }) { Text("查看实时价格") }
+                    }
                     OutlinedTextField(
                         value = state.token,
                         onValueChange = onKey,
@@ -317,6 +325,7 @@ fun ChatScreen(
                             ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
 
                             ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
+                            ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅点击生成或重新生成时发送文字。"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -354,6 +363,7 @@ private fun ModelSelector(
                                     ChatProvider.CLOUDFLARE -> "Cloudflare Workers AI"
 
                                     ChatProvider.APIPOD -> "APIPod 按 Token 计费"
+                                    ChatProvider.UNCENSOREDLLM -> "UncensoredLLM 按 Token 计费"
                                 }
                             )
                         },

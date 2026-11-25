@@ -24,7 +24,7 @@ class ChatClient {
         } })
         if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
         val endpoint = if (provider == ChatProvider.CLOUDFLARE) "/ai/run/$model" else "/chat/completions"
-        if (provider == ChatProvider.CLOUDFLARE) body.put("max_tokens", 2048)
+        if (provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.UNCENSOREDLLM) body.put("max_tokens", 2048)
         val result = request(provider, token, endpoint, body.toString().toByteArray(Charsets.UTF_8))
         if (provider == ChatProvider.CLOUDFLARE) {
             val answer = result.optJSONObject("result")?.optString("response").orEmpty().trim()
@@ -44,6 +44,7 @@ class ChatClient {
         val base = when (provider) {
             ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
             ChatProvider.APIPOD -> "https://api.apipod.ai/v1"
+            ChatProvider.UNCENSOREDLLM -> "https://api.uncensoredllm.ai/v1"
         }
         val connection = URL(base + path).openConnection() as HttpURLConnection
         try {

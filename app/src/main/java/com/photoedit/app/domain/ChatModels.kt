@@ -2,13 +2,17 @@ package com.photoedit.app.domain
 
 enum class ChatProvider(val label: String, val namespace: String, val defaultModel: String) {
     CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash"),
-    APIPOD("APIPod", "apipod_private", "grok-4.5")
+    APIPOD("APIPod", "apipod_private", "grok-4.5"),
+    UNCENSOREDLLM("UncensoredLLM", "uncensoredllm_chat_private", "glm-5.3-flash-uncensored")
 }
 
 data class ChatModel(val id: String, val name: String)
 
 object ChatModels {
     fun presets(provider: ChatProvider): List<ChatModel> = when (provider) {
+        ChatProvider.UNCENSOREDLLM -> listOf(
+            ChatModel(provider.defaultModel, "GLM 5.3 Flash · Uncensored")
+        )
         ChatProvider.CLOUDFLARE -> listOf(
             ChatModel(provider.defaultModel, "GLM-4.7-Flash · Workers AI")
         )
@@ -20,7 +24,7 @@ object ChatModels {
 
     fun displayName(provider: ChatProvider, model: String): String = when (provider) {
         ChatProvider.CLOUDFLARE -> if (model == "@cf/zai-org/glm-4.7-flash") "GLM-4.7-Flash" else model.substringAfterLast('/')
-        ChatProvider.APIPOD -> presets(provider).firstOrNull { it.id == model }?.name ?: model
+        ChatProvider.APIPOD, ChatProvider.UNCENSOREDLLM -> presets(provider).firstOrNull { it.id == model }?.name ?: model
     }
 
     data class PriceGuide(
@@ -34,6 +38,9 @@ object ChatModels {
      * Actual tokenization, channel routing, context and output length change the final charge.
      */
     fun priceGuide(provider: ChatProvider, model: String): PriceGuide? = when {
+        provider == ChatProvider.UNCENSOREDLLM && model == provider.defaultModel ->
+            PriceGuide("\$0.0012", "\$0.0042",
+                "按 1 字≈1 Token 粗估；2026-11-25 标价输入 $0.1211、输出 $0.4238 / 百万 Token，实际以平台结算为准")
         provider == ChatProvider.CLOUDFLARE && model == "@cf/zai-org/glm-4.7-flash" ->
             PriceGuide("\$0.0006 · 约55 Neurons", "\$0.0040 · 约364 Neurons",
                 "按 1 字≈1 Token 粗估；Workers AI 实际按 Neurons 计量")

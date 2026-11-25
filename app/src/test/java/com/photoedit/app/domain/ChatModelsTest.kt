@@ -5,8 +5,8 @@ import org.junit.Test
 
 class ChatModelsTest {
     @Test fun onlyVisibleProvidersAndTheirPresetsRemain() {
-        assertEquals(setOf("CLOUDFLARE", "APIPOD"), ChatProvider.entries.map { it.name }.toSet())
-        assertEquals(3, ChatProvider.entries.sumOf { ChatModels.presets(it).size })
+        assertEquals(setOf("CLOUDFLARE", "APIPOD", "UNCENSOREDLLM"), ChatProvider.entries.map { it.name }.toSet())
+        assertEquals(4, ChatProvider.entries.sumOf { ChatModels.presets(it).size })
         ChatProvider.entries.forEach { provider ->
             assertTrue(ChatModels.presets(provider).any { it.id == provider.defaultModel })
             ChatModels.presets(provider).forEach { ChatModels.validate(provider, it.id) }
@@ -24,6 +24,7 @@ class ChatModelsTest {
         invalidIds.forEach { id ->
             assertTrue(runCatching { ChatModels.validate(ChatProvider.CLOUDFLARE, id) }.isFailure)
             assertTrue(runCatching { ChatModels.validate(ChatProvider.APIPOD, id) }.isFailure)
+            assertTrue(runCatching { ChatModels.validate(ChatProvider.UNCENSOREDLLM, id) }.isFailure)
         }
     }
 
@@ -36,6 +37,16 @@ class ChatModelsTest {
         val apipod = ChatModels.priceGuide(ChatProvider.APIPOD, "grok-4.5")
         assertEquals("\$0.002–\$0.014", apipod?.inputPerTenThousandChars)
         assertEquals("\$0.006–\$0.042", apipod?.outputPerTenThousandChars)
+    }
+
+    @Test fun uncensoredLlmHasIndependentCredentialsAndModelSpecificPricing() {
+        val provider = ChatProvider.UNCENSOREDLLM
+        assertNotEquals(ChatProvider.APIPOD.namespace, provider.namespace)
+        assertNotEquals(ChatProvider.CLOUDFLARE.namespace, provider.namespace)
+        ChatModels.validate(provider, provider.defaultModel)
+        assertEquals("\$0.0012", ChatModels.priceGuide(provider, provider.defaultModel)?.inputPerTenThousandChars)
+        assertEquals("\$0.0042", ChatModels.priceGuide(provider, provider.defaultModel)?.outputPerTenThousandChars)
+        assertNull(ChatModels.priceGuide(provider, "custom-model"))
     }
 
     @Test fun unknownModelDoesNotInventAPrice() {
