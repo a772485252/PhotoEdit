@@ -1,5 +1,13 @@
 # PhotoEdit — Project Specification
 
+## Current authoritative state — 2026-11-25
+- Source version remains 0.9.37 / versionCode 49; no APK build requested in this cleanup. Historical sections below describe past milestones and are superseded by this current summary where they conflict.
+- Visible chat providers only: Cloudflare Workers AI (@cf/zai-org/glm-4.7-flash), Venice (venice-uncensored-1-2, deepseek-v4-1-flash-uncensored), APIPod (grok-4.5, grok-4.6, deepseek-flash). Custom chat model IDs remain supported.
+- Visible image providers only: APIPod (z-image-spicy / z-image-spicy-pro; qwen-image-edit-spicy for a reference) and Venice (lustify-v8; firered-image-edit for a reference). Venice payment constraint remains.
+- Removed hidden Groq/OpenRouter chat integrations and Cloudflare image, AI Horde and Runware image implementations, settings/UI callbacks, routing and provider-only rules/tests. Cloudflare chat and existing active encrypted credentials remain.
+- APK/AAB binaries must never enter source commits. Current tracked APKs are removed; past Git history is unchanged. Builds upload versioned Actions artifacts only, with 30-day retention and contents: read. No repository-writing build step. The artifact contains PhotoEdit-v<versionName>.apk; downloads require GitHub access.
+- Only explicit user requests trigger APK builds. This cleanup has not been compiled, linted, API-tested or device-tested.
+
 ## Purpose
 A free native Android application for preparing images and short-form video materials, including Douyin/TikTok-style vertical content.
 
@@ -16,7 +24,7 @@ A free native Android application for preparing images and short-form video mate
 - Video: plan for OpenGL ES + MediaCodec; implementation details to be validated on devices.
 - Storage: Android Photo Picker / Storage Access Framework / MediaStore as appropriate.
 - Build: Gradle + GitHub Actions, with downloadable APK artifact.
-- Network: offline core features; optional Cloudflare AI requires internet and a user-provided token.
+- Network: offline core features; optional AI features require internet and provider credentials.
 - Distribution: share APK directly; configure durable release signing before public releases.
 
 ## Platform strategy
@@ -114,7 +122,7 @@ A free native Android application for preparing images and short-form video mate
 
 ## V0.9 Venice image provider
 - Optional paid provider, distinct encrypted venice_private Key; no SDK/dependencies and existing defaults/signing preserved.
-- Text: Z-Image Turbo 1024x1024, indicative $0.01. One reference or previous result: FireRed image edit, indicative $0.04. Explicit routing/prices displayed before submission. PNG reference max1024 with256 minimum short edge; no paid prompt enhancement.
+- Text: Lustify v8 (lustify-v8) 1024x1024, indicative $0.01. One reference or previous result: FireRed image edit, indicative $0.04. Explicit routing/prices displayed before submission. PNG reference max1024 with256 minimum short edge; no paid prompt enhancement.
 - Synchronous binary responses, bounded decode and fixed HTTPS destination. Keep default platform content processing; report blurred output. Content acceptance/anatomy not guaranteed.
 - No automatic retries or claimed server cancellation/status queries. Ambiguous outcomes lock new submission until user checks usage and acknowledges; input/result retained. All operation state session-only. See docs/VENICE.md.
 

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -31,14 +30,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
-import com.photoedit.app.domain.HordeRules
 import com.photoedit.app.domain.AppearanceCatalog
 import com.photoedit.app.domain.OutfitCatalog
 import com.photoedit.app.domain.PromptComposer
@@ -50,14 +47,10 @@ import com.photoedit.app.ui.components.PosePicker
 import com.photoedit.app.viewmodel.AiUiState
 
 @Composable
-fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) -> Unit,
-             onPrompt: (String) -> Unit, onSaveSettings: () -> Unit, onClearSettings: () -> Unit,
+fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
              onChoose: () -> Unit, onRemove: () -> Unit, onGenerate: () -> Unit, onSaveImage: () -> Unit,
  onNewSession: () -> Unit, onUseTurn: (Int) -> Unit, onContinue: (Boolean) -> Unit,
- onProvider: (String) -> Unit, onRunwareKey: (String) -> Unit, onSaveRunwareKey: () -> Unit, onClearRunwareKey: () -> Unit,
- onHordeKey: (String) -> Unit, onSaveHordeKey: () -> Unit, onClearHordeKey: () -> Unit,
- onHordeModel: (String) -> Unit, onHordeDenoise: (Double) -> Unit, onHordeNsfw: (Boolean) -> Unit, onRefreshHordeModels: () -> Unit,
- onStopHordeWaiting: () -> Unit, onCancelHordeTask: () -> Unit,
+ onProvider: (String) -> Unit,
  onApiPodKey: (String) -> Unit, onSaveApiPodKey: () -> Unit, onClearApiPodKey: () -> Unit,
  onApiPodPro: (Boolean) -> Unit, onStopApiPodWaiting: () -> Unit, onAbandonApiPodTracking: () -> Unit,
  onVeniceKey: (String) -> Unit, onSaveVeniceKey: () -> Unit, onClearVeniceKey: () -> Unit,
@@ -74,11 +67,9 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var showAttachment by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
     var enlargedResult by remember { mutableStateOf<Bitmap?>(null) }
-    val runware = state.provider == "runware"
-    val horde = state.provider == "horde"
     val apiPod = state.provider == "apipod"
     val venice = state.provider == "venice"
-    val pendingTask = state.hordeTaskPending || state.apiPodPending
+    val pendingTask = state.apiPodPending
     val veniceUnknown = venice && state.veniceOutcomeUnknown
     val effectiveReference = (state.continueEditing && state.result != null) || state.reference != null
     val apiPodModel = ApiPodRules.model(effectiveReference, state.apiPodPro)
@@ -86,15 +77,11 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
     var confirmAbandon by remember { mutableStateOf(false) }
     val editingEnabled = !state.busy && !pendingTask && !state.veniceOutcomeUnknown
     var confirmVeniceOutcome by remember { mutableStateOf(false) }
-    var showHordeModels by remember { mutableStateOf(false) }
     val providerName = when {
         venice -> "Venice · " + VeniceRules.model(effectiveReference)
-        apiPod -> "APIPod · 付费"
-        horde -> "AI Horde · 免费队列"
-        runware -> "Runware · Muse Image"
-        else -> "Cloudflare · FLUX.2 Klein"
+        else -> "APIPod · 付费"
     }
-    val hasKey = when { venice -> state.veniceKey.isNotBlank(); apiPod -> state.apiPodKey.isNotBlank(); horde -> true; runware -> state.runwareKey.isNotBlank(); else -> state.token.isNotBlank() }
+    val hasKey = if (venice) state.veniceKey.isNotBlank() else state.apiPodKey.isNotBlank()
 
     LaunchedEffect(state.turns.size) {
         // One footer item always exists, including in an empty conversation.
@@ -261,74 +248,6 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                         Text("本次模型：$apiPodModel", style = MaterialTheme.typography.bodySmall)
                         Text("无参考图使用 Z-Image；有参考图或继续编辑时使用 Qwen Image Edit。上传图片最长边 1024 像素，编辑输出跟随主图；文生图尺寸由模型决定。", style = MaterialTheme.typography.bodySmall)
                         Text("Spicy 路线面向成年人，平台明确不向中国大陆、香港、澳门开放。VPN 不保证账号或模型可用；请先确认地区资格。平台与上游内容规则仍生效。", style = MaterialTheme.typography.bodySmall)
-                    } else if (horde) {
-                        Text("免费社区算力 · 保持 512 × 512，不自动降档；积分不足会提示，不会自动付费。", style = MaterialTheme.typography.bodySmall)
-                        OutlinedTextField(state.hordeKey, onHordeKey, label = { Text("个人 API Key（留空可匿名试用）") },
-                            singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
-                            visualTransformation = PasswordVisualTransformation())
-                        Row {
-                            TextButton(onClick = onSaveHordeKey, enabled = !state.busy) { Text("保存 Key") }
-                            TextButton(onClick = onClearHordeKey, enabled = !state.busy) { Text("匿名模式") }
-                        }
-                        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://aihorde.net/register"))) }) { Text("注册并获取个人 Key") }
-                        Text("人像优先", style = MaterialTheme.typography.titleSmall)
-                        HordeRules.portraitModels.forEach { model ->
-                            FilterChip(state.hordeModel == model, { onHordeModel(model) }, label = { Text(model) }, enabled = editingEnabled)
-                        }
-                        OutlinedTextField(state.hordeModel, onHordeModel, label = { Text("模型名称") },
-                            singleLine = true, enabled = editingEnabled, modifier = Modifier.fillMaxWidth())
-                        Row {
-                            TextButton(onClick = onRefreshHordeModels, enabled = !state.busy) { Text("刷新在线模型") }
-                            Box {
-                                TextButton(onClick = { showHordeModels = true }, enabled = editingEnabled && state.hordeModels.isNotEmpty()) { Text("选择模型") }
-                                DropdownMenu(expanded = showHordeModels, onDismissRequest = { showHordeModels = false }, modifier = Modifier.heightIn(max = 280.dp)) {
-                                    state.hordeModels.forEach { model ->
-                                        DropdownMenuItem(text = { Text("${model.name} · ${model.workers} 节点") },
-                                            onClick = { onHordeModel(model.name); showHordeModels = false })
-                                    }
-                                }
-                            }
-                        }
-                        if (state.hordeModel in HordeRules.portraitModels) {
-                            Text("写真优化已开启：匹配采样参数，并补充清晰度提示与负面词；原输入文字保留。", style = MaterialTheme.typography.bodySmall)
-                        }
-                        Text("参考图修改程度", style = MaterialTheme.typography.titleSmall)
-                        listOf(0.35 to "保留更多原图", 0.55 to "平衡", 0.65 to "较大变化").forEach { (strength, label) ->
-                            FilterChip(kotlin.math.abs(state.hordeDenoise - strength) < 0.01,
-                                { onHordeDenoise(strength) }, label = { Text(label) }, enabled = editingEnabled)
-                        }
-                        Text("默认平衡；低强度更偏向保留原图，变化越大，人物长相越可能改变。较低强度也可能保留原图的模糊，不是人脸锁定。英文提示词通常更适合这些模型，可用提示词助手整理。", style = MaterialTheme.typography.bodySmall)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(state.hordeNsfw, onHordeNsfw, enabled = editingEnabled)
-                            Text("允许 NSFW 请求", style = MaterialTheme.typography.bodyMedium)
-                        }
-                        Text("仅由接受此类请求的节点处理，可能等得更久；平台与节点内容规则仍生效。图生图不保证保脸或精确换装。", style = MaterialTheme.typography.bodySmall)
-                        Text("参考图交由志愿节点处理。匿名文生图及提示词会被平台共享给 LAION；个人 Key 请求关闭主动共享。", style = MaterialTheme.typography.bodySmall)
-                    } else if (runware) {
-                        OutlinedTextField(state.runwareKey, onRunwareKey, label = { Text("Runware API Key") },
-                            singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
-                            visualTransformation = PasswordVisualTransformation())
-                        Row {
-                            TextButton(onClick = onSaveRunwareKey, enabled = !state.busy) { Text("保存 Key") }
-                            TextButton(onClick = onClearRunwareKey, enabled = !state.busy) { Text("清除 Key") }
-                        }
-                        Text("Muse Image · 约 $0.01/张，实际以平台计费为准。", style = MaterialTheme.typography.bodySmall)
-                    } else {
-                        OutlinedTextField(state.account, onAccount, label = { Text("Account ID") }, singleLine = true,
-                            enabled = !state.busy, modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(state.token, onToken, label = { Text("API Token") }, singleLine = true,
-                            enabled = !state.busy, modifier = Modifier.fillMaxWidth(),
-                            visualTransformation = PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
-                        Row {
-                            TextButton(onClick = onSaveSettings, enabled = !state.busy) { Text("保存设置") }
-                            TextButton(onClick = onClearSettings, enabled = !state.busy) { Text("清除 Token") }
-                        }
-                        Text("免费额度每日 10,000 Neurons，北京时间 08:00 重置。实时剩余额度暂不可读取，请以控制台为准。", style = MaterialTheme.typography.bodySmall)
-                        TextButton(onClick = {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://dash.cloudflare.com/")))
-                        }) { Text("查看官方用量") }
-                        Text("请保持 Free 套餐。已开通付费的账号，超额计费由平台控制。", style = MaterialTheme.typography.bodySmall)
                     }
                     Text("点击生成才会向所选平台发送提示词和参考图。不会自动重试或切换平台。参考图会按所选平台缩小，人物长相不保证完全一致。", style = MaterialTheme.typography.bodySmall)
                     state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
@@ -371,7 +290,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (state.turns.isEmpty() && !state.busy) {
                             Text("想创作什么画面？", style = MaterialTheme.typography.titleLarge)
-                            Text(if (horde) "免费排队生成，输入描述或点 + 添加参考图。" else "输入描述，或点 + 添加参考图。", style = MaterialTheme.typography.bodyMedium)
+                            Text("输入描述，或点 + 添加参考图。", style = MaterialTheme.typography.bodyMedium)
                             if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("设置 API Key") }
                         }
                         if (apiPod && state.apiPodPending) {
@@ -383,11 +302,6 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                             Text("上一笔结果与计费未知，请先核对平台用量；再次生成会新建付费请求。", style = MaterialTheme.typography.bodySmall)
                             TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://venice.ai/settings/api"))) }) { Text("核对 Venice 用量") }
                             TextButton(onClick = { confirmVeniceOutcome = true }) { Text("核对后继续…") }
-                        }
-                        if (horde && state.hordeTaskPending) {
-                            Text("当前模型：${state.hordeModel}", style = MaterialTheme.typography.bodySmall)
-                            if (state.busy) TextButton(onClick = onStopHordeWaiting) { Text("停止等待（保留平台任务）") }
-                            else TextButton(onClick = onCancelHordeTask) { Text("取消原任务") }
                         }
                         if (state.busy) {
                             LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -428,7 +342,7 @@ fun AiScreen(state: AiUiState, onAccount: (String) -> Unit, onToken: (String) ->
                     }, style = MaterialTheme.typography.labelSmall)
                     if (apiPod) Text(apiPodModel + " · 约 $" + apiPodEstimate + "/次 · 以平台结算为准", style = MaterialTheme.typography.labelSmall)
                     if (venice) Text(VeniceRules.model(effectiveReference) + " · 约 $" + VeniceRules.estimate(effectiveReference) + "/次 · 以平台结算为准", style = MaterialTheme.typography.labelSmall)
-                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 ${if (venice) "Venice Key" else if (apiPod) "APIPod Key" else if (runware) "Runware Key" else "Cloudflare Token"}") }
+                    if (!hasKey) TextButton(onClick = { showSettings = true }) { Text("先设置 ${if (venice) "Venice Key" else "APIPod Key"}") }
                     OutlinedTextField(state.prompt, onPrompt, placeholder = { Text("描述画面或修改要求…") },
                         minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())

@@ -39,8 +39,6 @@ fun ChatScreen(
     onProvider: (ChatProvider) -> Unit,
     onModel: (String) -> Unit,
     onModelDraft: (String) -> Unit,
-    onRefreshModels: () -> Unit,
-    onAllowPaid: (Boolean) -> Unit,
     onRefreshBalance: () -> Unit,
     onSavePromptRules: (String) -> Unit,
     onResetPromptRules: () -> Unit
@@ -84,7 +82,7 @@ fun ChatScreen(
                     ChatProvider.CLOUDFLARE -> "额度：实时剩余请查看 Cloudflare 控制台"
                     ChatProvider.VENICE -> state.balanceInfo ?: "余额：可在设置中刷新"
                     ChatProvider.APIPOD -> "余额：请在 APIPod 控制台查看"
-                    else -> "余额：请查看服务商控制台"
+
                 }, style = MaterialTheme.typography.labelSmall)
             }
         }
@@ -309,7 +307,6 @@ fun ChatScreen(
                             ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
                             ChatProvider.VENICE -> "使用与 Venice 图片生成共用的 API Key。API 按所选模型 Token 价格计费。"
                             ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
-                            else -> "使用当前服务商的 API Key。"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -330,13 +327,12 @@ fun ChatScreen(
                     }
                     HorizontalDivider()
                     Text("模型选择", style = MaterialTheme.typography.titleSmall)
-                    ModelSelector(state, onModel, onModelDraft, onRefreshModels, onAllowPaid)
+                    ModelSelector(state, onModel, onModelDraft)
                     Text(
                         when (state.provider) {
                             ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
                             ChatProvider.VENICE -> "Venice 聊天与图片生成共用同一个 Key；在这里清除也会同时影响 Venice 图片生成。"
                             ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
-                            else -> "当前服务商凭据保存在本机。"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -354,64 +350,36 @@ fun ChatScreen(
 private fun ModelSelector(
     state: ChatUiState,
     onModel: (String) -> Unit,
-    onDraft: (String) -> Unit,
-    onRefresh: () -> Unit,
-    onAllowPaid: (Boolean) -> Unit
+    onDraft: (String) -> Unit
 ) {
     var expanded by remember(state.provider) { mutableStateOf(false) }
-    var query by remember(state.provider) { mutableStateOf("") }
-    val router = state.provider == ChatProvider.OPENROUTER
     Text("当前模型：${state.model}", style = MaterialTheme.typography.bodyMedium)
-    if (router) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = state.allowPaid, onCheckedChange = onAllowPaid, enabled = !state.busy)
-            Text("显示并允许付费模型（按平台计费）", style = MaterialTheme.typography.bodySmall)
-        }
-        Text(
-            "付费开关仅本次会话有效。关闭时只允许 :free 模型或 openrouter/free。",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            label = { Text("搜索模型名称或 ID") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            enabled = !state.busy
-        )
-    }
-    val available = state.models.filter {
-        (!router || state.allowPaid || (it.free == true && it.id.endsWith(":free"))) &&
-            (it.name.contains(query, true) || it.id.contains(query, true))
-    }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box {
-            OutlinedButton(onClick = { expanded = true }, enabled = !state.busy) { Text("选择模型（${available.size}）") }
+            OutlinedButton(onClick = { expanded = true }, enabled = !state.busy) { Text("选择模型（${state.models.size}）") }
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier.heightIn(max = 300.dp)
             ) {
-                available.take(100).forEach { model ->
+                state.models.forEach { model ->
                     DropdownMenuItem(
                         text = {
                             Text(
-                                (if (state.provider == ChatProvider.APIPOD) model.name.substringBefore(" · ") else model.name) + "\n" + if (router) {
-                                    if (model.free == true) " · 免费" else " · 付费／请查看平台价格"
-                                } else if (state.provider == ChatProvider.GROQ) " · 额度按 Groq 账号套餐" else if (state.provider == ChatProvider.VENICE) " · Venice API 按 Token 计费" else if (state.provider == ChatProvider.APIPOD) " · APIPod 按 Token 计费" else " · Cloudflare Workers AI"
+                                model.name + "\n" + when (state.provider) {
+                                    ChatProvider.CLOUDFLARE -> "Cloudflare Workers AI"
+                                    ChatProvider.VENICE -> "Venice API 按 Token 计费"
+                                    ChatProvider.APIPOD -> "APIPod 按 Token 计费"
+                                }
                             )
                         },
                         onClick = { expanded = false; onModel(model.id) }
                     )
                 }
-                if (available.isEmpty()) {
-                    DropdownMenuItem(text = { Text("无匹配模型，可刷新或手动填写 ID") }, onClick = {}, enabled = false)
+                if (state.models.isEmpty()) {
+                    DropdownMenuItem(text = { Text("暂无预设模型，可手动填写 ID") }, onClick = {}, enabled = false)
                 }
             }
-        }
-        if (router) {
-            TextButton(onClick = onRefresh, enabled = !state.busy && state.token.isNotBlank()) { Text("刷新列表") }
         }
     }
     OutlinedTextField(

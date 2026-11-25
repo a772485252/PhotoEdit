@@ -7,9 +7,15 @@ import com.photoedit.app.domain.ChatRules
 
 data class ChatSettings(val token: String, val model: String, val account: String = AiRules.DEFAULT_ACCOUNT)
 
-/** Provider keys retain separate Keystore aliases; the existing Groq namespace is unchanged. */
+/** Active providers reuse their existing encrypted credential storage. */
 class ChatSettingsStore(context: Context) {
-    private val stores = ChatProvider.entries.associateWith { when (it) { ChatProvider.CLOUDFLARE -> AiSettingsStore(context); ChatProvider.VENICE -> AiSettingsStore(context, "venice_private"); ChatProvider.APIPOD -> AiSettingsStore(context, "apipod_private"); else -> AiSettingsStore(context, it.namespace) } }
+    private val stores = ChatProvider.entries.associateWith { provider ->
+        when (provider) {
+            ChatProvider.CLOUDFLARE -> AiSettingsStore(context)
+            ChatProvider.VENICE -> AiSettingsStore(context, "venice_private")
+            ChatProvider.APIPOD -> AiSettingsStore(context, "apipod_private")
+        }
+    }
     private val prefs = context.getSharedPreferences("chat_selection", Context.MODE_PRIVATE)
 
     fun promptRules(): String = prefs.getString("prompt_rules", null)?.takeIf { it.isNotBlank() } ?: ChatRules.SYSTEM_PROMPT

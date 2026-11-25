@@ -72,20 +72,13 @@ class MainActivity : ComponentActivity() {
                             }, onGrid = homeViewModel::selectGrid, onSplit = homeViewModel::split, onSave = {
                                 if (needsStoragePermission()) gridPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                 else homeViewModel.save()
-                            }) else if (tab == 1) AiScreen(ai, aiViewModel::account, aiViewModel::token, aiViewModel::prompt,
-                                aiViewModel::saveSettings, aiViewModel::clearSettings, onChoose = {
+                            }) else if (tab == 1) AiScreen(ai, aiViewModel::prompt, onChoose = {
                                     referencePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                                 }, onRemove = aiViewModel::removeReference, onGenerate = aiViewModel::generate, onSaveImage = {
                                     if (needsStoragePermission()) aiPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     else aiViewModel.saveImage()
                                 }, onNewSession = aiViewModel::newSession, onUseTurn = aiViewModel::useTurn,
                                 onContinue = aiViewModel::setContinueEditing, onProvider = aiViewModel::provider,
-                                onRunwareKey = aiViewModel::runwareKey, onSaveRunwareKey = aiViewModel::saveRunwareKey,
-                                onClearRunwareKey = aiViewModel::clearRunwareKey,
-                                onHordeKey = aiViewModel::hordeKey, onSaveHordeKey = aiViewModel::saveHordeKey,
-                                onClearHordeKey = aiViewModel::clearHordeKey, onHordeModel = aiViewModel::hordeModel,
-                                onHordeDenoise = aiViewModel::hordeDenoise, onHordeNsfw = aiViewModel::hordeNsfw, onRefreshHordeModels = aiViewModel::refreshHordeModels,
-                                onStopHordeWaiting = aiViewModel::stopHordeWaiting, onCancelHordeTask = aiViewModel::cancelHordeTask,
                                 onApiPodKey = aiViewModel::apiPodKey, onSaveApiPodKey = aiViewModel::saveApiPodKey,
                                 onClearApiPodKey = aiViewModel::clearApiPodKey, onApiPodPro = aiViewModel::apiPodPro,
                                 onStopApiPodWaiting = aiViewModel::stopApiPodWaiting,
@@ -100,12 +93,11 @@ class MainActivity : ComponentActivity() {
                             })
                             else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
                                     chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
-                                    canUsePrompt = !ai.busy && !ai.hordeTaskPending && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
+                                    canUsePrompt = !ai.busy && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
                                         aiViewModel.prompt(prompt)
                                         tab = 1
                                     }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
-                                    onModelDraft = chatViewModel::modelDraft, onRefreshModels = chatViewModel::refreshModels,
-                                    onAllowPaid = chatViewModel::allowPaid, onRefreshBalance = chatViewModel::refreshBalance,
+                                    onModelDraft = chatViewModel::modelDraft, onRefreshBalance = chatViewModel::refreshBalance,
                                     onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules)
                         }
                     }

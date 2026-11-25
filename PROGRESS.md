@@ -581,3 +581,12 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - User explicitly requested deleting the old APK file. Deleted latest-apk/PhotoEdit-debug.apk from main (commit 5d588c862d95dd7e8f560048f79cd6d1d25e6047).
 - Verified obsolete file now returns NOT_FOUND, and versioned latest-apk/PhotoEdit-v0.9.37.apk still exists.
 - Future APK publishing must retain versioned naming only, per AGENTS.md. This was a repository file cleanup, not a new APK build.
+
+
+## 2026-11-25 — Sync and remove hidden integrations / APK source commits
+- Fast-forwarded the clean local main checkout to the verified remote commit cfb3995 (462 commits).
+- Inspected actual provider selectors: chat exposes Cloudflare/Venice/APIPod; images expose APIPod/Venice only. Removed hidden Groq/OpenRouter chat and Cloudflare-image/Horde/Runware adapters, routes, keys/UI state/callbacks, catalog/free-price controls and provider-only rules/tests. Shared active credential storage remains compatible.
+- Retained six chat presets and five image/edit routes; custom chat IDs remain. Added a focused domain assertion that only visible chat providers and their six presets remain. Removed tests only for intentionally removed image/provider behavior.
+- Removed five tracked APKs from the current source tree; added APK/AAB ignore rules. Existing Git history is not rewritten.
+- Replaced repository APK commits/push with versioned Actions artifacts (30-day retention), read-only contents permission, preserved signature checks and Quick/Full modes. Corrected workflow version default to current 0.9.37. README and AGENTS now describe artifact-only downloads; PROJECT records the current authoritative providers.
+- Static validation passed: no removed-provider references under app/src; Activity callbacks and screen state fields resolve against retained ViewModels; three chat providers remain; no APK/AAB tracked and ignore rules match; workflow contains no repository commit/push/reset and version default matches Gradle; all five workflow shell blocks passed bash -n without execution; git diff --check passed. No APK build requested or triggered; local Java/Gradle toolchain unavailable, so compilation, unit tests, lint, actual APIs and real-device behavior remain unverified.

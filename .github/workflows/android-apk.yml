@@ -18,7 +18,7 @@ on:
       app_version:
         description: "App version to display (must match app/build.gradle.kts)"
         required: true
-        default: "0.9.36"
+        default: "0.9.37"
         type: string
 
 concurrency:
@@ -29,7 +29,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Validate displayed version
@@ -121,36 +121,19 @@ jobs:
       - name: Remove runner signing key
         if: always()
         run: rm -f "$HOME/.android/debug.keystore"
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PhotoEdit-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-      - name: Publish latest APK to repository
+      - name: Stage versioned APK
         run: |
           set -euo pipefail
-          git fetch origin main
-          git reset --hard origin/main
-          mkdir -p latest-apk
-          APK_PATH="${PHOTOEDIT_APK_PATH:-}"
-          if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
-            APK_PATH=$(find app/build/outputs/apk/debug -maxdepth 1 -type f -name '*.apk' -print -quit)
-          fi
-          if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
-            echo "::error::Verified debug APK is missing; refusing to publish an empty or stale package."
-            find app/build/outputs -maxdepth 5 -type f -print 2>/dev/null || true
-            exit 1
-          fi
-          VERSION=$(grep -m1 'versionName = ' app/build.gradle.kts | cut -d '"' -f2)
-          if [ -z "$VERSION" ]; then echo "::error::Missing versionName"; exit 1; fi
-          cp "$APK_PATH" "latest-apk/PhotoEdit-v${VERSION}.apk"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f "latest-apk/PhotoEdit-v${VERSION}.apk"
-          if git diff --cached --quiet; then
-            echo "APK unchanged; no commit needed"
-            exit 0
-          fi
-          git commit -m "build: publish versioned APK [skip ci]"
-          git push origin HEAD:main
+          VERSION=$(sed -n 's/^[[:space:]]*versionName = "\(.*\)"/\1/p' app/build.gradle.kts | head -n 1)
+          test -n "$VERSION"
+          test -f "$PHOTOEDIT_APK_PATH"
+          mkdir -p "$RUNNER_TEMP/photoedit-apk"
+          cp "$PHOTOEDIT_APK_PATH" "$RUNNER_TEMP/photoedit-apk/PhotoEdit-v$VERSION.apk"
+          echo "PHOTOEDIT_APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Upload versioned APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoEdit-v${{ env.PHOTOEDIT_APP_VERSION }}-apk
+          path: ${{ runner.temp }}/photoedit-apk/*.apk
+          if-no-files-found: error
+          retention-days: 30

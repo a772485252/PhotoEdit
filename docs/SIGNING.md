@@ -12,6 +12,6 @@ Keep a backup of this file. Never regenerate it for later builds. Add its base64
 [Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path .\photoedit-debug.keystore)))
 ```
 
-Never commit the keystore or its base64 content to the public repository. The password is a standard debug password, not an additional secret. Push/manual publication requires the fixed key and stops if missing. PR builds use temporary debug keys for checks only and never publish latest-apk. Runner key is removed after compilation. Signature verification runs before upload.
+Never commit the keystore or its base64 content to the public repository. The password is a standard debug password, not an additional secret. Push/manual publication requires the fixed key and stops if missing. PR builds use temporary debug keys for checks only and never publish APKs. Runner key is removed after compilation. Signature verification runs before upload. APKs are uploaded only as versioned Actions artifacts (30-day retention), never committed into the source repository. The build has read-only contents permission.
 
 Application ID stays com.photoedit.app; version 0.5.1/code 6. Increment versionCode for future releases. Switching from a lost old CI key may require one uninstall/reinstall; preserve API keys for re-entry first. Future builds using this fixed key can update each other. Device update/data preservation still needs testing.

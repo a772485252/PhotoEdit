@@ -26,7 +26,6 @@ data class ChatUiState(
     val model: String = ChatProvider.CLOUDFLARE.defaultModel,
     val modelDraft: String = "",
     val models: List<ChatModel> = ChatModels.presets(ChatProvider.CLOUDFLARE),
-    val allowPaid: Boolean = false,
     val token: String = "", val input: String = "", val promptMode: Boolean = true,
     val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null,
     val balanceInfo: String? = null, val balanceLoading: Boolean = false,
@@ -37,7 +36,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val settings = ChatSettingsStore(application)
     private val client = ChatClient()
     private val drafts = mutableMapOf<ChatProvider, ChatSettings>()
-    private val catalogs = mutableMapOf<ChatProvider, List<ChatModel>>()
     private val _state = MutableStateFlow(ChatUiState())
     val uiState = _state.asStateFlow()
 
@@ -62,7 +60,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val loaded = drafts[value] ?: withContext(Dispatchers.IO) { settings.load(value) }
             withContext(Dispatchers.IO) { settings.select(value, loaded.model) }
             _state.value = _state.value.copy(provider = value, token = loaded.token, model = loaded.model,
-                modelDraft = "", models = catalogs[value] ?: ChatModels.presets(value), allowPaid = false,
+                modelDraft = "", models = ChatModels.presets(value),
                 balanceInfo = null, balanceLoading = false, messages = emptyList(),
                 notice = if (value == ChatProvider.APIPOD) "已读取图片生成设置中的 APIPod Key；聊天与图片共用同一个 Key" else "已切换到 ${value.label}，开始新对话；各平台 Key 独立保存")
             if (value == ChatProvider.VENICE && loaded.token.isNotBlank()) refreshBalance()
@@ -78,26 +76,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (state.busy) return
         perform {
             val id = value.trim()
-            ChatModels.validate(state.provider, id, state.allowPaid)
+            ChatModels.validate(state.provider, id)
             withContext(Dispatchers.IO) { settings.select(state.provider, id) }
             _state.value = _state.value.copy(model = id, modelDraft = "", messages = emptyList(),
                 notice = "已选择模型并开始新对话")
-        }
-    }
-
-    fun allowPaid(value: Boolean) {
-        if (!_state.value.busy) _state.value = _state.value.copy(allowPaid = value)
-    }
-
-    fun refreshModels() {
-        val state = _state.value
-        if (state.busy || state.provider != ChatProvider.OPENROUTER) return
-        perform {
-            val models = client.openRouterModels(state.token)
-            if (models.isEmpty()) throw java.io.IOException("没有返回可用的文字模型；保留原列表和当前选择")
-            catalogs[state.provider] = models
-            _state.value = _state.value.copy(models = models,
-                notice = "模型列表已刷新；未发送聊天内容，也未更改当前模型")
         }
     }
 
@@ -175,7 +157,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
             if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
             if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
-            val answer = client.reply(state.provider, activeToken, state.model, request, state.allowPaid)
+            val answer = client.reply(state.provider, activeToken, state.model, request)
             _state.value = _state.value.copy(input = "",
                 messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
             if (state.provider == ChatProvider.VENICE) refreshBalance()
@@ -193,7 +175,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
             if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
             if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
-            val answer = client.reply(state.provider, activeToken, state.model, request, state.allowPaid)
+            val answer = client.reply(state.provider, activeToken, state.model, request)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
             if (state.provider == ChatProvider.VENICE) refreshBalance()
         }

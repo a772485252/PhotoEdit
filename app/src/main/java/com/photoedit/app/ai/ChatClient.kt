@@ -2,7 +2,6 @@ package com.photoedit.app.ai
 
 import com.photoedit.app.domain.AiRules
 import com.photoedit.app.domain.ChatMessage
-import com.photoedit.app.domain.ChatModel
 import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.domain.ChatProvider
 import kotlinx.coroutines.Dispatchers
@@ -17,22 +16,14 @@ import java.net.URL
 /** Fixed platform endpoints only. Never follows redirects or logs provider responses/credentials. */
 class ChatClient {
     suspend fun reply(provider: ChatProvider, token: String, model: String,
-        messages: List<ChatMessage>, allowPaid: Boolean = false): String = withContext(Dispatchers.IO) {
+        messages: List<ChatMessage>): String = withContext(Dispatchers.IO) {
         AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
-        ChatModels.validate(provider, model, allowPaid)
+        ChatModels.validate(provider, model)
         val body = JSONObject().put("messages", JSONArray().apply { messages.forEach {
             put(JSONObject().put("role", it.role).put("content", it.text))
         } })
         if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
         if (provider == ChatProvider.VENICE) body.put("max_tokens", 2048)
-        if (provider == ChatProvider.GROQ) {
-            body.put("max_completion_tokens", 2048)
-            if (model.startsWith("openai/gpt-oss-")) body.put("reasoning_effort", "low")
-        } else if (provider == ChatProvider.OPENROUTER) {
-            body.put("max_tokens", 2048)
-            if (!allowPaid) body.put("provider", JSONObject().put("max_price",
-                JSONObject().put("prompt", 0).put("completion", 0).put("request", 0)))
-        }
         val endpoint = if (provider == ChatProvider.CLOUDFLARE) "/ai/run/$model" else "/chat/completions"
         if (provider == ChatProvider.CLOUDFLARE) body.put("max_tokens", 2048)
         val result = request(provider, token, endpoint, body.toString().toByteArray(Charsets.UTF_8))
@@ -70,38 +61,9 @@ class ChatClient {
         (if (data.optBoolean("accessPermitted", true)) "可用 · " else "当前 Key 暂不可用 · ") + parts.joinToString(" · ")
     }
 
-    suspend fun openRouterModels(token: String): List<ChatModel> = withContext(Dispatchers.IO) {
-        AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
-        val data = request(ChatProvider.OPENROUTER, token, "/models", null, 8 * 1024 * 1024)
-            .optJSONArray("data") ?: throw IOException("模型列表格式无效")
-        buildList {
-            for (i in 0 until data.length()) {
-                val item = data.optJSONObject(i) ?: continue
-                val id = item.optString("id")
-                val architecture = item.optJSONObject("architecture") ?: continue
-                val inputs = architecture.optJSONArray("input_modalities") ?: continue
-                val outputs = architecture.optJSONArray("output_modalities") ?: continue
-                if ((0 until inputs.length()).none { inputs.optString(it) == "text" } ||
-                    (0 until outputs.length()).none { outputs.optString(it) == "text" }) continue
-                val endpoints = item.optJSONArray("endpoints")
-                if (endpoints != null && (0 until endpoints.length()).none {
-                    endpoints.optString(it) == "/api/v1/chat/completions"
-                }) continue
-                if (id.isBlank() || id.length > 200) continue
-                val prices = item.optJSONObject("pricing")
-                val free = prices != null && ChatModels.zeroPrice(prices.optString("prompt")) &&
-                    ChatModels.zeroPrice(prices.optString("completion")) &&
-                    ChatModels.zeroPrice(prices.optString("request", "0"))
-                add(ChatModel(id, item.optString("name", id).take(160), free))
-            }
-        }.distinctBy { it.id }.sortedWith(compareBy<ChatModel> { !it.id.endsWith(":free") }.thenBy { it.name })
-    }
-
     private fun request(provider: ChatProvider, token: String, path: String, body: ByteArray?,
         limit: Int = 512 * 1024): JSONObject {
         val base = when (provider) {
-            ChatProvider.GROQ -> "https://api.groq.com/openai/v1"
-            ChatProvider.OPENROUTER -> "https://openrouter.ai/api/v1"
             ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
             ChatProvider.VENICE -> "https://api.venice.ai/api/v1"
             ChatProvider.APIPOD -> "https://api.apipod.ai/v1"
@@ -136,10 +98,10 @@ class ChatClient {
                 else -> "Cloudflare Workers AI 请求失败（HTTP $status），请检查 Account ID、Token 权限和模型可用性"
             } else when (status) {
                 401 -> "${provider.label} Key 无效或已过期，请检查当前平台的 Key"
-                402 -> "${provider.label} 余额或消费上限不足；可手动选择免费模型"
+                402 -> "${provider.label} 余额或消费上限不足，请在平台控制台核对"
                 403 -> "${provider.label} 请求被服务端拒绝（HTTP 403）。可能是 Key 权限、地区策略或内容策略；请先用普通问候语测试，若仍失败请检查服务商控制台。不会自动重试。"
                 429 -> "${provider.label} 额度或速率受限，请稍后再试；未自动重试或切换平台"
-                400, 404 -> "${provider.label} 请求或模型不可用，请刷新列表或检查模型 ID"
+                400, 404 -> "${provider.label} 请求或模型不可用，请检查模型 ID 和平台权限"
                 else -> "${provider.label} 请求失败（HTTP $status），请稍后手动重试"
             }) + (if (detail == null) "" else "；服务端详情：$detail"))
             }
