@@ -8,50 +8,74 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.photoedit.app.ui.components.PhotoPreview
+import com.photoedit.app.ui.components.ScreenHeading
 import com.photoedit.app.viewmodel.HomeUiState
 
 @Composable
 fun HomeScreen(state: HomeUiState, onChoosePhoto: () -> Unit, onGrid: (Int) -> Unit,
                onSplit: () -> Unit, onSave: () -> Unit) {
-    Scaffold { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("PhotoEdit · 图片拆分", style = MaterialTheme.typography.headlineMedium)
-            Text("本地离线处理，图片无需上传")
-            Button(onClick = onChoosePhoto, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
-                Text(if (state.image == null) "从相册选择图片" else "重新选择图片")
-            }
-            state.image?.let { image ->
-                PhotoPreview(image, "所选图片预览")
-                Text("处理分辨率：${image.width} × ${image.height}")
-                Text("大图将适度缩小以控制内存；保存采用此分辨率，PNG 无损输出。", style = MaterialTheme.typography.bodySmall)
-            } ?: Text("请选择一张图片开始")
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                (1..2).forEach { size ->
-                    FilterChip(selected = state.gridSize == size, onClick = { onGrid(size) },
-                        enabled = !state.busy, label = { Text(if (size == 1) "1 × 2" else "2 × 2") })
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val actionMaxHeight = maxHeight * 0.4f
+        Column(Modifier.fillMaxSize()) {
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                ScreenHeading("图片拆分", "选择图片，均匀拆分，再保存到相册 · 全程离线")
+                OutlinedButton(onClick = onChoosePhoto, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (state.image == null) "从相册选择图片" else "更换图片")
                 }
-            }
-            Text("保持原图比例，按行列均匀拆分；边缘仅裁去无法整除的少量像素。", style = MaterialTheme.typography.bodySmall)
-            Button(onClick = onSplit, enabled = state.image != null && !state.busy, modifier = Modifier.fillMaxWidth()) { Text("拆分并预览") }
-            if (state.busy) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                Text("正在处理，请稍候…")
-            }
-            state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
-            if (state.tiles.isNotEmpty()) {
-                Text("拆分结果 · ${state.tiles.size} 张", style = MaterialTheme.typography.titleLarge)
-                state.tiles.chunked(2).forEachIndexed { row, tiles ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        tiles.forEachIndexed { col, tile ->
-                            Column(Modifier.weight(1f)) {
-                                PhotoPreview(tile, "第 ${row * 2 + col + 1} 张拆分结果")
-                                Text("${row * state.gridSize + col + 1}")
+                state.image?.let { image ->
+                    PhotoPreview(image, "所选图片预览")
+                    Text("处理尺寸：${image.width} × ${image.height}", style = MaterialTheme.typography.labelLarge)
+                    Text("大图会适度缩小，按此尺寸导出 PNG。", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } ?: Text("还没有选择图片。选图后可查看预览和拆分结果。",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("拆分方式", style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        (1..2).forEach { size ->
+                            FilterChip(selected = state.gridSize == size, onClick = { onGrid(size) },
+                                enabled = !state.busy, label = { Text(if (size == 1) "1 × 2" else "2 × 2") })
+                        }
+                    }
+                    Text("保留图片比例，仅裁去不能均分的少量边缘像素。", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                state.message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                if (state.tiles.isNotEmpty()) {
+                    HorizontalDivider()
+                    Text("拆分结果 · ${state.tiles.size} 张", style = MaterialTheme.typography.titleMedium)
+                    state.tiles.chunked(2).forEachIndexed { row, tiles ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            tiles.forEachIndexed { col, tile ->
+                                val number = row * 2 + col + 1
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    PhotoPreview(tile, "第 $number 张拆分结果")
+                                    Text("第 $number 张", style = MaterialTheme.typography.labelMedium)
+                                }
                             }
                         }
                     }
                 }
-                Button(onClick = onSave, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("全部保存到手机相册") }
+            }
+            Surface(tonalElevation = 2.dp) {
+                Column(Modifier.fillMaxWidth().heightIn(max = actionMaxHeight)
+                    .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (state.busy) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                        Text("正在处理…", style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (state.tiles.isNotEmpty()) {
+                        Button(onClick = onSave, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                            Text("保存全部 ${state.tiles.size} 张到相册")
+                        }
+                        TextButton(onClick = onSplit, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("重新拆分") }
+                    } else {
+                        Button(onClick = onSplit, enabled = state.image != null && !state.busy,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("拆分并预览") }
+                    }
+                }
             }
         }
     }

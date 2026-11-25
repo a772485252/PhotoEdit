@@ -1,6 +1,9 @@
 # PhotoEdit — Project Specification
 
 ## Current authoritative state — 2026-11-25
+- All UI changes follow the project-local skill .agents/skills/photoedit-ui/SKILL.md and UI_DESIGN.md. Use proportionate boundary checks and critical domain tests; do not add speculative defensive layers or tests for reversible layout/text changes.
+- Current UI uses four fixed bottom destinations, keyboard-aware chat/image composers and bounded task action areas. Photo ordering and video previews scroll within content. Native Compose architecture and active providers/models are unchanged.
+- Pose/outfit/camera/appearance and random two-panel preset features, catalog/prompt-composition code, original pose drawables and provider-independent preset tests have been removed at user request. Prompt text, optional reference, history, continue-editing and prompt-assistant rules remain.
 - Source version remains 0.9.37 / versionCode 49; no APK build requested in this cleanup. Historical sections below describe past milestones and are superseded by this current summary where they conflict.
 - Visible chat providers only: Cloudflare Workers AI (@cf/zai-org/glm-4.7-flash), Venice (venice-uncensored-1-2, deepseek-v4-1-flash-uncensored), APIPod (grok-4.5, grok-4.6, deepseek-flash). Custom chat model IDs remain supported.
 - Visible image providers only: APIPod (z-image-spicy / z-image-spicy-pro; qwen-image-edit-spicy for a reference) and Venice (lustify-v8; firered-image-edit for a reference). Venice payment constraint remains.

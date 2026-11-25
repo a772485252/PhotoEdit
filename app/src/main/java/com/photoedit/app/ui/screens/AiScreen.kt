@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -28,22 +27,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ApiPodRules
 import com.photoedit.app.domain.VeniceRules
-import com.photoedit.app.domain.AppearanceCatalog
-import com.photoedit.app.domain.OutfitCatalog
-import com.photoedit.app.domain.PromptComposer
-import com.photoedit.app.domain.CameraCatalog
-import com.photoedit.app.domain.PosePrompts
-import com.photoedit.app.domain.TwoPanelPosePrompts
 import com.photoedit.app.ui.components.PhotoPreview
-import com.photoedit.app.ui.components.PosePicker
 import com.photoedit.app.viewmodel.AiUiState
 
 @Composable
@@ -58,13 +48,6 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
     val context = LocalContext.current
     val history = rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
-    var showPoses by remember { mutableStateOf(false) }
-    var showOutfits by remember { mutableStateOf(false) }
-    var showCameras by remember { mutableStateOf(false) }
-    var showAppearances by remember { mutableStateOf(false) }
-    var outfitCategory by remember { mutableStateOf("全部") }
-    var twoPanelIds by remember { mutableStateOf<String?>(null) }
-    var showAttachment by remember { mutableStateOf(false) }
     var showReference by remember { mutableStateOf(false) }
     var enlargedResult by remember { mutableStateOf<Bitmap?>(null) }
     val apiPod = state.provider == "apipod"
@@ -86,101 +69,6 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
     LaunchedEffect(state.turns.size) {
         // One footer item always exists, including in an empty conversation.
         history.animateScrollToItem(state.turns.size)
-    }
-    if (showPoses && editingEnabled) {
-        PosePicker(onDismiss = { showPoses = false }, onSelect = {
-            onPrompt(PromptComposer.withPose(state.prompt, it))
-            twoPanelIds = null
-            showPoses = false
-        })
-    }
-    if (showAppearances && editingEnabled) {
-        Dialog(onDismissRequest = { showAppearances = false }) {
-            Surface(shape = MaterialTheme.shapes.large) {
-                Column(Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("选择人物长相", style = MaterialTheme.typography.titleLarge)
-                    Text("外貌文字参考，仅影响提示词；不保证与示例照片是同一张脸。", style = MaterialTheme.typography.bodySmall)
-                    LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(AppearanceCatalog.presets.size) { index ->
-                            val appearance = AppearanceCatalog.presets[index]
-                            OutlinedCard(onClick = {
-                            onPrompt(PromptComposer.withAppearance(state.prompt, appearance))
-                            showAppearances = false
-                        }, modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text(appearance.title, style = MaterialTheme.typography.titleSmall)
-                                Text(appearance.description, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = {
-                            onPrompt(PromptComposer.withoutAppearance(state.prompt))
-                            showAppearances = false
-                        }) { Text("清除长相") }
-                        TextButton(onClick = { showAppearances = false }) { Text("关闭") }
-                    }
-                }
-            }
-        }
-    }
-    if (showCameras && editingEnabled) {
-        Dialog(onDismissRequest = { showCameras = false }) {
-            Surface(shape = MaterialTheme.shapes.large) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("选择镜头", style = MaterialTheme.typography.titleLarge)
-                    Text("仅正面或背面低机位；保持自然透视与完整构图。", style = MaterialTheme.typography.bodySmall)
-                    CameraCatalog.presets.forEach { camera ->
-                        OutlinedCard(onClick = {
-                            onPrompt(PromptComposer.withCamera(state.prompt, camera))
-                            showCameras = false
-                        }, modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text(camera.title, style = MaterialTheme.typography.titleSmall)
-                                Text(camera.description, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
-                    TextButton(onClick = { showCameras = false }, modifier = Modifier.align(Alignment.End)) { Text("关闭") }
-                }
-            }
-        }
-    }
-    if (showOutfits && editingEnabled) {
-        Dialog(onDismissRequest = { showOutfits = false }) {
-            Surface(shape = MaterialTheme.shapes.large) {
-                Column(Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("选择服装风格", style = MaterialTheme.typography.titleLarge)
-                    Text("8 套甜美、宅舞与时尚穿搭 · 自动组合服饰描述", style = MaterialTheme.typography.bodySmall)
-                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("全部", "国风舞蹈", "宅舞", "甜美", "时尚").forEach { category ->
-                            FilterChip(outfitCategory == category, { outfitCategory = category },
-                                label = { Text(category) })
-                        }
-                    }
-                    LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(OutfitCatalog.presets.filter { outfitCategory == "全部" || it.category == outfitCategory }.size) { index ->
-                            val filtered = OutfitCatalog.presets.filter { outfitCategory == "全部" || it.category == outfitCategory }
-                            val outfit = filtered[index]
-                            OutlinedCard(onClick = {
-                                onPrompt(PromptComposer.withOutfit(state.prompt, outfit))
-                                showOutfits = false
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(12.dp)) {
-                                    Text(outfit.title, style = MaterialTheme.typography.titleSmall)
-                                    Text("保留整套风格，搭配薄纱叠层、短裙或开衩裙设计。", style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
-                        }
-                    }
-                    TextButton(onClick = { showOutfits = false }, modifier = Modifier.align(Alignment.End)) { Text("关闭") }
-                }
-            }
-        }
     }
     if (showReference && state.reference != null) {
         Dialog(onDismissRequest = { showReference = false }) {
@@ -346,37 +234,11 @@ fun AiScreen(state: AiUiState, onPrompt: (String) -> Unit,
                     OutlinedTextField(state.prompt, onPrompt, placeholder = { Text("描述画面或修改要求…") },
                         minLines = 1, maxLines = 4, enabled = editingEnabled,
                         shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth())
-                    twoPanelIds?.let { Text("已随机选中：$it · 点击随机双宫格可重新抽取；生成时仅请求一张图片。", style = MaterialTheme.typography.labelSmall) }
-                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
-                        Box {
-                            TextButton(onClick = { showAttachment = true }, enabled = editingEnabled,
-                                modifier = Modifier.semantics { contentDescription = "添加图片或姿势" }) { Text("+") }
-                            DropdownMenu(expanded = showAttachment, onDismissRequest = { showAttachment = false }) {
-                                DropdownMenuItem(text = { Text("添加参考图") }, onClick = { showAttachment = false; onChoose() })
-                                DropdownMenuItem(text = { Text("选择姿势") }, onClick = { showAttachment = false; showPoses = true })
-                                DropdownMenuItem(text = { Text("选择人物长相") }, onClick = { showAttachment = false; showAppearances = true })
-                                DropdownMenuItem(text = { Text("选择服装风格") }, onClick = { showAttachment = false; showOutfits = true })
-                                DropdownMenuItem(text = { Text("选择镜头") }, onClick = { showAttachment = false; showCameras = true })
-                                DropdownMenuItem(text = { Text("随机双宫格（一次生成）") }, onClick = {
-                                    showAttachment = false
-                                    val (left, right) = TwoPanelPosePrompts.choose()
-                                    onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
-                                    twoPanelIds = "${left.id} + ${right.id}"
-                                })
-                            }
-                        }
-                        TextButton(onClick = { showPoses = true }, enabled = editingEnabled) { Text("姿势") }
-                        TextButton(onClick = { showOutfits = true }, enabled = editingEnabled) { Text("服装") }
-                        TextButton(onClick = { showCameras = true }, enabled = editingEnabled) { Text("镜头") }
-                        TextButton(onClick = { showAppearances = true }, enabled = editingEnabled) { Text("长相") }
-                        TextButton(onClick = {
-                            val (left, right) = TwoPanelPosePrompts.choose()
-                            onPrompt(PromptComposer.withTwoPanel(state.prompt, left, right))
-                            twoPanelIds = "${left.id} + ${right.id}"
-                        }, enabled = editingEnabled) { Text("随机双宫格") }
+                    if (state.reference == null) {
+                        OutlinedButton(onClick = onChoose, enabled = editingEnabled, modifier = Modifier.fillMaxWidth()) { Text("添加参考图") }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        Button(onClick = onGenerate, enabled = !state.busy && !veniceUnknown && hasKey && (pendingTask || state.prompt.isNotBlank()),
+                        Button(onClick = onGenerate, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !state.busy && !veniceUnknown && hasKey && (pendingTask || state.prompt.isNotBlank()),
                             shape = RoundedCornerShape(24.dp)) { Text(if (state.busy) "处理中" else if (pendingTask) "继续查询" else if (veniceUnknown) "先核对用量" else if (venice) "生成 · $" + VeniceRules.estimate(effectiveReference) else if (apiPod) "生成 · $" + apiPodEstimate else "生成 ↑") }
                     }
                 }

@@ -42,6 +42,7 @@ Build a genuine native Android application for photo processing and short-form v
 - Preserve fixed signing identity and monotonic versionCode for app updates. Build only on explicit user request.
 
 ## UI design and review (mandatory)
+- Every UI change must read and follow the project-local skill `.agents/skills/photoedit-ui/SKILL.md`. It adapts task-based design reasoning to this native Android app. Apply only the checks relevant to the change; a text edit does not require a full redesign.
 - Before any UI change, read UI_DESIGN.md and inspect the target screen, parent navigation/container, shared components, theme, and related business/domain/ViewModel logic. Do not make isolated visual patches without understanding the full task flow.
 - UI must prioritize user feel: predictable familiar interactions, one-hand reachability, clear next steps, low friction, responsive feedback, safe error recovery, and no unnecessary confirmations or hidden controls.
 - UI must reflect actual business logic. Map user goals, inputs, constraints, side effects, costs, permissions, and success/failure states before designing controls. Never promise an operation or expose a choice the implementation cannot honor.
@@ -53,7 +54,11 @@ Build a genuine native Android application for photo processing and short-form v
 - Check accessibility: touch targets, font scaling, contrast, semantics, and focus order.
 - If previews/tests exist, use them. Otherwise document the reasoned review and mark device verification pending.
 - Update UI_DESIGN.md when reusable design/interaction standards change. Record each meaningful UI change and its validation limits in PROGRESS.md; update PROJECT.md when product-wide behavior or constraints change.
-- If a dedicated UI/product-design skill exists, read it before editing. If none exists, follow UI_DESIGN.md and never claim a skill was consulted.
+- Keep the local UI skill and UI_DESIGN.md consistent; the skill describes the design method and UI_DESIGN.md records current shared interaction patterns.
+
+## Proportionate implementation and tests (mandatory)
+- Do not add speculative defensive code, repeated internal validation, automatic retries, fallback frameworks, or routine confirmation dialogs. Keep checks that protect real external-input boundaries, resource limits and duplicate paid submissions.
+- Keep the existing critical domain tests. Pure wording/style/layout changes do not require new tests that mirror code, snapshot suites or broad mocks. Add a focused test only when a changed business rule or concrete regression warrants it; do not expand the test surface for completeness alone.
 
 ## UI and business separation (mandatory)
 - Use a lightweight single-app-module MVVM structure: ui/screens, ui/components, ui/theme, viewmodel, domain, and processing.

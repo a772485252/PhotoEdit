@@ -23,6 +23,7 @@ import com.photoedit.app.domain.ChatProvider
 import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.viewmodel.ChatUiState
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ChatScreen(
     state: ChatUiState,
@@ -53,191 +54,192 @@ fun ChatScreen(
         if (state.messages.isNotEmpty()) listState.animateScrollToItem(state.messages.lastIndex)
     }
 
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("提示词助手", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+    BoxWithConstraints(Modifier.fillMaxSize().imePadding()) {
+        val composerMaxHeight = maxHeight * 0.55f
+        Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("提示词助手", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text("${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                    }
+                    TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
+                    TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
                 }
-                TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
-                TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
-            }
-            var detailsExpanded by remember { mutableStateOf(false) }
-            TextButton(onClick = { detailsExpanded = !detailsExpanded },
-                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)) {
-                Text(if (detailsExpanded) "收起模型与费用信息" else "查看模型与费用信息",
-                    style = MaterialTheme.typography.labelSmall)
-            }
-            if (detailsExpanded) {
-                val priceGuide = ChatModels.priceGuide(state.provider, state.model)
-                Text("模型 ID：${state.model}", style = MaterialTheme.typography.labelSmall)
-                Text(priceGuide?.let { "每 1 万汉字估算：输入 ${it.inputPerTenThousandChars} · 输出 ${it.outputPerTenThousandChars}" }
-                    ?: "当前模型价格暂无可靠数据",
-                    style = MaterialTheme.typography.labelSmall)
-                priceGuide?.let { Text(it.note, style = MaterialTheme.typography.labelSmall) }
-                Text(when (state.provider) {
-                    ChatProvider.CLOUDFLARE -> "额度：实时剩余请查看 Cloudflare 控制台"
-                    ChatProvider.VENICE -> state.balanceInfo ?: "余额：可在设置中刷新"
-                    ChatProvider.APIPOD -> "余额：请在 APIPod 控制台查看"
+                var detailsExpanded by remember { mutableStateOf(false) }
+                TextButton(onClick = { detailsExpanded = !detailsExpanded },
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)) {
+                    Text(if (detailsExpanded) "收起模型与费用信息" else "查看模型与费用信息",
+                        style = MaterialTheme.typography.labelSmall)
+                }
+                if (detailsExpanded) {
+                    val priceGuide = ChatModels.priceGuide(state.provider, state.model)
+                    Text("模型 ID：${state.model}", style = MaterialTheme.typography.labelSmall)
+                    Text(priceGuide?.let { "每 1 万汉字估算：输入 ${it.inputPerTenThousandChars} · 输出 ${it.outputPerTenThousandChars}" }
+                        ?: "当前模型价格暂无可靠数据",
+                        style = MaterialTheme.typography.labelSmall)
+                    priceGuide?.let { Text(it.note, style = MaterialTheme.typography.labelSmall) }
+                    Text(when (state.provider) {
+                        ChatProvider.CLOUDFLARE -> "额度：实时剩余请查看 Cloudflare 控制台"
+                        ChatProvider.VENICE -> state.balanceInfo ?: "余额：可在设置中刷新"
+                        ChatProvider.APIPOD -> "余额：请在 APIPod 控制台查看"
 
-                }, style = MaterialTheme.typography.labelSmall)
+                    }, style = MaterialTheme.typography.labelSmall)
+                }
             }
-        }
-        HorizontalDivider()
+            HorizontalDivider()
 
-        if (state.messages.isEmpty()) {
-            Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 28.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    if (state.promptMode) "提示词扩写与优化" else "开始新对话",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    if (state.promptMode)
-                        "输入一段简单想法，我会将它整理、扩写成完整且可直接复制使用的图片提示词。这里只生成文字，不会生成图片。"
-                    else
-                        "可以直接提问，或切换到“生成提示词”模式，让我帮你整理图片创意。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (state.busy) {
-                    Spacer(Modifier.height(22.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            if (state.messages.isEmpty()) {
+                Column(
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 28.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        if (state.promptMode) "提示词扩写与优化" else "开始新对话",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        if (state.promptMode)
+                            "输入一段简单想法，我会将它整理、扩写成完整且可直接复制使用的图片提示词。这里只生成文字，不会生成图片。"
+                        else
+                            "可以直接提问，或切换到“生成提示词”模式，让我帮你整理图片创意。",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (state.busy) {
+                        Spacer(Modifier.height(22.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Text(
+                                if (state.input.isNotBlank()) "正在生成提示词…可切换到其他应用，后台会继续运行" else "正在准备聊天服务…",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else if (state.promptMode) {
+                        Spacer(Modifier.height(18.dp))
                         Text(
-                            if (state.input.isNotBlank()) "正在生成提示词…可切换到其他应用，后台会继续运行" else "正在准备聊天服务…",
+                            "例如：描述人物、服饰、动作、场景，或粘贴一段已有提示词让我优化。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                } else if (state.promptMode) {
-                    Spacer(Modifier.height(18.dp))
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    itemsIndexed(state.messages) { index, message ->
+                        val isUser = message.role == "user"
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+                        ) {
+                            Column(Modifier.widthIn(max = 340.dp), horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
+                                Text(
+                                    if (isUser) "你" else "PhotoEdit AI",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                                Surface(
+                                    shape = RoundedCornerShape(
+                                        topStart = 18.dp, topEnd = 18.dp,
+                                        bottomStart = if (isUser) 18.dp else 5.dp,
+                                        bottomEnd = if (isUser) 5.dp else 18.dp
+                                    ),
+                                    color = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                                ) {
+                                    SelectionContainer {
+                                        Text(
+                                            message.text,
+                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                if (!isUser) {
+                                    FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
+                                        if (state.promptMode) {
+                                            TextButton(
+                                                onClick = { onUsePrompt(message.text) },
+                                                enabled = canUsePrompt && message.text.length <= 4000
+                                            ) { Text("带入生图") }
+                                        }
+                                        if (index == state.messages.lastIndex && !state.busy) {
+                                            TextButton(onClick = onRegenerate) { Text("重新生成") }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (state.busy) {
+                        item {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                                Text("正在生成…可切换到其他应用，后台将继续运行", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+
+            state.notice?.let {
+                Text(
+                    it,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Surface(tonalElevation = 2.dp) {
+                Column(Modifier.fillMaxWidth().heightIn(max = composerMaxHeight)
+                    .verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = state.promptMode, onClick = { onMode(true) },
+                            label = { Text("生成提示词") }, enabled = !state.busy)
+                        FilterChip(selected = !state.promptMode, onClick = { onMode(false) },
+                            label = { Text("普通聊天") }, enabled = !state.busy)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.promptMode) TextButton(onClick = { rulesOpen = true },
+                            enabled = !state.busy) { Text("扩写规则") }
+                    }
+                    OutlinedTextField(
+                        value = state.input, onValueChange = onInput,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else "发送消息…") },
+                        minLines = 1, maxLines = 4, enabled = !state.busy,
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    Button(onClick = onSend,
+                        enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        shape = RoundedCornerShape(16.dp)) {
+                        Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送")
+                    }
                     Text(
-                        "例如：描述人物、服饰、动作、场景，或粘贴一段已有提示词让我优化。",
-                        style = MaterialTheme.typography.bodySmall,
+                        if (state.token.isBlank()) "先在右上角设置中保存当前平台的 Key。" else "仅发送文字；回复可复制或带入生图。",
+                        modifier = Modifier.padding(start = 4.dp, top = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                itemsIndexed(state.messages) { index, message ->
-                    val isUser = message.role == "user"
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
-                    ) {
-                        Column(Modifier.widthIn(max = 340.dp), horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
-                            Text(
-                                if (isUser) "你" else "PhotoEdit AI",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(
-                                    topStart = 18.dp, topEnd = 18.dp,
-                                    bottomStart = if (isUser) 18.dp else 5.dp,
-                                    bottomEnd = if (isUser) 5.dp else 18.dp
-                                ),
-                                color = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                            ) {
-                                SelectionContainer {
-                                    Text(
-                                        message.text,
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                            if (!isUser) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
-                                    if (state.promptMode) {
-                                        TextButton(
-                                            onClick = { onUsePrompt(message.text) },
-                                            enabled = canUsePrompt && message.text.length <= 4000
-                                        ) { Text("带入生图") }
-                                    }
-                                    if (index == state.messages.lastIndex && !state.busy) {
-                                        TextButton(onClick = onRegenerate) { Text("重新生成") }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if (state.busy) {
-                    item {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                            Text("正在生成…可切换到其他应用，后台将继续运行", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
-            }
-        }
-
-        state.notice?.let {
-            Text(
-                it,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Surface(tonalElevation = 2.dp) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = state.promptMode, onClick = { onMode(true) },
-                        label = { Text("生成提示词") }, enabled = !state.busy)
-                    FilterChip(selected = !state.promptMode, onClick = { onMode(false) },
-                        label = { Text("普通聊天") }, enabled = !state.busy)
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (state.promptMode) TextButton(onClick = { rulesOpen = true },
-                        enabled = !state.busy) { Text("扩写规则") }
-                    TextButton(onClick = { settingsOpen = true },
-                        enabled = !state.busy) { Text("模型设置") }
-                }
-                OutlinedTextField(
-                    value = state.input, onValueChange = onInput,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else "发送消息…") },
-                    minLines = 2, maxLines = 5, enabled = !state.busy,
-                    shape = RoundedCornerShape(18.dp)
-                )
-                Button(onClick = onSend,
-                    enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                    shape = RoundedCornerShape(16.dp)) {
-                    Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送")
-                }
-                Text(
-                    "聊天仅发送文字和最近对话，不会上传参考图；生成期间可切换到其他应用。通知显示取决于系统通知权限。",
-                    modifier = Modifier.padding(start = 4.dp, top = 6.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
@@ -278,28 +280,11 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text("聊天服务", style = MaterialTheme.typography.titleSmall)
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(
-                                selected = state.provider == ChatProvider.CLOUDFLARE,
-                                onClick = { onProvider(ChatProvider.CLOUDFLARE) },
-                                label = { Text("Cloudflare · GLM") },
-                                enabled = !state.busy
-                            )
-                            FilterChip(
-                                selected = state.provider == ChatProvider.VENICE,
-                                onClick = { onProvider(ChatProvider.VENICE) },
-                                label = { Text("Venice · Uncensored") },
-                                enabled = !state.busy
-                            )
-                        }
-                        Row {
-                            FilterChip(
-                                selected = state.provider == ChatProvider.APIPOD,
-                                onClick = { onProvider(ChatProvider.APIPOD) },
-                                label = { Text("APIPod · Grok 4.5") },
-                                enabled = !state.busy
-                            )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ChatProvider.entries.forEach { provider ->
+                            FilterChip(selected = state.provider == provider,
+                                onClick = { onProvider(provider) }, label = { Text(provider.label) },
+                                enabled = !state.busy, modifier = Modifier.fillMaxWidth())
                         }
                     }
                     Text(

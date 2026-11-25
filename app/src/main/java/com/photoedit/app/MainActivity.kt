@@ -10,16 +10,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
+import com.photoedit.app.ui.components.PhotoEditNavigation
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.photoedit.app.ui.screens.ChatScreen
@@ -58,48 +58,43 @@ class MainActivity : ComponentActivity() {
                 val aiPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                     if (it) aiViewModel.saveImage() else aiViewModel.permissionDenied()
                 }
-                Scaffold { padding ->
-                    Column(Modifier.fillMaxSize().padding(padding)) {
-                        ScrollableTabRow(selectedTabIndex = tab, edgePadding = 8.dp) {
-                            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("图片拆分") })
-                            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("AI 图片") })
-                            Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("提示词助手") })
-                            Tab(selected = tab == 3, onClick = { tab = 3 }, text = { Text("变装视频") })
-                        }
-                        androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
-                            if (tab == 0) HomeScreen(state, onChoosePhoto = {
-                                picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                            }, onGrid = homeViewModel::selectGrid, onSplit = homeViewModel::split, onSave = {
-                                if (needsStoragePermission()) gridPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                else homeViewModel.save()
-                            }) else if (tab == 1) AiScreen(ai, aiViewModel::prompt, onChoose = {
-                                    referencePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                                }, onRemove = aiViewModel::removeReference, onGenerate = aiViewModel::generate, onSaveImage = {
-                                    if (needsStoragePermission()) aiPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                    else aiViewModel.saveImage()
-                                }, onNewSession = aiViewModel::newSession, onUseTurn = aiViewModel::useTurn,
-                                onContinue = aiViewModel::setContinueEditing, onProvider = aiViewModel::provider,
-                                onApiPodKey = aiViewModel::apiPodKey, onSaveApiPodKey = aiViewModel::saveApiPodKey,
-                                onClearApiPodKey = aiViewModel::clearApiPodKey, onApiPodPro = aiViewModel::apiPodPro,
-                                onStopApiPodWaiting = aiViewModel::stopApiPodWaiting,
-                                onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking,
-                                onVeniceKey = aiViewModel::veniceKey, onSaveVeniceKey = aiViewModel::saveVeniceKey,
-                                onClearVeniceKey = aiViewModel::clearVeniceKey,
-                                onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else if (tab == 3) DressChangeScreen(dressChange, onChoose = {
-                                dressPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                            }, onMove = dressChangeViewModel::move, onRemove = dressChangeViewModel::remove, onExport = dressChangeViewModel::export, onSave = {
-                                if (needsStoragePermission()) videoPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                else dressChangeViewModel.saveVideo()
-                            })
-                            else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
-                                    chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
-                                    canUsePrompt = !ai.busy && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
-                                        aiViewModel.prompt(prompt)
-                                        tab = 1
-                                    }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
-                                    onModelDraft = chatViewModel::modelDraft, onRefreshBalance = chatViewModel::refreshBalance,
-                                    onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules)
-                        }
+                val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                Scaffold(bottomBar = {
+                    if (!keyboardVisible) PhotoEditNavigation(tab, onSelect = { tab = it })
+                }) { padding ->
+                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
+                        if (tab == 0) HomeScreen(state, onChoosePhoto = {
+                            picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }, onGrid = homeViewModel::selectGrid, onSplit = homeViewModel::split, onSave = {
+                            if (needsStoragePermission()) gridPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            else homeViewModel.save()
+                        }) else if (tab == 1) AiScreen(ai, aiViewModel::prompt, onChoose = {
+                                referencePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            }, onRemove = aiViewModel::removeReference, onGenerate = aiViewModel::generate, onSaveImage = {
+                                if (needsStoragePermission()) aiPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                else aiViewModel.saveImage()
+                            }, onNewSession = aiViewModel::newSession, onUseTurn = aiViewModel::useTurn,
+                            onContinue = aiViewModel::setContinueEditing, onProvider = aiViewModel::provider,
+                            onApiPodKey = aiViewModel::apiPodKey, onSaveApiPodKey = aiViewModel::saveApiPodKey,
+                            onClearApiPodKey = aiViewModel::clearApiPodKey, onApiPodPro = aiViewModel::apiPodPro,
+                            onStopApiPodWaiting = aiViewModel::stopApiPodWaiting,
+                            onAbandonApiPodTracking = aiViewModel::abandonApiPodTracking,
+                            onVeniceKey = aiViewModel::veniceKey, onSaveVeniceKey = aiViewModel::saveVeniceKey,
+                            onClearVeniceKey = aiViewModel::clearVeniceKey,
+                            onAcknowledgeVeniceOutcome = aiViewModel::acknowledgeVeniceOutcome) else if (tab == 3) DressChangeScreen(dressChange, onChoose = {
+                            dressPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }, onMove = dressChangeViewModel::move, onRemove = dressChangeViewModel::remove, onExport = dressChangeViewModel::export, onSave = {
+                            if (needsStoragePermission()) videoPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            else dressChangeViewModel.saveVideo()
+                        })
+                        else ChatScreen(chat, chatViewModel::token, chatViewModel::saveKey, chatViewModel::clearKey,
+                                chatViewModel::input, chatViewModel::mode, chatViewModel::send, chatViewModel::clearChat, chatViewModel::regenerateLast,
+                                canUsePrompt = !ai.busy && !ai.apiPodPending && !ai.veniceOutcomeUnknown, onUsePrompt = { prompt ->
+                                    aiViewModel.prompt(prompt)
+                                    tab = 1
+                                }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
+                                onModelDraft = chatViewModel::modelDraft, onRefreshBalance = chatViewModel::refreshBalance,
+                                onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules)
                     }
                 }
             }
