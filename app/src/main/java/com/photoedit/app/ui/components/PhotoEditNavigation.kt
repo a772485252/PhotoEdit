@@ -10,7 +10,7 @@ import com.photoedit.app.R
 
 @Composable
 fun PhotoEditNavigation(selected: Int, onSelect: (Int) -> Unit) {
-    val labels = listOf("拆分", "AI 图片", "提示词", "变装")
+    val labels = listOf("拆分", "AI 图片", "助手", "变装")
     val icons = listOf(R.drawable.nav_grid, R.drawable.nav_image, R.drawable.nav_chat, R.drawable.nav_video)
     NavigationBar {
         labels.forEachIndexed { index, label ->

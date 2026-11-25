@@ -11,6 +11,9 @@ import com.photoedit.app.domain.ChatModel
 import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.domain.ChatProvider
 import com.photoedit.app.domain.ChatRules
+import com.photoedit.app.domain.ChatMode
+import com.photoedit.app.domain.NovelMemory
+import com.photoedit.app.domain.NovelRules
 import com.photoedit.app.processing.PromptGenerationForegroundService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -26,10 +29,14 @@ data class ChatUiState(
     val model: String = ChatProvider.CLOUDFLARE.defaultModel,
     val modelDraft: String = "",
     val models: List<ChatModel> = ChatModels.presets(ChatProvider.CLOUDFLARE),
-    val token: String = "", val input: String = "", val promptMode: Boolean = true,
+    val token: String = "", val input: String = "", val mode: ChatMode = ChatMode.PROMPT,
     val messages: List<ChatMessage> = emptyList(), val busy: Boolean = true, val notice: String? = null,
-    val promptRules: String = ChatRules.SYSTEM_PROMPT
-)
+    val promptRules: String = ChatRules.SYSTEM_PROMPT,
+    val novelMemory: NovelMemory = NovelMemory()
+) {
+    val promptMode: Boolean get() = mode == ChatMode.PROMPT
+    val novelMode: Boolean get() = mode == ChatMode.NOVEL
+}
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val settings = ChatSettingsStore(application)
@@ -42,7 +49,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         perform {
             val provider = withContext(Dispatchers.IO) { settings.provider() }
             val rules = withContext(Dispatchers.IO) { settings.promptRules() }
-            _state.value = _state.value.copy(promptRules = rules)
+            _state.value = _state.value.copy(promptRules = rules, novelMemory = withContext(Dispatchers.IO) { settings.novelMemory() })
             _state.value = _state.value.copy(provider = provider, model = provider.defaultModel,
                 models = ChatModels.presets(provider))
             val loaded = withContext(Dispatchers.IO) { settings.load(provider) }
@@ -83,10 +90,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun token(value: String) {
         if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim())
     }
-    fun input(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(input = value.take(2000)) }
-    fun mode(value: Boolean) {
-        if (!_state.value.busy && _state.value.promptMode != value)
-            _state.value = _state.value.copy(promptMode = value, messages = emptyList(), notice = "已切换模式并开始新对话")
+    fun input(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(input = if (_state.value.novelMode) value else value.take(2000)) }
+    fun mode(value: ChatMode) {
+        if (!_state.value.busy && _state.value.mode != value)
+            _state.value = _state.value.copy(mode = value, messages = emptyList(), notice = "已切换模式并开始新对话")
     }
     fun clearChat() { if (!_state.value.busy) _state.value = _state.value.copy(messages = emptyList(), notice = null) }
     fun saveKey() {
@@ -121,17 +128,34 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(promptRules = ChatRules.SYSTEM_PROMPT, notice = "已恢复默认扩写规则；聊天记录和输入草稿已保留")
         }
     }
-    fun send() {
+    fun saveNovelMemory(value: NovelMemory) {
+        if (_state.value.busy) return
+        perform {
+            withContext(Dispatchers.IO) { settings.saveNovelMemory(value) }
+            _state.value = _state.value.copy(novelMemory = value, notice = "小说资料已保存到本机，下次小说请求开始使用")
+        }
+    }
+    fun summarizeChapter() {
+        if (_state.value.novelMode && _state.value.messages.any { it.role == "assistant" })
+            sendInput(NovelRules.SUMMARY_REQUEST, preserveDraft = true)
+    }
+    fun send() = sendInput(_state.value.input)
+
+    private fun request(state: ChatUiState, history: List<ChatMessage>, input: String) =
+        if (state.novelMode) NovelRules.messages(history, input, state.novelMemory)
+        else ChatRules.messages(history, input, state.promptMode, state.promptRules)
+
+    private fun sendInput(input: String, preserveDraft: Boolean = false) {
         val state = _state.value
         if (state.busy) return
         perform(foreground = true) {
-            val request = ChatRules.messages(state.messages, state.input, state.promptMode, state.promptRules)
+            val request = request(state, state.messages, input)
             val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
             if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
             if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
-            val answer = client.reply(state.provider, activeToken, state.model, request)
-            _state.value = _state.value.copy(input = "",
-                messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+            val answer = client.reply(state.provider, activeToken, state.model, request, state.novelMode)
+            _state.value = _state.value.copy(input = if (preserveDraft) state.input else "",
+                messages = request.drop(1) + ChatMessage("assistant", answer.text), notice = answer.notice)
         }
     }
     fun regenerateLast() {
@@ -142,12 +166,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val lastUserText = state.messages[lastUserIndex].text
         val previousMessages = state.messages.take(lastUserIndex)
         perform(foreground = true) {
-            val request = ChatRules.messages(previousMessages, lastUserText, state.promptMode, state.promptRules)
+            val request = request(state, previousMessages, lastUserText)
             val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
             if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
             if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
-            val answer = client.reply(state.provider, activeToken, state.model, request)
-            _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer), notice = null)
+            val answer = client.reply(state.provider, activeToken, state.model, request, state.novelMode)
+            _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer.text), notice = answer.notice)
         }
     }
     private fun perform(foreground: Boolean = false, block: suspend () -> Unit) {

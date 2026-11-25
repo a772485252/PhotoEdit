@@ -4,11 +4,12 @@ Read the project-local [PhotoEdit UI skill](.agents/skills/photoedit-ui/SKILL.md
 
 ## Current shared patterns (2026-11-25)
 
-- Four fixed bottom destinations: split images, AI images, prompt assistant and dress-change video. Hide navigation while the keyboard is open; preserve screen/ViewModel state on navigation. Parent consumes its Scaffold insets before child IME padding.
+- Four fixed bottom destinations: split images, AI images, assistant and dress-change video. Hide navigation while the keyboard is open; preserve screen/ViewModel state on navigation. Parent consumes its Scaffold insets before child IME padding.
 - Scroll image results, photo ordering and video preview within the content area. Keep task actions in a bounded, scrollable bottom area; do not fix a large preview below a shrinking photo list.
 - Use short page headings and a brief task subtitle. Use plain Chinese action names; photo move/remove actions occupy their own row rather than squeezing metadata.
 - AI images use APIPod only; no platform-switch control is needed. Future paid-provider entry points require verified API top-up support for Alipay or WeChat Pay under AGENTS.md.
 - AI image inputs contain only prompt text and an optional reference. Pose, outfit, camera, appearance and random two-panel presets are removed. Keep model/cost, pending-task recovery and manual gallery save visible when applicable.
+- Assistant modes (提示词 / 聊天 / 小说) remain visible below the header and wrap on narrow widths. Novel memory entries and the explicit summarize action sit beside the composer. Summarize labels explain the model request; reply-to-memory actions open an editable draft and never overwrite saved notes automatically. Clear chapter preserves saved setup/summary; remind users to save generated text and cumulative memory first.
 - Chat actions wrap on narrow widths; composer height is bounded when the keyboard is open. Model settings have one entry at the header; custom prompt rules remain beside the composer.
 - Keep Material 3 theme colors and components. Avoid inventing a new component framework, defensive state layer or UI test suite for these layout changes.
 

@@ -4,6 +4,7 @@ import android.content.Context
 import com.photoedit.app.domain.AiRules
 import com.photoedit.app.domain.ChatProvider
 import com.photoedit.app.domain.ChatRules
+import com.photoedit.app.domain.NovelMemory
 
 data class ChatSettings(val token: String, val model: String, val account: String = AiRules.DEFAULT_ACCOUNT)
 
@@ -17,6 +18,13 @@ class ChatSettingsStore(context: Context) {
         }
     }
     private val prefs = context.getSharedPreferences("chat_selection", Context.MODE_PRIVATE)
+
+    fun novelMemory() = NovelMemory(prefs.getString("novel_setting", "").orEmpty(), prefs.getString("novel_summary", "").orEmpty())
+
+    fun saveNovelMemory(value: NovelMemory) {
+        check(prefs.edit().putString("novel_setting", value.setting)
+            .putString("novel_summary", value.summary).commit()) { "小说资料保存失败" }
+    }
 
     fun promptRules(): String = prefs.getString("prompt_rules", null)?.takeIf { it.isNotBlank() } ?: ChatRules.SYSTEM_PROMPT
 

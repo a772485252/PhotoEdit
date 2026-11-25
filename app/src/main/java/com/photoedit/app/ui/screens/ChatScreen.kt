@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ChatProvider
 import com.photoedit.app.domain.ChatModels
+import com.photoedit.app.domain.ChatMode
+import com.photoedit.app.domain.NovelMemory
 import com.photoedit.app.viewmodel.ChatUiState
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -32,7 +34,7 @@ fun ChatScreen(
     onSaveKey: () -> Unit,
     onClearKey: () -> Unit,
     onInput: (String) -> Unit,
-    onMode: (Boolean) -> Unit,
+    onMode: (ChatMode) -> Unit,
     onSend: () -> Unit,
     onClearChat: () -> Unit,
     onRegenerate: () -> Unit,
@@ -42,11 +44,27 @@ fun ChatScreen(
     onModel: (String) -> Unit,
     onModelDraft: (String) -> Unit,
     onSavePromptRules: (String) -> Unit,
-    onResetPromptRules: () -> Unit
+    onResetPromptRules: () -> Unit,
+    onSaveNovelMemory: (NovelMemory) -> Unit,
+    onSummarize: () -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     var rulesOpen by remember { mutableStateOf(false) }
     var rulesDraft by remember(state.promptRules, rulesOpen) { mutableStateOf(state.promptRules) }
+    var memoryEditor by remember { mutableStateOf<String?>(null) }
+    var memoryDraft by remember { mutableStateOf("") }
+    var savingMemory by remember { mutableStateOf(false) }
+    fun editMemory(kind: String, text: String) {
+        memoryDraft = text
+        memoryEditor = kind
+    }
+    LaunchedEffect(state.busy, savingMemory) {
+        if (savingMemory && !state.busy) {
+            val saved = if (memoryEditor == "setting") state.novelMemory.setting else state.novelMemory.summary
+            if (saved == memoryDraft) memoryEditor = null
+            savingMemory = false
+        }
+    }
     val listState = rememberLazyListState()
     val clipboard = LocalClipboardManager.current
     val uriHandler = LocalUriHandler.current
@@ -61,12 +79,12 @@ fun ChatScreen(
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("提示词助手", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text("AI 助手", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text("${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                     }
-                    TextButton(onClick = onClearChat, enabled = !state.busy) { Text("新对话") }
+                    TextButton(onClick = onClearChat, enabled = !state.busy) { Text(if (state.novelMode) "清空本章" else "新对话") }
                     TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
                 }
                 var detailsExpanded by remember { mutableStateOf(false) }
@@ -91,16 +109,22 @@ fun ChatScreen(
                     }, style = MaterialTheme.typography.labelSmall)
                 }
             }
+            FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ChatMode.entries.forEach { mode ->
+                    FilterChip(selected = state.mode == mode, onClick = { onMode(mode) },
+                        label = { Text(mode.label) }, enabled = !state.busy)
+                }
+            }
             HorizontalDivider()
 
             if (state.messages.isEmpty()) {
                 Column(
-                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 28.dp),
+                    modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 28.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        if (state.promptMode) "提示词扩写与优化" else "开始新对话",
+                        if (state.promptMode) "提示词扩写与优化" else if (state.novelMode) "从一个主题开始写小说" else "开始新对话",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -108,6 +132,8 @@ fun ChatScreen(
                     Text(
                         if (state.promptMode)
                             "输入一段简单想法，我会将它整理、扩写成完整且可直接复制使用的图片提示词。这里只生成文字，不会生成图片。"
+                        else if (state.novelMode)
+                            "先聊主题、背景和人物，让 AI 帮你构思。确定后保存小说设定，再开始写正文。每章结束点“总结本章”，检查后保存为前情总结。"
                         else
                             "可以直接提问，或切换到“生成提示词”模式，让我帮你整理图片创意。",
                         style = MaterialTheme.typography.bodyMedium,
@@ -121,7 +147,7 @@ fun ChatScreen(
                         ) {
                             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                             Text(
-                                if (state.input.isNotBlank()) "正在生成提示词…可切换到其他应用，后台会继续运行" else "正在准备聊天服务…",
+                                if (state.input.isNotBlank()) "正在生成…可切换到其他应用，后台会继续运行" else "正在准备聊天服务…",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -175,6 +201,10 @@ fun ChatScreen(
                                 if (!isUser) {
                                     FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                         TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
+                                        if (state.novelMode) {
+                                            TextButton(onClick = { editMemory("setting", message.text) }, enabled = !state.busy) { Text("存为设定") }
+                                            TextButton(onClick = { editMemory("summary", message.text) }, enabled = !state.busy) { Text("存为前情") }
+                                        }
                                         if (state.promptMode) {
                                             TextButton(
                                                 onClick = { onUsePrompt(message.text) },
@@ -212,11 +242,18 @@ fun ChatScreen(
             Surface(tonalElevation = 2.dp) {
                 Column(Modifier.fillMaxWidth().heightIn(max = composerMaxHeight)
                     .verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = state.promptMode, onClick = { onMode(true) },
-                            label = { Text("生成提示词") }, enabled = !state.busy)
-                        FilterChip(selected = !state.promptMode, onClick = { onMode(false) },
-                            label = { Text("普通聊天") }, enabled = !state.busy)
+                    if (state.novelMode) {
+                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { editMemory("setting", state.novelMemory.setting) }, enabled = !state.busy) {
+                                Text("小说设定 · " + if (state.novelMemory.setting.isBlank()) "未保存" else "已保存")
+                            }
+                            OutlinedButton(onClick = { editMemory("summary", state.novelMemory.summary) }, enabled = !state.busy) {
+                                Text("前情总结 · " + if (state.novelMemory.summary.isBlank()) "未保存" else "已保存")
+                            }
+                            TextButton(onClick = onSummarize, enabled = !state.busy && state.token.isNotBlank() && state.messages.any { it.role == "assistant" }) { Text("总结本章") }
+                        }
+                        Text("总结会发送一次模型请求；清空本章保留已保存资料。", style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (state.promptMode) TextButton(onClick = { rulesOpen = true },
@@ -225,7 +262,7 @@ fun ChatScreen(
                     OutlinedTextField(
                         value = state.input, onValueChange = onInput,
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else "发送消息…") },
+                        placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else if (state.novelMode) "聊主题，或告诉 AI 这一章想写什么…" else "发送消息…") },
                         minLines = 1, maxLines = 4, enabled = !state.busy,
                         shape = RoundedCornerShape(18.dp)
                     )
@@ -236,7 +273,7 @@ fun ChatScreen(
                         Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送")
                     }
                     Text(
-                        if (state.token.isBlank()) "先在右上角设置中保存当前平台的 Key。" else "仅发送文字；回复可复制或带入生图。",
+                        if (state.token.isBlank()) "先在右上角设置中保存当前平台的 Key。" else if (state.novelMode) "每次发送设定、累计前情和本章对话；聊天仅保留在本次应用会话，请另存正文。" else "仅发送文字；回复可复制。",
                         modifier = Modifier.padding(start = 4.dp, top = 6.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -244,6 +281,34 @@ fun ChatScreen(
                 }
             }
         }
+    }
+
+    if (memoryEditor != null) {
+        val isSetting = memoryEditor == "setting"
+        AlertDialog(
+            onDismissRequest = { if (!savingMemory) memoryEditor = null },
+            title = { Text(if (isSetting) "小说设定" else "累计前情总结") },
+            text = {
+                Column(Modifier.fillMaxWidth().heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
+                    Text(if (isSetting) "保存主题、背景、人物和写作要求。只在小说模式发送给当前模型。"
+                        else "用最新累计总结替换旧内容。保留重要人物、进展和伏笔，避免逐章堆叠。",
+                        style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { clipboard.getText()?.text?.let { memoryDraft = it } }, enabled = !savingMemory) { Text("粘贴并替换草稿") }
+                    OutlinedTextField(value = memoryDraft, onValueChange = { memoryDraft = it },
+                        modifier = Modifier.fillMaxWidth(), minLines = 6, maxLines = 14, enabled = !savingMemory,
+                        placeholder = { Text("粘贴 AI 整理的内容，也可以直接编辑") })
+                    Text("保存到本机；留空保存可清除。", style = MaterialTheme.typography.labelSmall)
+                    if (savingMemory || state.notice != null) Text(state.notice ?: "正在保存…", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            dismissButton = { TextButton(onClick = { memoryEditor = null }, enabled = !savingMemory) { Text("取消") } },
+            confirmButton = { TextButton(onClick = {
+                savingMemory = true
+                onSaveNovelMemory(if (isSetting) state.novelMemory.copy(setting = memoryDraft) else state.novelMemory.copy(summary = memoryDraft))
+            }, enabled = !state.busy && !savingMemory) { Text("保存") } },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier.fillMaxWidth(0.94f)
+        )
     }
 
     if (rulesOpen) {
@@ -325,7 +390,7 @@ fun ChatScreen(
                             ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
 
                             ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
-                            ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅点击生成或重新生成时发送文字。"
+                            ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅主动发送、总结或重新生成时发送文字。"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

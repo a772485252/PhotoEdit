@@ -13,10 +13,12 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
+data class ChatReply(val text: String, val notice: String? = null)
+
 /** Fixed platform endpoints only. Never follows redirects or logs provider responses/credentials. */
 class ChatClient {
     suspend fun reply(provider: ChatProvider, token: String, model: String,
-        messages: List<ChatMessage>): String = withContext(Dispatchers.IO) {
+        messages: List<ChatMessage>, longForm: Boolean = false): ChatReply = withContext(Dispatchers.IO) {
         AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
         ChatModels.validate(provider, model)
         val body = JSONObject().put("messages", JSONArray().apply { messages.forEach {
@@ -24,19 +26,18 @@ class ChatClient {
         } })
         if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
         val endpoint = if (provider == ChatProvider.CLOUDFLARE) "/ai/run/$model" else "/chat/completions"
-        if (provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.UNCENSOREDLLM) body.put("max_tokens", 2048)
+        if (longForm || provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.UNCENSOREDLLM) body.put("max_tokens", if (longForm) 8192 else 2048)
         val result = request(provider, token, endpoint, body.toString().toByteArray(Charsets.UTF_8))
         if (provider == ChatProvider.CLOUDFLARE) {
             val answer = result.optJSONObject("result")?.optString("response").orEmpty().trim()
             if (answer.isBlank()) throw IOException("Cloudflare Workers AI 没有返回正文，请检查模型权限和额度")
-            return@withContext answer.take(8000)
+            return@withContext ChatReply(answer)
         }
         val choice = result.optJSONArray("choices")?.optJSONObject(0)
         val answer = choice?.optJSONObject("message")?.optString("content").orEmpty().trim()
         if (answer.isBlank()) throw IOException("${provider.label} 没有返回正文，请缩短需求或手动更换模型")
-        if (choice?.optString("finish_reason") == "length")
-            throw IOException("回复达到长度限制，请缩短需求后重试；本次回复未加入对话")
-        answer.take(8000)
+        ChatReply(answer, if (choice?.optString("finish_reason") == "length")
+            "回复已达服务端长度上限，已保留正文；可发送“继续”接着写。" else null)
     }
 
     private fun request(provider: ChatProvider, token: String, path: String, body: ByteArray?,

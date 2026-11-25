@@ -91,7 +91,8 @@ class MainActivity : ComponentActivity() {
                                     tab = 1
                                 }, onProvider = chatViewModel::provider, onModel = chatViewModel::model,
                                 onModelDraft = chatViewModel::modelDraft,
-                                onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules)
+                                onSavePromptRules = chatViewModel::savePromptRules, onResetPromptRules = chatViewModel::resetPromptRules,
+                                onSaveNovelMemory = chatViewModel::saveNovelMemory, onSummarize = chatViewModel::summarizeChapter)
                     }
                 }
             }
