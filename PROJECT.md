@@ -1,6 +1,7 @@
 # PhotoEdit — Project Specification
 
 ## Current authoritative state — 2026-11-25
+- Latest requested APK: v0.9.39 / versionCode 51, full verification pending. New-code APK releases require a previously unused versionName and increasing versionCode; sync workflow titles/defaults and artifact names before building.
 - Assistant now offers prompt / chat / novel modes. Novel workflow: discuss the theme, save novel setup, write a chapter, explicitly request a cumulative summary, review/save it and clear the chapter conversation before continuing. Two app-private local text fields persist across restarts; current chat remains session-only. No automatic summary requests or automatic note replacement.
 - Novel requests include saved setup + cumulative summary once in the system message, plus the full current chapter conversation and request. Novel input/history bypass the legacy 2000-character / 3-turn / 6000-character trimming rules; actual context capacity remains provider/model dependent. Clearing chapter, changing mode/provider/model preserves saved notes. Saving notes also preserves current chat and input drafts.
 - Novel mode requests an 8192-token output budget (provider acceptance and live completion behavior unverified). Other modes retain their existing output request settings. Replies are no longer silently clipped at 8000 characters; Chat Completions length-limit responses preserve returned text and show a continuation hint. Cloudflare responses do not supply a checked finish reason in the current adapter.

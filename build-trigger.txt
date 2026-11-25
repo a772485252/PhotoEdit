@@ -1,1 +1,1 @@
-2026-11-25 v0.9.38 full build requested: UncensoredLLM chat integration and accumulated UI/provider cleanup.
+2026-11-25 v0.9.39 full build requested: novel memory, one-tap cumulative chapter summary and assistant UI.

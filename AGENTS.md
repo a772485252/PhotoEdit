@@ -40,6 +40,7 @@ Build a genuine native Android application for photo processing and short-form v
 - Keep workflow contents permission read-only. No automated commits, reset, or push during builds.
 - Share a verified successful Actions run/artifact link; artifacts currently expire after 30 days and downloads require GitHub access. An expired artifact requires a new explicitly requested build.
 - Preserve fixed signing identity and monotonic versionCode for app updates. Build only on explicit user request.
+- 每次发布包含新代码的新 APK，versionName 必须使用未发布过的新版本号，versionCode 必须大于此前发布值；不得沿用旧版本号发布不同内容。构建前核对版本历史与最新成功构建，并同步 app/build.gradle.kts、workflow_dispatch 默认值、工作流标题和产物名称。仅重试同一源码版本的失败构建可保留版本号；已发布产物的原样重建须明确说明。
 
 ## UI design and review (mandatory)
 - Every UI change must read and follow the project-local skill `.agents/skills/photoedit-ui/SKILL.md`. It adapts task-based design reasoning to this native Android app. Apply only the checks relevant to the change; a text edit does not require a full redesign.
