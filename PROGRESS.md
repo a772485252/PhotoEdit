@@ -633,3 +633,8 @@ V0.5 selectable Groq/OpenRouter platforms and models implemented, CI verified an
 - Artifact PhotoEdit-v0.9.38-apk, ID 15000968290, ZIP size 9,364,873 bytes, expires 2026-12-25. Downloaded ZIP digest matches GitHub artifact digest; archive contains exactly PhotoEdit-v0.9.38.apk (9,776,107 bytes). Temporary download is outside the source checkout; no APK/AAB committed.
 - Download: https://github.com/a772485252/PhotoEdit/actions/runs/45569518030/artifacts/15000968290 . GitHub access required; extract ZIP to install APK.
 - This verifies unit checks, lint, Android compilation/packaging, signature check and artifact distribution. No user API Key was used; live UncensoredLLM response quality, trial availability, credential persistence and real-device UI remain to be tested on-device.
+
+## 2026-11-25 — Token and tool efficiency rules
+- Added mandatory AGENTS.md rules for context/evidence reuse, rg-first targeted reads, bounded output, scoped checks, concise CI polling at 30–45-second intervals and avoiding duplicate builds/downloads/verification without new evidence.
+- Linked the rule from the project UI skill and current PROJECT summary; retained required privacy, correctness and build/artifact validation. Do not claim measured token savings without usage data.
+- Documentation-only change; reviewed the diff and whitespace. No app behavior/version changes, tests or APK build required or triggered.

@@ -1,6 +1,7 @@
 # PhotoEdit — Project Specification
 
 ## Current authoritative state — 2026-11-25
+- Agent work follows AGENTS.md token/tool efficiency rules: reuse unchanged context and verified evidence, use targeted reads and concise outputs, scope checks to the change and poll CI at reasonable intervals; retain required correctness/privacy/build verification.
 - All UI changes follow the project-local skill .agents/skills/photoedit-ui/SKILL.md and UI_DESIGN.md. Use proportionate boundary checks and critical domain tests; do not add speculative defensive layers or tests for reversible layout/text changes.
 - Current UI uses four fixed bottom destinations, keyboard-aware chat/image composers and bounded task action areas. Photo ordering and video previews scroll within content. Native Compose architecture and active providers/models are unchanged.
 - Pose/outfit/camera/appearance and random two-panel preset features, catalog/prompt-composition code, original pose drawables and provider-independent preset tests have been removed at user request. Prompt text, optional reference, history, continue-editing and prompt-assistant rules remain.

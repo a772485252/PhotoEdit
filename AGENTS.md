@@ -60,6 +60,16 @@ Build a genuine native Android application for photo processing and short-form v
 - Do not add speculative defensive code, repeated internal validation, automatic retries, fallback frameworks, or routine confirmation dialogs. Keep checks that protect real external-input boundaries, resource limits and duplicate paid submissions.
 - Keep the existing critical domain tests. Pure wording/style/layout changes do not require new tests that mirror code, snapshot suites or broad mocks. Add a focused test only when a changed business rule or concrete regression warrants it; do not expand the test surface for completeness alone.
 
+## Token 与工具使用效率（mandatory）
+- 新会话仍按连续性规则读取项目规则与当前进度；同一会话中，未变化且已经读过的文件和已核实结果直接复用，不反复整篇读取。
+- 搜索先用 rg 定位，再读取相关函数、行段或差异。仅在理解依赖确有需要时扩大范围；避免一次输出多个完整大文件，导致截断后再补读。
+- 工具结果先输出必要的状态摘要、错误位置和相关上下文，不默认打印全部日志、源码、工具说明或大型元数据。日志仅在失败或结论不明确时深入读取。
+- 独立的搜索和读取尽量合并；有依赖的操作依次执行。小改动只检查受影响部分，不为确认同一结论重复搜索或增加机械测试。
+- CI 通常每 30～45 秒查询一次精简状态；没有变化不重复读取完整步骤或日志。等待时使用等待工具，不靠连续短轮询；失败后再定位具体任务。进度更新遵循当前会话要求，避免反复叙述相同状态。
+- 同一次成功构建的日志、签名步骤、产物元数据和下载验证结果记录后复用；没有新提交、失败或未解决问题时，不重复构建、下载或全面验证。
+- 外部资料只查当前决策需要的官方接口、价格、支付与政策；已有且仍适用的核实结果可复用，存在时效变化或疑点时再针对性刷新。交付说明简洁说明改动、证据和限制，不重复工作流水账。
+- 节省 Token 不能省略保护用户工作、隐私、付费请求、必要构建验证或交付真实性所需的检查。无法取得实际用量时，不编造 Token 数或节省比例。
+
 ## UI and business separation (mandatory)
 - Use a lightweight single-app-module MVVM structure: ui/screens, ui/components, ui/theme, viewmodel, domain, and processing.
 - Compose UI renders immutable UI state and emits user intents through callbacks.
