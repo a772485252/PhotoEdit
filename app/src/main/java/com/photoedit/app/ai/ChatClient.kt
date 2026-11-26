@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -19,7 +18,7 @@ data class ChatReply(val text: String, val notice: String? = null)
 /** Fixed platform endpoints only. Never follows redirects or logs provider responses/credentials. */
 class ChatClient {
     suspend fun reply(provider: ChatProvider, token: String, model: String,
-        messages: List<ChatMessage>, longForm: Boolean = false): ChatReply = withContext(Dispatchers.IO) {
+        messages: List<ChatMessage>): ChatReply = withContext(Dispatchers.IO) {
         AiRules.validateCredentials(AiRules.DEFAULT_ACCOUNT, token)
         ChatModels.validate(provider, model)
         val body = JSONObject().put("messages", JSONArray().apply { messages.forEach {
@@ -27,7 +26,6 @@ class ChatClient {
         } })
         if (provider != ChatProvider.CLOUDFLARE) body.put("model", model).put("stream", false)
         val endpoint = if (provider == ChatProvider.CLOUDFLARE) "/ai/run/$model" else "/chat/completions"
-        if (longForm || provider == ChatProvider.CLOUDFLARE || provider == ChatProvider.UNCENSOREDLLM) body.put("max_tokens", if (longForm) 8192 else 2048)
         val result = request(provider, token, endpoint, body.toString().toByteArray(Charsets.UTF_8))
         if (provider == ChatProvider.CLOUDFLARE) {
             val answer = result.optJSONObject("result")?.optString("response").orEmpty().trim()
@@ -41,8 +39,7 @@ class ChatClient {
             "回复已达服务端长度上限，已保留正文；可发送“继续”接着写。" else null)
     }
 
-    private fun request(provider: ChatProvider, token: String, path: String, body: ByteArray?,
-        limit: Int = 512 * 1024): JSONObject {
+    private fun request(provider: ChatProvider, token: String, path: String, body: ByteArray?): JSONObject {
         val base = when (provider) {
             ChatProvider.CLOUDFLARE -> "https://api.cloudflare.com/client/v4/accounts/${AiRules.DEFAULT_ACCOUNT}"
             ChatProvider.APIPOD -> "https://api.apipod.ai/v1"
@@ -90,18 +87,7 @@ class ChatClient {
                 else -> "${provider.label} 请求失败（HTTP $status），请稍后手动重试"
             }) + (if (detail == null) "" else "；服务端详情：$detail"))
             }
-            val bytes = connection.inputStream.use { input ->
-                val output = ByteArrayOutputStream()
-                val buffer = ByteArray(4096)
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    if (output.size() + count > limit) throw IOException("平台响应过大，请稍后重试")
-                    output.write(buffer, 0, count)
-                }
-                output.toByteArray()
-            }
-            val result = JSONObject(bytes.toString(Charsets.UTF_8))
+            val result = connection.inputStream.bufferedReader(Charsets.UTF_8).use { JSONObject(it.readText()) }
             if (result.has("error") || result.optBoolean("success", true).not()) {
                 val detail = result.optJSONArray("errors")?.optJSONObject(0)?.optString("message").orEmpty()
                 throw IOException(if (provider == ChatProvider.CLOUDFLARE) "Cloudflare Workers AI 返回错误：${detail.take(180)}" else "${provider.label} 返回错误，请检查模型、额度或访问设置")

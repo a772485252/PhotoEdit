@@ -30,7 +30,7 @@ class ChatSettingsStore(context: Context) {
     fun promptRules(): String = prefs.getString("prompt_rules", null)?.takeIf { it.isNotBlank() } ?: ChatRules.SYSTEM_PROMPT
 
     fun savePromptRules(value: String) {
-        require(value.isNotBlank() && value.length <= 8000) { "规则长度应为 1–8000 字符" }
+        require(value.isNotBlank()) { "规则不能为空" }
         check(prefs.edit().putString("prompt_rules", value).commit()) { "规则保存失败" }
     }
 

@@ -90,7 +90,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun token(value: String) {
         if (!_state.value.busy) _state.value = _state.value.copy(token = value.trim())
     }
-    fun input(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(input = if (_state.value.novelMode) value else value.take(2000)) }
+    fun input(value: String) { if (!_state.value.busy) _state.value = _state.value.copy(input = value) }
     fun mode(value: ChatMode) {
         if (!_state.value.busy && _state.value.mode != value)
             _state.value = _state.value.copy(mode = value, messages = emptyList(), notice = "已切换模式并开始新对话")
@@ -153,7 +153,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
             if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
             if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
-            val answer = client.reply(state.provider, activeToken, state.model, request, state.novelMode)
+            val answer = client.reply(state.provider, activeToken, state.model, request)
             _state.value = _state.value.copy(input = if (preserveDraft) state.input else "",
                 messages = request.drop(1) + ChatMessage("assistant", answer.text), notice = answer.notice)
         }
@@ -170,7 +170,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val activeToken = if (state.provider == ChatProvider.APIPOD) withContext(Dispatchers.IO) { settings.load(ChatProvider.APIPOD).token } else state.token
             if (state.provider == ChatProvider.APIPOD && activeToken.isBlank()) throw java.io.IOException("APIPod Key 尚未保存，请先在设置中保存 Key")
             if (state.provider == ChatProvider.APIPOD && activeToken != state.token) _state.value = _state.value.copy(token = activeToken)
-            val answer = client.reply(state.provider, activeToken, state.model, request, state.novelMode)
+            val answer = client.reply(state.provider, activeToken, state.model, request)
             _state.value = _state.value.copy(messages = request.drop(1) + ChatMessage("assistant", answer.text), notice = answer.notice)
         }
     }

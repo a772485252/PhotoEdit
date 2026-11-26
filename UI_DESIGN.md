@@ -93,5 +93,5 @@ Before completing a UI change, review:
 
 - Read this document, AGENTS.md, PROJECT.md, and the relevant screen/theme/components before UI work.
 - Update this document when a reusable interaction or design-system rule changes.
-- Record each meaningful UI change and validation status in PROGRESS.md in the same session; update PROJECT.md when architecture, user-visible behavior, or product-wide constraints change.
+- Follow AGENTS.md rule 7 for documentation: pure bug fixes do not require updates to project records or this design document. Document deliberate feature/design changes when shared interaction patterns, architecture or product constraints change; edit requested operating rules directly without adding a duplicate progress record.
 - Never record secrets, account identifiers, personal data, or private operational details in this document.

@@ -306,9 +306,9 @@ fun ChatScreen(
                 Column(Modifier.fillMaxWidth().heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
                     Text("修改后保存到本机，下一次生成提示词时生效；当前聊天记录和输入草稿都会保留。", style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(value = rulesDraft, onValueChange = { rulesDraft = it.take(8000) },
+                    OutlinedTextField(value = rulesDraft, onValueChange = { rulesDraft = it },
                         modifier = Modifier.fillMaxWidth(), minLines = 7, maxLines = 16,
-                        label = { Text("扩写规则") }, supportingText = { Text("${rulesDraft.length}/8000 字符") })
+                        label = { Text("扩写规则") }, supportingText = { Text("${rulesDraft.length} 字符") })
                 }
             },
             dismissButton = { TextButton(onClick = { rulesOpen = false }) { Text("取消") } },

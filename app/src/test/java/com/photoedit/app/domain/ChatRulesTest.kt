@@ -4,13 +4,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ChatRulesTest {
-    @Test fun keepsLatestRequestAndCompleteRecentTurnsUnderBudget() {
+    @Test fun retainsEntireHistoryAndLongInputInBothModes() {
         val history = (1..10).flatMap { listOf(ChatMessage("user", "u".repeat(1500)), ChatMessage("assistant", "a".repeat(1500))) }
-        val request = ChatRules.messages(history, "new request", true)
-        assertEquals("system", request.first().role)
-        assertEquals("new request", request.last().text)
-        assertTrue(request.drop(1).sumOf { it.text.length } <= 6000)
-        assertEquals(listOf("system", "user", "assistant", "user"), request.map { it.role })
+        val input = "new request".repeat(2000)
+        listOf(true, false).forEach { promptMode ->
+            val request = ChatRules.messages(history, input, promptMode)
+            assertEquals("system", request.first().role)
+            assertEquals(input, request.last().text)
+            assertEquals(history, request.drop(1).dropLast(1))
+            assertEquals(history.size + 2, request.size)
+        }
     }
     @Test fun emptyHistoryCreatesOnlySystemAndCurrentUser() {
         assertEquals(2, ChatRules.messages(emptyList(), "写个瀑布写真提示词", true).size)
@@ -35,6 +38,12 @@ class ChatRulesTest {
         assertEquals("之前的提示词", request[1].text)
         assertEquals("之前的扩写结果", request[2].text)
         assertEquals("继续修改", request.last().text)
+    }
+
+    @Test fun longCustomRulesAreNotClipped() {
+        val rules = "完整扩写要求".repeat(3000)
+        val request = ChatRules.messages(emptyList(), "继续", true, rules)
+        assertEquals(rules, request.first().text)
     }
 
     @Test(expected = IllegalArgumentException::class) fun blankRequestRejected() { ChatRules.messages(emptyList(), " ", true) }
