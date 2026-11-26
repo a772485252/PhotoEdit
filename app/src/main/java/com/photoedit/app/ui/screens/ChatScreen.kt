@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.photoedit.app.domain.ChatProvider
 import com.photoedit.app.domain.ChatModels
@@ -53,6 +54,8 @@ fun ChatScreen(
     var rulesDraft by remember(state.promptRules, rulesOpen) { mutableStateOf(state.promptRules) }
     var memoryEditor by remember { mutableStateOf<String?>(null) }
     var memoryDraft by remember { mutableStateOf("") }
+    var detailsExpanded by remember { mutableStateOf(false) }
+    var novelToolsOpen by remember { mutableStateOf(false) }
     var savingMemory by remember { mutableStateOf(false) }
     fun editMemory(kind: String, text: String) {
         memoryDraft = text
@@ -69,29 +72,25 @@ fun ChatScreen(
     val clipboard = LocalClipboardManager.current
     val uriHandler = LocalUriHandler.current
 
-    LaunchedEffect(state.messages.size, state.busy) {
-        if (state.messages.isNotEmpty()) listState.animateScrollToItem(state.messages.lastIndex)
+    LaunchedEffect(state.messages.size, state.busy, state.notice) {
+        val itemCount = state.messages.size.coerceAtLeast(1) +
+            (if (state.busy) 1 else 0) + (if (state.notice != null) 1 else 0)
+        listState.animateScrollToItem(itemCount - 1)
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().imePadding()) {
-        val composerMaxHeight = maxHeight * 0.55f
+        val composerMaxHeight = maxHeight * 0.4f
         Column(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("AI 助手", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text("${state.provider.label} · ${ChatModels.displayName(state.provider, state.model)}",
+                        Text("${state.provider.label} · ${ChatModels.displayName(state.provider, state.model).removeSuffix(" · ${state.provider.label}")}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                     }
                     TextButton(onClick = onClearChat, enabled = !state.busy) { Text(if (state.novelMode) "清空本章" else "新对话") }
                     TextButton(onClick = { settingsOpen = true }, enabled = !state.busy) { Text("设置") }
-                }
-                var detailsExpanded by remember { mutableStateOf(false) }
-                TextButton(onClick = { detailsExpanded = !detailsExpanded },
-                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)) {
-                    Text(if (detailsExpanded) "收起模型与费用信息" else "查看模型与费用信息",
-                        style = MaterialTheme.typography.labelSmall)
                 }
                 if (detailsExpanded) {
                     val priceGuide = ChatModels.priceGuide(state.provider, state.model)
@@ -114,170 +113,158 @@ fun ChatScreen(
                     FilterChip(selected = state.mode == mode, onClick = { onMode(mode) },
                         label = { Text(mode.label) }, enabled = !state.busy)
                 }
+                TextButton(onClick = { detailsExpanded = !detailsExpanded }) {
+                    Text(if (detailsExpanded) "收起费用" else "模型费用")
+                }
             }
             HorizontalDivider()
 
-            if (state.messages.isEmpty()) {
-                Column(
-                    modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 28.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        if (state.promptMode) "提示词扩写与优化" else if (state.novelMode) "从一个主题开始写小说" else "开始新对话",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        if (state.promptMode)
-                            "输入一段简单想法，我会将它整理、扩写成完整且可直接复制使用的图片提示词。这里只生成文字，不会生成图片。"
-                        else if (state.novelMode)
-                            "先聊主题、背景和人物，让 AI 帮你构思。确定后保存小说设定，再开始写正文。每章结束点“总结本章”，检查后保存为前情总结。"
-                        else
-                            "可以直接提问，或切换到“生成提示词”模式，让我帮你整理图片创意。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (state.busy) {
-                        Spacer(Modifier.height(22.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                if (state.messages.isEmpty()) item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            if (state.promptMode) "提示词扩写与优化" else if (state.novelMode) "从一个主题开始写小说" else "开始新对话",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            if (state.promptMode)
+                                "输入一段简单想法，我会将它整理、扩写成完整且可直接复制使用的图片提示词。这里只生成文字，不会生成图片。"
+                            else if (state.novelMode)
+                                "先聊主题、背景和人物，让 AI 帮你构思。确定后保存小说设定，再开始写正文。每章结束点“总结本章”，检查后保存为前情总结。"
+                            else
+                                "可以直接提问，或切换到“生成提示词”模式，让我帮你整理图片创意。",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (state.promptMode) {
+                            Spacer(Modifier.height(18.dp))
                             Text(
-                                if (state.input.isNotBlank()) "正在生成…可切换到其他应用，后台会继续运行" else "正在准备聊天服务…",
+                                "例如：描述人物、服饰、动作、场景，或粘贴一段已有提示词让我优化。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    } else if (state.promptMode) {
-                        Spacer(Modifier.height(18.dp))
-                        Text(
-                            "例如：描述人物、服饰、动作、场景，或粘贴一段已有提示词让我优化。",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    itemsIndexed(state.messages) { index, message ->
-                        val isUser = message.role == "user"
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
-                        ) {
-                            Column(Modifier.widthIn(max = 340.dp), horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
-                                Text(
-                                    if (isUser) "你" else "PhotoEdit AI",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                )
-                                Surface(
-                                    shape = RoundedCornerShape(
-                                        topStart = 18.dp, topEnd = 18.dp,
-                                        bottomStart = if (isUser) 18.dp else 5.dp,
-                                        bottomEnd = if (isUser) 5.dp else 18.dp
-                                    ),
-                                    color = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                                ) {
-                                    SelectionContainer {
-                                        Text(
-                                            message.text,
-                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
+                itemsIndexed(state.messages) { index, message ->
+                    val isUser = message.role == "user"
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+                    ) {
+                        Column(Modifier.widthIn(max = 340.dp), horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
+                            Text(
+                                if (isUser) "你" else "PhotoEdit AI",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(
+                                    topStart = 18.dp, topEnd = 18.dp,
+                                    bottomStart = if (isUser) 18.dp else 5.dp,
+                                    bottomEnd = if (isUser) 5.dp else 18.dp
+                                ),
+                                color = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                SelectionContainer {
+                                    Text(
+                                        message.text,
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                if (!isUser) {
-                                    FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
-                                        if (state.novelMode) {
-                                            TextButton(onClick = { editMemory("setting", message.text) }, enabled = !state.busy) { Text("存为设定") }
-                                            TextButton(onClick = { editMemory("summary", message.text) }, enabled = !state.busy) { Text("存为前情") }
-                                        }
-                                        if (state.promptMode) {
-                                            TextButton(
-                                                onClick = { onUsePrompt(message.text) },
-                                                enabled = canUsePrompt && message.text.length <= 4000
-                                            ) { Text("带入生图") }
-                                        }
-                                        if (index == state.messages.lastIndex && !state.busy) {
-                                            TextButton(onClick = onRegenerate) { Text("重新生成") }
-                                        }
+                            }
+                            if (!isUser) {
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("复制") }
+                                    if (state.novelMode) {
+                                        TextButton(onClick = { editMemory("setting", message.text) }, enabled = !state.busy) { Text("存为设定") }
+                                        TextButton(onClick = { editMemory("summary", message.text) }, enabled = !state.busy) { Text("存为前情") }
+                                    }
+                                    if (state.promptMode) {
+                                        TextButton(
+                                            onClick = { onUsePrompt(message.text) },
+                                            enabled = canUsePrompt && message.text.length <= 4000
+                                        ) { Text("带入生图") }
+                                    }
+                                    if (index == state.messages.lastIndex && !state.busy) {
+                                        TextButton(onClick = onRegenerate) { Text("重新生成") }
                                     }
                                 }
                             }
                         }
                     }
-                    if (state.busy) {
-                        item {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                                Text("正在生成…可切换到其他应用，后台将继续运行", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
+                }
+                if (state.busy) {
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            Text(if (state.input.isBlank() && state.messages.isEmpty()) "正在准备聊天服务…" else "正在生成…可切换到其他应用，后台将继续运行", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
-            }
-
-            state.notice?.let {
-                Text(
-                    it,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                state.notice?.let { notice ->
+                    item {
+                        Text(notice, modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                        if (!state.busy && notice.contains("可用通道")) TextButton(onClick = { settingsOpen = true }) { Text("检查模型设置") }
+                    }
+                }
             }
 
             Surface(tonalElevation = 2.dp) {
                 Column(Modifier.fillMaxWidth().heightIn(max = composerMaxHeight)
-                    .verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    .verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp)) {
                     if (state.novelMode) {
-                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { editMemory("setting", state.novelMemory.setting) }, enabled = !state.busy) {
-                                Text("小说设定 · " + if (state.novelMemory.setting.isBlank()) "未保存" else "已保存")
-                            }
-                            OutlinedButton(onClick = { editMemory("summary", state.novelMemory.summary) }, enabled = !state.busy) {
-                                Text("前情总结 · " + if (state.novelMemory.summary.isBlank()) "未保存" else "已保存")
-                            }
-                            TextButton(onClick = onSummarize, enabled = !state.busy && state.token.isNotBlank() && state.messages.any { it.role == "assistant" }) { Text("总结本章") }
+                        TextButton(onClick = { novelToolsOpen = !novelToolsOpen }) {
+                            Text(if (novelToolsOpen) "收起小说资料" else "小说资料与总结")
                         }
-                        Text("总结会发送一次模型请求；清空本章保留已保存资料。", style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (novelToolsOpen) {
+                            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { editMemory("setting", state.novelMemory.setting) }, enabled = !state.busy) {
+                                    Text("小说设定 · " + if (state.novelMemory.setting.isBlank()) "未保存" else "已保存")
+                                }
+                                OutlinedButton(onClick = { editMemory("summary", state.novelMemory.summary) }, enabled = !state.busy) {
+                                    Text("前情总结 · " + if (state.novelMemory.summary.isBlank()) "未保存" else "已保存")
+                                }
+                                TextButton(onClick = onSummarize, enabled = !state.busy && state.token.isNotBlank() && state.messages.any { it.role == "assistant" }) { Text("总结本章") }
+                            }
+                            Text("总结会发送一次模型请求；清空本章保留资料。对话仅本次会话保留，请另存正文。",
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (state.promptMode) TextButton(onClick = { rulesOpen = true },
-                            enabled = !state.busy) { Text("扩写规则") }
+                    if (state.promptMode) TextButton(onClick = { rulesOpen = true }, enabled = !state.busy) { Text("扩写规则") }
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = state.input, onValueChange = onInput,
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else if (state.novelMode) "聊主题，或写下这一章的想法…" else "发送消息…") },
+                            minLines = 1, maxLines = 3, enabled = !state.busy,
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(onClick = onSend,
+                            enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
+                            modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(if (state.busy) "等待…" else if (state.promptMode) "生成" else "发送")
+                        }
                     }
-                    OutlinedTextField(
-                        value = state.input, onValueChange = onInput,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(if (state.promptMode) "输入创意或粘贴提示词…" else if (state.novelMode) "聊主题，或告诉 AI 这一章想写什么…" else "发送消息…") },
-                        minLines = 1, maxLines = 4, enabled = !state.busy,
-                        shape = RoundedCornerShape(18.dp)
-                    )
-                    Button(onClick = onSend,
-                        enabled = !state.busy && state.input.isNotBlank() && state.token.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(16.dp)) {
-                        Text(if (state.busy) "处理中…" else if (state.promptMode) "生成提示词" else "发送")
-                    }
-                    Text(
-                        if (state.token.isBlank()) "先在右上角设置中保存当前平台的 Key。" else if (state.novelMode) "每次发送设定、累计前情和本章对话；聊天仅保留在本次应用会话，请另存正文。" else "仅发送文字；回复可复制。",
-                        modifier = Modifier.padding(start = 4.dp, top = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (state.token.isBlank()) Text("请先在设置中保存 Key",
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
                 }
             }
         }
@@ -338,69 +325,76 @@ fun ChatScreen(
     }
 
     if (settingsOpen) {
-        AlertDialog(
+        Dialog(
             onDismissRequest = { settingsOpen = false },
-            title = { Text("模型与 API 设置") },
-            text = {
-                Column(
-                    Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("聊天服务", style = MaterialTheme.typography.titleSmall)
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        ChatProvider.entries.forEach { provider ->
-                            FilterChip(selected = state.provider == provider,
-                                onClick = { onProvider(provider) }, label = { Text(provider.label) },
-                                enabled = !state.busy, modifier = Modifier.fillMaxWidth())
-                        }
-                    }
-                    Text(
-                        when (state.provider) {
-                            ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
-
-                            ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
-                            ChatProvider.UNCENSOREDLLM -> "使用单独注册的 UncensoredLLM API Key，按 Token 计费；试用额度以控制台为准。此处是平台提供的低拒答衍生版，仍遵循平台规则。"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (state.provider == ChatProvider.UNCENSOREDLLM) {
-                        TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/") }) { Text("注册 / 获取 Key") }
-                        TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/pricing") }) { Text("查看实时价格") }
-                    }
-                    OutlinedTextField(
-                        value = state.token,
-                        onValueChange = onKey,
-                        label = { Text("${state.provider.label} API Key") },
-                        singleLine = true,
-                        enabled = !state.busy,
-                        modifier = Modifier.fillMaxWidth(),
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password)
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = onSaveKey, enabled = !state.busy && state.token.isNotBlank()) { Text("保存 Key") }
-                        TextButton(onClick = onClearKey, enabled = !state.busy) { Text("清除当前 Key") }
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("模型与 API 设置", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                        TextButton(onClick = { settingsOpen = false }) { Text("完成") }
                     }
                     HorizontalDivider()
-                    Text("模型选择", style = MaterialTheme.typography.titleSmall)
-                    ModelSelector(state, onModel, onModelDraft)
-                    Text(
-                        when (state.provider) {
-                            ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
+                    Column(
+                        Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text("聊天服务", style = MaterialTheme.typography.titleSmall)
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            ChatProvider.entries.forEach { provider ->
+                                FilterChip(selected = state.provider == provider,
+                                    onClick = { onProvider(provider) }, label = { Text(provider.label) },
+                                    enabled = !state.busy, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                        Text(
+                            when (state.provider) {
+                                ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
 
-                            ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
-                            ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅主动发送、总结或重新生成时发送文字。"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                                ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
+                                ChatProvider.UNCENSOREDLLM -> "使用单独注册的 UncensoredLLM API Key，按 Token 计费；试用额度以控制台为准。此处是平台提供的低拒答衍生版，仍遵循平台规则。"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (state.provider == ChatProvider.UNCENSOREDLLM) {
+                            TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/") }) { Text("注册 / 获取 Key") }
+                            TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/pricing") }) { Text("查看实时价格") }
+                        }
+                        OutlinedTextField(
+                            value = state.token,
+                            onValueChange = onKey,
+                            label = { Text("${state.provider.label} API Key") },
+                            singleLine = true,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password)
+                        )
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = onSaveKey, enabled = !state.busy && state.token.isNotBlank()) { Text("保存 Key") }
+                            TextButton(onClick = onClearKey, enabled = !state.busy) { Text("清除当前 Key") }
+                        }
+                        HorizontalDivider()
+                        Text("模型选择", style = MaterialTheme.typography.titleSmall)
+                        ModelSelector(state, onModel, onModelDraft)
+                        Text(
+                            when (state.provider) {
+                                ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
+
+                                ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
+                                ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅主动发送、总结或重新生成时发送文字。"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        state.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                        Text("预设模型不代表当前 Key 一定可用；以平台控制台的模型权限与通道状态为准。", style = MaterialTheme.typography.labelSmall)
+                    }
                 }
-            },
-            confirmButton = { TextButton(onClick = { settingsOpen = false }) { Text("完成") } },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            modifier = Modifier.fillMaxWidth(0.94f)
-        )
+            }
+        }
     }
 }
 

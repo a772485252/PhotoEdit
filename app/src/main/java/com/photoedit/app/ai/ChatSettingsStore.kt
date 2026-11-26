@@ -3,6 +3,7 @@ package com.photoedit.app.ai
 import android.content.Context
 import com.photoedit.app.domain.AiRules
 import com.photoedit.app.domain.ChatProvider
+import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.domain.ChatRules
 import com.photoedit.app.domain.NovelMemory
 
@@ -46,7 +47,7 @@ class ChatSettingsStore(context: Context) {
         val (account, token) = stores.getValue(provider).load()
         val savedModel = prefs.getString("model_${provider.name}", provider.defaultModel) ?: provider.defaultModel
         // Do not restore a retired preset from an older installation.
-        val model = if (provider == ChatProvider.APIPOD && savedModel == "deepseek-flash") provider.defaultModel else savedModel
+        val model = ChatModels.restoreModel(provider, savedModel)
         return ChatSettings(token, model, account)
     }
 

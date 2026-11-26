@@ -3,7 +3,7 @@ package com.photoedit.app.domain
 enum class ChatProvider(val label: String, val namespace: String, val defaultModel: String) {
     CLOUDFLARE("Cloudflare Workers AI", "cloudflare_chat_private", "@cf/zai-org/glm-4.7-flash"),
     APIPOD("APIPod", "apipod_private", "grok-4.5"),
-    UNCENSOREDLLM("UncensoredLLM", "uncensoredllm_chat_private", "glm-5.3-flash-uncensored")
+    UNCENSOREDLLM("UncensoredLLM", "uncensoredllm_chat_private", "glm-5.3-uncensored")
 }
 
 data class ChatModel(val id: String, val name: String)
@@ -11,7 +11,7 @@ data class ChatModel(val id: String, val name: String)
 object ChatModels {
     fun presets(provider: ChatProvider): List<ChatModel> = when (provider) {
         ChatProvider.UNCENSOREDLLM -> listOf(
-            ChatModel(provider.defaultModel, "GLM 5.3 Flash · Uncensored")
+            ChatModel(provider.defaultModel, "GLM 5.3 · Uncensored")
         )
         ChatProvider.CLOUDFLARE -> listOf(
             ChatModel(provider.defaultModel, "GLM-4.7-Flash · Workers AI")
@@ -27,6 +27,12 @@ object ChatModels {
         ChatProvider.APIPOD, ChatProvider.UNCENSOREDLLM -> presets(provider).firstOrNull { it.id == model }?.name ?: model
     }
 
+    fun restoreModel(provider: ChatProvider, savedModel: String): String = when {
+        provider == ChatProvider.APIPOD && savedModel == "deepseek-flash" -> provider.defaultModel
+        provider == ChatProvider.UNCENSOREDLLM && savedModel == "glm-5.3-flash-uncensored" -> provider.defaultModel
+        else -> savedModel
+    }
+
     data class PriceGuide(
         val inputPerTenThousandChars: String,
         val outputPerTenThousandChars: String,
@@ -39,8 +45,8 @@ object ChatModels {
      */
     fun priceGuide(provider: ChatProvider, model: String): PriceGuide? = when {
         provider == ChatProvider.UNCENSOREDLLM && model == provider.defaultModel ->
-            PriceGuide("\$0.0012", "\$0.0042",
-                "按 1 字≈1 Token 粗估；2026-11-25 标价输入 $0.1211、输出 $0.4238 / 百万 Token，实际以平台结算为准")
+            PriceGuide("\$0.0032", "\$0.0097",
+                "按 1 字≈1 Token 粗估；2026-11-26 核对公开价输入 $0.3243、输出 $0.9729 / 百万 Token，实际以平台结算为准")
         provider == ChatProvider.CLOUDFLARE && model == "@cf/zai-org/glm-4.7-flash" ->
             PriceGuide("\$0.0006 · 约55 Neurons", "\$0.0040 · 约364 Neurons",
                 "按 1 字≈1 Token 粗估；Workers AI 实际按 Neurons 计量")

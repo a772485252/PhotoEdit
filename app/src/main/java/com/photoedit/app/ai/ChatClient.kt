@@ -2,6 +2,7 @@ package com.photoedit.app.ai
 
 import com.photoedit.app.domain.AiRules
 import com.photoedit.app.domain.ChatMessage
+import com.photoedit.app.domain.ChatErrors
 import com.photoedit.app.domain.ChatModels
 import com.photoedit.app.domain.ChatProvider
 import kotlinx.coroutines.Dispatchers
@@ -60,18 +61,23 @@ class ChatClient {
             if (body != null) connection.outputStream.use { it.write(body) }
             val status = connection.responseCode
             if (status !in 200..299) {
+                var apipodRejection: String? = null
                 val detail = try {
                     val raw = connection.errorStream?.bufferedReader()?.use { it.readText().take(4096) }.orEmpty()
                     val json = JSONObject(raw)
                     val error = json.optJSONObject("error")
                     val message = error?.optString("message").orEmpty().ifBlank { json.optString("message") }
                     val code = error?.optString("code").orEmpty()
+                        .ifBlank { json.optJSONObject("data")?.optString("error_code").orEmpty() }
+                        .ifBlank { error?.optString("type").orEmpty() }
+                    if (provider == ChatProvider.APIPOD)
+                        apipodRejection = ChatErrors.apipodRejection(status, code, message)
                     listOf(code, message).filter { it.isNotBlank() }.joinToString(": ")
                         .replace(token, "[已隐藏凭证]").replace(Regex("[\\r\\n\\t]"), " ").take(240)
                         .takeIf { it.isNotBlank() }
                 } catch (_: Exception) { null }
-                val quotaShortage = provider == ChatProvider.APIPOD && detail?.contains("insufficient_user_quota", ignoreCase = true) == true
-                throw IOException((if (quotaShortage) "APIPod 返回额度不足（HTTP $status）。请核对当前 Key 对应账户、独立额度或消费上限；不会自动重试。" else if (provider == ChatProvider.CLOUDFLARE) when (status) {
+                if (apipodRejection != null) throw IOException(apipodRejection)
+                throw IOException((if (provider == ChatProvider.CLOUDFLARE) when (status) {
                 401, 403 -> "Cloudflare API Token 无效或缺少 Workers AI 权限（需要 Workers AI Read 和 Edit）"
                 429 -> "Cloudflare Workers AI 请求受限或免费额度已用完，请查看 AI 控制台"
                 else -> "Cloudflare Workers AI 请求失败（HTTP $status），请检查 Account ID、Token 权限和模型可用性"

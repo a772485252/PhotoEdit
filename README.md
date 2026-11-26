@@ -15,14 +15,14 @@
 | --- | --- | --- |
 | 聊天 | Cloudflare Workers AI | @cf/zai-org/glm-4.7-flash |
 | 聊天 | APIPod | grok-4.5、grok-4.6 |
-| 聊天 | UncensoredLLM | glm-5.3-flash-uncensored |
+| 聊天 | UncensoredLLM | glm-5.3-uncensored |
 | 生图 | APIPod | z-image-spicy、z-image-spicy-pro；参考图使用 qwen-image-edit-spicy |
 
 聊天保留自定义模型 ID；是否可调用以平台与账号权限为准。APIPod 聊天和生图共用其加密保存的 Key；Cloudflare 聊天保留原有加密凭据。不要将 Key、Token 或个人账户数据提交仓库。
 
 ## 试用 UncensoredLLM
 
-打开“提示词” → 设置 → 选择 UncensoredLLM → 注册并创建自己的 API Key → 在手机填写并保存 → 返回生成提示词或聊天。Key 单独加密保存，不与其他平台共用，不要发到聊天或提交仓库。预设为平台提供的 GLM 5.3 Flash Uncensored 衍生版，不是智谱官方直连接口；仍受平台规则约束。试用额度和价格以服务商控制台为准，没有自动重试或付费回退。
+打开“助手” → 设置 → 选择 UncensoredLLM → 注册并创建自己的 API Key → 在手机填写并保存 → 返回生成提示词或聊天。Key 单独加密保存，不与其他平台共用，不要发到聊天或提交仓库。预设为平台提供的 GLM 5.3 Uncensored 版本，不是智谱官方直连接口；仍受平台规则约束。原 Flash 预设升级后使用新预设，沿用原 Key；其他自定义模型 ID 保留。2026-11-26 核对公开价：输入 $0.3243、输出 $0.9729 / 百万 Token，实际价格和额度以服务商控制台为准；实际输出表现未验证，没有自动重试或付费回退。
 
 ## 模型服务选择规则
 

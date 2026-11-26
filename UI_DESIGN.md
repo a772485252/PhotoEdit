@@ -2,15 +2,16 @@
 
 Read the project-local [PhotoEdit UI skill](.agents/skills/photoedit-ui/SKILL.md) before every UI change. The skill describes the design method; this document records shared interaction and visual rules. AGENTS.md requires both, applied in proportion to the change.
 
-## Current shared patterns (2026-11-25)
+## Current shared patterns (2026-11-26)
 
 - Four fixed bottom destinations: split images, AI images, assistant and dress-change video. Hide navigation while the keyboard is open; preserve screen/ViewModel state on navigation. Parent consumes its Scaffold insets before child IME padding.
 - Scroll image results, photo ordering and video preview within the content area. Keep task actions in a bounded, scrollable bottom area; do not fix a large preview below a shrinking photo list.
 - Use short page headings and a brief task subtitle. Use plain Chinese action names; photo move/remove actions occupy their own row rather than squeezing metadata.
 - AI images use APIPod only; no platform-switch control is needed. Future paid-provider entry points require verified API top-up support for Alipay or WeChat Pay under AGENTS.md.
 - AI image inputs contain only prompt text and an optional reference. Pose, outfit, camera, appearance and random two-panel presets are removed. Keep model/cost, pending-task recovery and manual gallery save visible when applicable.
-- Assistant modes (提示词 / 聊天 / 小说) remain visible below the header and wrap on narrow widths. Novel memory entries and the explicit summarize action sit beside the composer. Summarize labels explain the model request; reply-to-memory actions open an editable draft and never overwrite saved notes automatically. Clear chapter preserves saved setup/summary; remind users to save generated text and cumulative memory first.
-- Chat actions wrap on narrow widths; composer height is bounded when the keyboard is open. Model settings have one entry at the header; custom prompt rules remain beside the composer.
+- Assistant modes (提示词 / 聊天 / 小说) remain visible below the header and wrap with the model-fee disclosure on narrow widths. Novel memory entries and the explicit summarize action expand from 小说资料与总结 beside the composer. Expanded tools explain the model request and session-only transcript; reply-to-memory actions open an editable draft and never overwrite saved notes automatically. Clear chapter preserves saved setup/summary.
+- Chat status/errors and empty-state help share the scrolling conversation area. Keep input and send in one compact row with bounded input height; longer drafts scroll internally. Novel tools are collapsed initially. The composer has a bounded scroll area for short/keyboard-visible screens.
+- Model/API settings use a full-window native dialog with a fixed Done header, scrollable body and safe/IME insets. Provider options stack vertically; credential actions wrap. A model-routing failure offers a contextual settings action and explains platform Key groups/channel availability without claiming presets are usable for every Key. Custom prompt rules remain beside the composer.
 - Keep Material 3 theme colors and components. Avoid inventing a new component framework, defensive state layer or UI test suite for these layout changes.
 
 ## 1. Product experience principles

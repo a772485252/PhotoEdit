@@ -43,10 +43,26 @@ class ChatModelsTest {
         val provider = ChatProvider.UNCENSOREDLLM
         assertNotEquals(ChatProvider.APIPOD.namespace, provider.namespace)
         assertNotEquals(ChatProvider.CLOUDFLARE.namespace, provider.namespace)
+        assertEquals("uncensoredllm_chat_private", provider.namespace)
+        assertEquals("glm-5.3-uncensored", provider.defaultModel)
+        assertEquals(listOf("glm-5.3-uncensored"), ChatModels.presets(provider).map { it.id })
         ChatModels.validate(provider, provider.defaultModel)
-        assertEquals("\$0.0012", ChatModels.priceGuide(provider, provider.defaultModel)?.inputPerTenThousandChars)
-        assertEquals("\$0.0042", ChatModels.priceGuide(provider, provider.defaultModel)?.outputPerTenThousandChars)
+        assertEquals("\$0.0032", ChatModels.priceGuide(provider, provider.defaultModel)?.inputPerTenThousandChars)
+        assertEquals("\$0.0097", ChatModels.priceGuide(provider, provider.defaultModel)?.outputPerTenThousandChars)
+        assertNull(ChatModels.priceGuide(provider, "glm-5.3-flash-uncensored"))
         assertNull(ChatModels.priceGuide(provider, "custom-model"))
+    }
+
+    @Test fun restoredModelsMigrateReplacedPresetsAndPreserveOtherSelections() {
+        val provider = ChatProvider.UNCENSOREDLLM
+        assertEquals(provider.defaultModel, ChatModels.restoreModel(provider, "glm-5.3-flash-uncensored"))
+        assertEquals(provider.defaultModel, ChatModels.restoreModel(provider, provider.defaultModel))
+        assertEquals("custom-model", ChatModels.restoreModel(provider, "custom-model"))
+        assertEquals(ChatProvider.APIPOD.defaultModel, ChatModels.restoreModel(ChatProvider.APIPOD, "deepseek-flash"))
+        assertEquals("grok-4.6", ChatModels.restoreModel(ChatProvider.APIPOD, "grok-4.6"))
+        assertEquals("glm-5.3-flash-uncensored", ChatModels.restoreModel(ChatProvider.APIPOD, "glm-5.3-flash-uncensored"))
+        assertEquals(ChatProvider.CLOUDFLARE.defaultModel,
+            ChatModels.restoreModel(ChatProvider.CLOUDFLARE, ChatProvider.CLOUDFLARE.defaultModel))
     }
 
     @Test fun unknownModelDoesNotInventAPrice() {

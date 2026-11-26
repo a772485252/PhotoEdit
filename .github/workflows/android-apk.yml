@@ -1,5 +1,5 @@
 name: Android APK
-run-name: PhotoEdit ${{ inputs.app_version && format('v{0} · {1} APK', inputs.app_version, inputs.build_mode) || 'v0.9.39 · full APK' }}
+run-name: PhotoEdit ${{ inputs.app_version && format('v{0} · {1} APK', inputs.app_version, inputs.build_mode) || 'v0.9.40 · full APK' }}
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
       app_version:
         description: "App version to display (must match app/build.gradle.kts)"
         required: true
-        default: "0.9.39"
+        default: "0.9.40"
         type: string
 
 concurrency:
