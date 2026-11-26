@@ -32,6 +32,7 @@ Build a genuine native Android application for photo processing and short-form v
 16. Do not add UI snapshot tests, broad network mocks, or test-only architecture unless a concrete regression risk justifies them.
 17. When behavior or model defaults change, update the corresponding focused tests in the same change. If a test fails, determine whether production behavior or the assertion is outdated; never delete a valid test just to make CI green.
 18. Keep unit tests in the test source set; they are not packaged into the APK. CI should run testDebugUnitTest before publishing an APK.
+19. **提交与推送时必须更新版本号：** 每批改动提交并推送前，必须递增 `app/build.gradle.kts` 的 `versionName` 和 `versionCode`，使用未用过的新版本号，并同步 `.github/workflows/android-apk.yml` 中的 `workflow_dispatch` 默认版本与备用运行标题；产物名称继续从 Gradle 版本派生。不得等到用户要求构建时才补版本号。提交后若发现漏改，追加版本修正提交，不改写已推送历史。更新版本号和推送本身不授权触发 APK 构建，仍须遵守用户明确请求才构建的规则。
 
 
 ## APK artifact distribution (mandatory)
