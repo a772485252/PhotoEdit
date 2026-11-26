@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | 聊天 | Cloudflare Workers AI | @cf/zai-org/glm-4.7-flash |
 | 聊天 | APIPod | grok-4.5、grok-4.6 |
-| 聊天 | UncensoredLLM | glm-5.3-uncensored |
+| 聊天 | UncensoredLLM | GLM 5.3 Uncensored / Abliterated、DeepSeek V4 Pro Uncensored、Gemma 4 31B Queen、GLM 5.3 Flash Abliterated |
 | 生图 | APIPod | z-image-spicy、z-image-spicy-pro；参考图使用 qwen-image-edit-spicy |
 
 聊天保留自定义模型 ID；是否可调用以平台与账号权限为准。APIPod 聊天和生图共用其加密保存的 Key；Cloudflare 聊天保留原有加密凭据。不要将 Key、Token 或个人账户数据提交仓库。

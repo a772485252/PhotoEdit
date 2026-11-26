@@ -11,7 +11,11 @@ data class ChatModel(val id: String, val name: String)
 object ChatModels {
     fun presets(provider: ChatProvider): List<ChatModel> = when (provider) {
         ChatProvider.UNCENSOREDLLM -> listOf(
-            ChatModel(provider.defaultModel, "GLM 5.3 · Uncensored")
+            ChatModel(provider.defaultModel, "GLM 5.3 · Uncensored"),
+            ChatModel("glm-5.3-abliterated", "GLM 5.3 · Abliterated"),
+            ChatModel("deepseek-v4-pro-uncensored", "DeepSeek V4 Pro · Uncensored"),
+            ChatModel("gemma-4-31b-queen", "Gemma 4 31B · Queen"),
+            ChatModel("glm-5.3-flash-abliterated", "GLM 5.3 Flash · Abliterated")
         )
         ChatProvider.CLOUDFLARE -> listOf(
             ChatModel(provider.defaultModel, "GLM-4.7-Flash · Workers AI")
@@ -47,6 +51,18 @@ object ChatModels {
         provider == ChatProvider.UNCENSOREDLLM && model == provider.defaultModel ->
             PriceGuide("\$0.0032", "\$0.0097",
                 "按 1 字≈1 Token 粗估；2026-11-26 核对公开价输入 $0.3243、输出 $0.9729 / 百万 Token，实际以平台结算为准")
+        provider == ChatProvider.UNCENSOREDLLM && model == "glm-5.3-abliterated" ->
+            PriceGuide("\$0.0233", "\$0.0466",
+                "按 1 字≈1 Token 粗估；2026-11-26 核对模型目录输入 $2.328、输出 $4.656 / 百万 Token，实际以平台结算为准")
+        provider == ChatProvider.UNCENSOREDLLM && model == "deepseek-v4-pro-uncensored" ->
+            PriceGuide("\$0.0094", "\$0.0188",
+                "按 1 字≈1 Token 粗估；2026-11-26 核对模型目录输入 $0.94、输出 $1.88 / 百万 Token，实际以平台结算为准")
+        provider == ChatProvider.UNCENSOREDLLM && model == "gemma-4-31b-queen" ->
+            PriceGuide("\$0.0107", "\$0.0107",
+                "按 1 字≈1 Token 粗估；2026-11-26 核对模型目录输入 $1.071、输出 $1.071 / 百万 Token，实际以平台结算为准")
+        provider == ChatProvider.UNCENSOREDLLM && model == "glm-5.3-flash-abliterated" ->
+            PriceGuide("\$0.0047", "\$0.0194",
+                "按 1 字≈1 Token 粗估；2026-11-26 核对模型目录输入 $0.4656、输出 $1.94 / 百万 Token，实际以平台结算为准")
         provider == ChatProvider.CLOUDFLARE && model == "@cf/zai-org/glm-4.7-flash" ->
             PriceGuide("\$0.0006 · 约55 Neurons", "\$0.0040 · 约364 Neurons",
                 "按 1 字≈1 Token 粗估；Workers AI 实际按 Neurons 计量")

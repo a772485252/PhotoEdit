@@ -1,6 +1,8 @@
 package com.photoedit.app.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -12,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -50,6 +53,7 @@ fun ChatScreen(
     onSummarize: () -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
+    var settingsProvider by remember { mutableStateOf<ChatProvider?>(null) }
     var rulesOpen by remember { mutableStateOf(false) }
     var rulesDraft by remember(state.promptRules, rulesOpen) { mutableStateOf(state.promptRules) }
     var memoryEditor by remember { mutableStateOf<String?>(null) }
@@ -326,71 +330,103 @@ fun ChatScreen(
 
     if (settingsOpen) {
         Dialog(
-            onDismissRequest = { settingsOpen = false },
+            onDismissRequest = { settingsOpen = false; settingsProvider = null },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
+            BackHandler(enabled = settingsProvider != null) { settingsProvider = null }
+            val overviewScroll = rememberScrollState()
+            val platformScroll = key(settingsProvider) { rememberScrollState() }
             Surface(Modifier.fillMaxSize()) {
                 Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("模型与 API 设置", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                        TextButton(onClick = { settingsOpen = false }) { Text("完成") }
+                        if (settingsProvider != null) {
+                            TextButton(onClick = { settingsProvider = null }) { Text("返回") }
+                        }
+                        Text(settingsProvider?.label ?: "平台与模型", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                        TextButton(onClick = { settingsOpen = false; settingsProvider = null }) { Text("完成") }
                     }
                     HorizontalDivider()
                     Column(
-                        Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
+                        Modifier.weight(1f).fillMaxWidth()
+                            .verticalScroll(if (settingsProvider == null) overviewScroll else platformScroll).padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text("聊天服务", style = MaterialTheme.typography.titleSmall)
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (settingsProvider == null) {
+                            Text("按平台配置", style = MaterialTheme.typography.titleMedium)
+                            Text("每个平台分别配置密钥和模型。切换平台会开始新对话，小说资料保留。",
+                                style = MaterialTheme.typography.bodySmall)
                             ChatProvider.entries.forEach { provider ->
-                                FilterChip(selected = state.provider == provider,
-                                    onClick = { onProvider(provider) }, label = { Text(provider.label) },
-                                    enabled = !state.busy, modifier = Modifier.fillMaxWidth())
+                                OutlinedCard(Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text(provider.label, style = MaterialTheme.typography.titleMedium)
+                                        if (state.provider == provider) {
+                                            Text("当前使用 · ${ChatModels.displayName(provider, state.model)}",
+                                                color = MaterialTheme.colorScheme.primary,
+                                                style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                        Text("预设模型：" + ChatModels.presets(provider).joinToString("、") { it.name },
+                                            style = MaterialTheme.typography.bodySmall)
+                                        OutlinedButton(onClick = {
+                                            settingsProvider = provider
+                                            onProvider(provider)
+                                        }, enabled = !state.busy) {
+                                            Text(if (state.provider == provider) "查看配置" else "切换并配置")
+                                        }
+                                    }
+                                }
                             }
-                        }
-                        Text(
-                            when (state.provider) {
-                                ChatProvider.CLOUDFLARE -> "使用本机已保存的 Cloudflare Token 和 Account ID。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
+                        } else if (settingsProvider != state.provider) {
+                            Text(if (state.busy) "正在读取平台配置…" else "平台切换未完成，请返回重试。")
+                            state.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                        } else {
+                            Text("1. 平台密钥", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                when (state.provider) {
+                                    ChatProvider.CLOUDFLARE -> "填写 Cloudflare 控制台创建的 API Token（访问令牌）。账户 ID 由应用读取已保存配置，与下面的模型 ID 不同，此处无需填写。GLM-4.7-Flash 按 Workers AI Neurons 额度计费。"
 
-                                ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
-                                ChatProvider.UNCENSOREDLLM -> "使用单独注册的 UncensoredLLM API Key，按 Token 计费；试用额度以控制台为准。此处是平台提供的低拒答衍生版，仍遵循平台规则。"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (state.provider == ChatProvider.UNCENSOREDLLM) {
-                            TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/") }) { Text("注册 / 获取 Key") }
-                            TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/pricing") }) { Text("查看实时价格") }
-                        }
-                        OutlinedTextField(
-                            value = state.token,
-                            onValueChange = onKey,
-                            label = { Text("${state.provider.label} API Key") },
-                            singleLine = true,
-                            enabled = !state.busy,
-                            modifier = Modifier.fillMaxWidth(),
-                            visualTransformation = PasswordVisualTransformation(),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password)
-                        )
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = onSaveKey, enabled = !state.busy && state.token.isNotBlank()) { Text("保存 Key") }
-                            TextButton(onClick = onClearKey, enabled = !state.busy) { Text("清除当前 Key") }
-                        }
-                        HorizontalDivider()
-                        Text("模型选择", style = MaterialTheme.typography.titleSmall)
-                        ModelSelector(state, onModel, onModelDraft)
-                        Text(
-                            when (state.provider) {
-                                ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
+                                    ChatProvider.APIPOD -> "直接复用图片生成设置中已保存的 APIPod Key。聊天与图片生成共用同一 Key；清除会同时影响两项功能。"
+                                    ChatProvider.UNCENSOREDLLM -> "使用单独注册的 UncensoredLLM API Key，按 Token 计费；试用额度以控制台为准。此处是平台提供的低拒答衍生版，仍遵循平台规则。"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (state.provider == ChatProvider.UNCENSOREDLLM) {
+                                TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/") }) { Text("注册 / 获取 Key") }
+                                TextButton(onClick = { uriHandler.openUri("https://uncensoredllm.ai/pricing") }) { Text("查看实时价格") }
+                            }
+                            OutlinedTextField(
+                                value = state.token,
+                                onValueChange = onKey,
+                                label = { Text(if (state.provider == ChatProvider.CLOUDFLARE) "访问令牌（API Token）" else "平台密钥（API Key）") },
+                                supportingText = { Text("从当前平台控制台复制；仅加密保存在本机。保存不代表已验证接口可用。") },
+                                singleLine = true,
+                                enabled = !state.busy,
+                                modifier = Modifier.fillMaxWidth(),
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password)
+                            )
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = onSaveKey, enabled = !state.busy && state.token.isNotBlank()) { Text("保存密钥") }
+                                TextButton(onClick = onClearKey, enabled = !state.busy) { Text("清除密钥") }
+                            }
+                            HorizontalDivider()
+                            Text("2. 选择模型", style = MaterialTheme.typography.titleMedium)
+                            Text("点选预设即可，无需填写 ID。更换模型会保存选择并开始新对话，小说资料保留。",
+                                style = MaterialTheme.typography.bodySmall)
+                            ModelSelector(state, onModel, onModelDraft)
+                            Text(
+                                when (state.provider) {
+                                    ChatProvider.CLOUDFLARE -> "Cloudflare Token 会加密保存在本机。"
 
-                                ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
-                                ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅主动发送、总结或重新生成时发送文字。"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        state.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                        Text("预设模型不代表当前 Key 一定可用；以平台控制台的模型权限与通道状态为准。", style = MaterialTheme.typography.labelSmall)
+                                    ChatProvider.APIPOD -> "APIPod 聊天与图片生成共用同一个 Key；在这里保存或清除会同步影响图片生成。"
+                                    ChatProvider.UNCENSOREDLLM -> "Key 仅加密保存在本机，独立于其他平台；仅主动发送、总结或重新生成时发送文字。"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            state.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                            Text("预设模型不代表当前 Key 一定可用；以平台控制台的模型权限与通道状态为准。", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             }
@@ -404,47 +440,51 @@ private fun ModelSelector(
     onModel: (String) -> Unit,
     onDraft: (String) -> Unit
 ) {
-    var expanded by remember(state.provider) { mutableStateOf(false) }
-    Text("当前模型：${state.model}", style = MaterialTheme.typography.bodyMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box {
-            OutlinedButton(onClick = { expanded = true }, enabled = !state.busy) { Text("选择模型（${state.models.size}）") }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.heightIn(max = 300.dp)
-            ) {
-                state.models.forEach { model ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                model.name + "\n" + when (state.provider) {
-                                    ChatProvider.CLOUDFLARE -> "Cloudflare Workers AI"
-
-                                    ChatProvider.APIPOD -> "APIPod 按 Token 计费"
-                                    ChatProvider.UNCENSOREDLLM -> "UncensoredLLM 按 Token 计费"
-                                }
-                            )
-                        },
-                        onClick = { expanded = false; onModel(model.id) }
-                    )
-                }
-                if (state.models.isEmpty()) {
-                    DropdownMenuItem(text = { Text("暂无预设模型，可手动填写 ID") }, onClick = {}, enabled = false)
+    var advanced by remember(state.provider) { mutableStateOf(false) }
+    Text("当前模型：${ChatModels.displayName(state.provider, state.model)}", style = MaterialTheme.typography.bodyMedium)
+    state.models.forEach { model ->
+        Row(
+            Modifier.fillMaxWidth().selectable(
+                selected = state.model == model.id,
+                enabled = !state.busy,
+                role = Role.RadioButton,
+                onClick = { if (state.model != model.id) onModel(model.id) }
+            ).heightIn(min = 48.dp).padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(selected = state.model == model.id, onClick = null, enabled = !state.busy)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(model.name)
+                ChatModels.priceGuide(state.provider, model.id)?.let { price ->
+                    Text("每万汉字估算：输入 ${price.inputPerTenThousandChars} · 输出 ${price.outputPerTenThousandChars}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
     }
-    OutlinedTextField(
-        value = state.modelDraft,
-        onValueChange = onDraft,
-        label = { Text("自定义模型 ID") },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        enabled = !state.busy
-    )
-    TextButton(
-        onClick = { onModel(state.modelDraft) },
-        enabled = !state.busy && state.modelDraft.isNotBlank()
-    ) { Text("使用此模型并保存") }
+    TextButton(onClick = { advanced = !advanced }) {
+        Text(if (advanced) "收起高级设置" else "高级设置：其他模型")
+    }
+    if (advanced) {
+        Text("模型 ID 是平台为模型指定的接口名称，不是账号 ID、密钥或网址。只有使用预设以外的模型时，才需从当前平台的模型文档复制完整 ID。",
+            style = MaterialTheme.typography.bodySmall)
+        SelectionContainer {
+            Text("当前模型 ID：${state.model}", style = MaterialTheme.typography.bodySmall)
+        }
+        OutlinedTextField(
+            value = state.modelDraft,
+            onValueChange = onDraft,
+            label = { Text("其他模型的 ID（可选）") },
+            placeholder = { Text("例如：${state.provider.defaultModel}") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !state.busy
+        )
+        TextButton(
+            onClick = { onModel(state.modelDraft) },
+            enabled = !state.busy && state.modelDraft.isNotBlank()
+        ) { Text("使用并保存此模型") }
+    }
 }
